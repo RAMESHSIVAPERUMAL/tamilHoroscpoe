@@ -67,6 +67,17 @@ public class PanchangCalculator : IPanchangCalculator
     /// </summary>
     public HoroscopeData CalculateHoroscope(BirthDetails birthDetails)
     {
+        return CalculateHoroscope(birthDetails, includeDasa: false);
+    }
+
+    /// <summary>
+    /// Calculate complete horoscope including chart, Panchangam, and optionally Vimshottari Dasa
+    /// </summary>
+    /// <param name="birthDetails">Birth details for calculation</param>
+    /// <param name="includeDasa">Whether to calculate Vimshottari Dasa periods</param>
+    /// <param name="dasaYears">Number of years of Dasa to calculate (default: 120)</param>
+    public HoroscopeData CalculateHoroscope(BirthDetails birthDetails, bool includeDasa = false, int dasaYears = 120)
+    {
         using var swissEph = new SwissEphemerisHelper(_ephemerisPath);
         
         double julianDay = JulianDay.ToJulianDay(birthDetails.DateTime, birthDetails.TimeZoneOffset);
@@ -91,6 +102,18 @@ public class PanchangCalculator : IPanchangCalculator
         
         // Calculate houses with planets
         CalculateHouses(horoscope, cusps);
+
+        // Calculate Vimshottari Dasa if requested
+        if (includeDasa)
+        {
+            var dasaCalculator = new DasaCalculator();
+            horoscope.VimshottariDasas = dasaCalculator.CalculateVimshottariDasa(
+                birthDetails.DateTime,
+                horoscope.Panchang.NakshatraNumber,
+                horoscope.Panchang.MoonLongitude,
+                dasaYears
+            );
+        }
         
         return horoscope;
     }
