@@ -127,7 +127,7 @@ class Program
             var currentDasa = horoscope.VimshottariDasas.FirstOrDefault(d => d.StartDate <= DateTime.Now && d.EndDate >= DateTime.Now);
             if (currentDasa != null)
             {
-                Console.WriteLine($"CURRENT DASA - {currentDasa.Lord} Bhukti (Sub-Periods):");
+                Console.WriteLine($"CURRENT DASA - {currentDasa.Lord} BHUKTIS (Sub-Periods):");
                 Console.WriteLine($"  {"Bhukti Lord",-15} {"Tamil Lord",-15} {"Start Date",-15} {"End Date",-15} {"Days",-8}");
                 Console.WriteLine($"  {new string('-', 80)}");
                 
@@ -141,7 +141,7 @@ class Program
             {
                 // Show bhuktis for the first dasa as an example
                 var firstDasa = horoscope.VimshottariDasas[0];
-                Console.WriteLine($"FIRST DASA - {firstDasa.Lord} Bhukti (Sub-Periods):");
+                Console.WriteLine($"FIRST DASA - {firstDasa.Lord} BHUKTIS (Sub-Periods):");
                 Console.WriteLine($"  {"Bhukti Lord",-15} {"Tamil Lord",-15} {"Start Date",-15} {"End Date",-15} {"Days",-8}");
                 Console.WriteLine($"  {new string('-', 80)}");
                 
