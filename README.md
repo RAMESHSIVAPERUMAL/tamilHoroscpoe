@@ -9,6 +9,7 @@ A .NET application for generating Tamil horoscopes using Thirukanitha Panachanga
 - ✅ **Tamil Language Support** - All astrological elements with Tamil names
 - ✅ **Swiss Ephemeris Integration** - High-precision astronomical calculations
 - ✅ **Lahiri Ayanamsa** - Standard for Tamil/Vedic astrology
+- ✅ **Vimshottari Dasa/Bhukti** - Calculate major and minor planetary periods based on Moon's nakshatra
 - 🔄 **Multiple Locations** - Support for any geographic location
 
 ## Project Structure
@@ -66,7 +67,6 @@ dotnet test --logger "console;verbosity=detailed"
 
 ## Future Enhancements
 
-- [ ] Vimshottari Dasa/Bhukti calculations
 - [ ] Navamsa (D-9) divisional chart
 - [ ] PDF export
 - [ ] WPF desktop UI
