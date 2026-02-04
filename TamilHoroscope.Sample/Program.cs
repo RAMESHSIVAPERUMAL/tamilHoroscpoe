@@ -66,7 +66,7 @@ class Program
 
     static void DisplayHoroscope(PanchangCalculator calculator, BirthDetails birthDetails)
     {
-        var horoscope = calculator.CalculateHoroscope(birthDetails);
+        var horoscope = calculator.CalculateHoroscope(birthDetails, includeDasa: true, dasaYears: 120);
 
         Console.WriteLine($"Location: {birthDetails.PlaceName}");
         Console.WriteLine($"Date/Time: {birthDetails.DateTime:yyyy-MM-dd HH:mm:ss}");
@@ -107,6 +107,50 @@ class Program
         {
             var planets = house.Planets.Count > 0 ? string.Join(", ", house.Planets) : "-";
             Console.WriteLine($"  {house.HouseNumber,-8} {house.RasiName,-15} {house.TamilRasiName,-15} {house.Lord,-10} {planets}");
+        }
+        Console.WriteLine();
+
+        // Display Vimshottari Dasa if available
+        if (horoscope.VimshottariDasas != null && horoscope.VimshottariDasas.Count > 0)
+        {
+            Console.WriteLine("VIMSHOTTARI DASA (Major Periods):");
+            Console.WriteLine($"  {"Dasa Lord",-15} {"Tamil Lord",-15} {"Start Date",-15} {"End Date",-15} {"Years",-6}");
+            Console.WriteLine($"  {new string('-', 80)}");
+            
+            foreach (var dasa in horoscope.VimshottariDasas.Take(10)) // Show first 10 dasas
+            {
+                Console.WriteLine($"  {dasa.Lord,-15} {dasa.TamilLord,-15} {dasa.StartDate:yyyy-MM-dd}  {dasa.EndDate:yyyy-MM-dd}  {dasa.DurationYears,-6}");
+            }
+            Console.WriteLine();
+
+            // Display Bhuktis for the current Dasa
+            var currentDasa = horoscope.VimshottariDasas.FirstOrDefault(d => d.StartDate <= DateTime.Now && d.EndDate >= DateTime.Now);
+            if (currentDasa != null)
+            {
+                Console.WriteLine($"CURRENT DASA - {currentDasa.Lord} BHUKTIS (Sub-Periods):");
+                Console.WriteLine($"  {"Bhukti Lord",-15} {"Tamil Lord",-15} {"Start Date",-15} {"End Date",-15} {"Days",-8}");
+                Console.WriteLine($"  {new string('-', 80)}");
+                
+                foreach (var bhukti in currentDasa.Bhuktis)
+                {
+                    Console.WriteLine($"  {bhukti.Lord,-15} {bhukti.TamilLord,-15} {bhukti.StartDate:yyyy-MM-dd}  {bhukti.EndDate:yyyy-MM-dd}  {bhukti.DurationDays,-8:F1}");
+                }
+                Console.WriteLine();
+            }
+            else
+            {
+                // Show bhuktis for the first dasa as an example
+                var firstDasa = horoscope.VimshottariDasas[0];
+                Console.WriteLine($"FIRST DASA - {firstDasa.Lord} BHUKTIS (Sub-Periods):");
+                Console.WriteLine($"  {"Bhukti Lord",-15} {"Tamil Lord",-15} {"Start Date",-15} {"End Date",-15} {"Days",-8}");
+                Console.WriteLine($"  {new string('-', 80)}");
+                
+                foreach (var bhukti in firstDasa.Bhuktis)
+                {
+                    Console.WriteLine($"  {bhukti.Lord,-15} {bhukti.TamilLord,-15} {bhukti.StartDate:yyyy-MM-dd}  {bhukti.EndDate:yyyy-MM-dd}  {bhukti.DurationDays,-8:F1}");
+                }
+                Console.WriteLine();
+            }
         }
     }
 }
