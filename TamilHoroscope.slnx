@@ -2,4 +2,5 @@
   <Project Path="TamilHoroscope.Core/TamilHoroscope.Core.csproj" />
   <Project Path="TamilHoroscope.Sample/TamilHoroscope.Sample.csproj" />
   <Project Path="TamilHoroscope.Tests/TamilHoroscope.Tests.csproj" />
+  <Project Path="TamilHoroscope.Desktop/TamilHoroscope.Desktop.csproj" />
 </Solution>

@@ -1,0 +1,10 @@
+﻿<Application x:Class="TamilHoroscope.Desktop.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:TamilHoroscope.Desktop"
+             xmlns:converters="clr-namespace:TamilHoroscope.Desktop.Converters"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+    </Application.Resources>
+</Application>
