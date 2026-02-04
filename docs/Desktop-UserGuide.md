@@ -212,7 +212,7 @@ Planned features for future releases:
 ## Support
 
 For issues, suggestions, or contributions, please visit the GitHub repository:
-https://github.com/RAMESHSIVAPERUMAL/tamilHoroscpoe
+https://github.com/RAMESHSIVAPERUMAL/tamilHoroscope
 
 ---
 
