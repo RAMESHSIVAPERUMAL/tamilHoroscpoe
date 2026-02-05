@@ -10,7 +10,7 @@
         MinHeight="700" MinWidth="1200"
         WindowStartupLocation="CenterScreen"
         Background="#F5F5F5">
-    
+
     <Window.Resources>
         <!-- Modern Button Style -->
         <Style x:Key="ModernButtonStyle" TargetType="Button">
@@ -55,6 +55,15 @@
 
         <!-- Modern TextBox Style -->
         <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="BorderBrush" Value="#BDBDBD"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="White"/>
+        </Style>
+
+        <!-- Modern DatePicker Style -->
+        <Style x:Key="ModernDatePickerStyle" TargetType="DatePicker">
             <Setter Property="Padding" Value="8"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="BorderBrush" Value="#BDBDBD"/>
@@ -145,7 +154,7 @@
                             <!-- Date of Birth -->
                             <TextBlock Text="Date of Birth / பிறந்த தேதி" Style="{StaticResource LabelStyle}"/>
                             <DatePicker x:Name="dpBirthDate" 
-                                        Style="{StaticResource ModernTextBoxStyle}"
+                                        Style="{StaticResource ModernDatePickerStyle}"
                                         Margin="0,0,0,10"
                                         ToolTip="Select birth date"/>
 
@@ -353,25 +362,52 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Navamsa Chart Section -->
-                    <Border x:Name="navamsaSection" 
-                            Background="White" 
+                    <!-- Chart Visualization Section -->
+                    <Border Background="White" 
                             CornerRadius="8" 
                             Padding="20" 
                             Margin="0,0,0,10" 
                             BorderBrush="#E0E0E0" 
                             BorderThickness="1"
+                            x:Name="chartSection"
                             Visibility="Collapsed">
                         <StackPanel>
-                            <TextBlock Text="Navamsa Chart (D-9) - நவாம்சம்" 
+                            <TextBlock Text="Birth Charts - ஜாதக கட்டம்" 
                                        Style="{StaticResource SectionHeaderStyle}"/>
-                            <TextBlock x:Name="txtNavamsa" 
-                                       TextWrapping="Wrap" 
-                                       FontSize="13"
-                                       LineHeight="22"
-                                       Foreground="#757575"
-                                       FontStyle="Italic"
-                                       Text="Navamsa chart calculation will be displayed here once implemented."/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <!-- Rasi Chart -->
+                                <Border Grid.Column="0" BorderBrush="#E0E0E0" BorderThickness="1" Padding="10">
+                                    <StackPanel>
+                                        <TextBlock Text="ராசி (D-1)" 
+                                                   FontWeight="SemiBold" 
+                                                   HorizontalAlignment="Center"
+                                                   Margin="0,0,0,10"/>
+                                        <Border x:Name="rasiChartContainer" 
+                                                Background="White"
+                                                Height="350"/>
+                                    </StackPanel>
+                                </Border>
+                                
+                                <!-- Navamsa Chart -->
+                                <Border Grid.Column="2" BorderBrush="#E0E0E0" BorderThickness="1" Padding="10"
+                                        x:Name="navamsaChartBorder">
+                                    <StackPanel>
+                                        <TextBlock Text="Navamsa Chart (D-9)" 
+                                                   FontWeight="SemiBold" 
+                                                   HorizontalAlignment="Center"
+                                                   Margin="0,0,0,10"/>
+                                        <Border x:Name="navamsaChartContainer" 
+                                                Background="White"
+                                                Height="350"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
                         </StackPanel>
                     </Border>
 

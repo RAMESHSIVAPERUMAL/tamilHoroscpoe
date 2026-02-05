@@ -55,7 +55,7 @@ public class SwissEphemerisHelper : IDisposable
     /// <param name="longitude">Geographic longitude</param>
     /// <param name="houseSystem">House system ('P' for Placidus, 'W' for Whole Sign, etc.)</param>
     /// <returns>Tuple of (cusps array, ascmc array)</returns>
-    public (double[] cusps, double[] ascmc) CalculateHouses(double julianDay, double latitude, double longitude, char houseSystem = 'P')
+    public (double[] cusps, double[] ascmc) CalculateHouses(double julianDay, double latitude, double longitude, char houseSystem = 'W')
     {
         double[] cusps = new double[13]; // cusps[1] to cusps[12] are house cusps
         double[] ascmc = new double[10];  // ascmc[0] is Ascendant, ascmc[1] is MC, etc.

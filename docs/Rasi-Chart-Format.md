@@ -1,0 +1,153 @@
+# South Indian Rasi Chart Format
+
+## Overview
+The Tamil Horoscope application uses the **traditional South Indian Rasi Chart** format, which displays planetary positions in a fixed square grid pattern.
+
+## Chart Layout
+
+The chart is a square divided into 12 sections with a diagonal cross (X pattern):
+
+**TRADITIONAL SOUTH INDIAN FORMAT** (Aries in 2nd position from left, top row):
+
+```
+?????????????????????????????????
+?  12   ?   1   ?   2   ?   3   ?
+?Pisces ? Aries ?Taurus ?Gemini ?
+?????????????????????????????????
+?  11   ?   X   ?   X   ?   4   ?
+?Aquari ?       ?       ?Cancer ?
+?????????????????????????????????
+?  10   ?   X   ?   X   ?   5   ?
+? Capri ?       ?       ?  Leo  ?
+?????????????????????????????????
+?   9   ?   8   ?   7   ?   6   ?
+? Sagit ?Scorpio? Libra ? Virgo ?
+?????????????????????????????????
+```
+
+## Fixed Rasi Positions (TRADITIONAL)
+
+The 12 Rasis (zodiac signs) always occupy the same positions:
+
+| Position | Screen Location | Rasi Number | Rasi Name (English) | Tamil Name |
+|----------|----------------|-------------|---------------------|------------|
+| 1 | Top-Left | 12 | Pisces | ????? |
+| 2 | Top-Left-Center | 1 | **Aries** | ????? |
+| 3 | Top-Right-Center | 2 | Taurus | ?????? |
+| 4 | Top-Right | 3 | Gemini | ??????? |
+| 5 | Right-Top | 4 | Cancer | ????? |
+| 6 | Right-Bottom | 5 | Leo | ??????? |
+| 7 | Bottom-Right | 6 | Virgo | ????? |
+| 8 | Bottom-Right-Center | 7 | Libra | ?????? |
+| 9 | Bottom-Left-Center | 8 | Scorpio | ??????????? |
+| 10 | Bottom-Left | 9 | Sagittarius | ????? |
+| 11 | Left-Bottom | 10 | Capricorn | ????? |
+| 12 | Left-Top | 11 | Aquarius | ??????? |
+
+**Note**: Aries (Rasi 1) is in the **2nd box from left on the top row**, which is the traditional South Indian format.
+
+## Chart Elements
+
+### 1. Rasi Number
+Each section displays the Rasi number (1-12) in small gray text at the top.
+
+### 2. Lagna (Ascendant) Marker
+The Rasi containing the Lagna (Ascendant) is marked with **"? As"** in green, indicating:
+- ? = Ascendant symbol
+- As = Ascendant abbreviation
+
+### 3. Planet Abbreviations
+Planets in each Rasi are shown with standard abbreviations:
+
+| Planet | Abbreviation | Tamil Name |
+|--------|--------------|------------|
+| Sun | Su | ??????? |
+| Moon | Mo | ???????? |
+| Mars | Ma | ???????? |
+| Mercury | Me | ????? |
+| Jupiter | Ju | ???? |
+| Venus | Ve | ????????? |
+| Saturn | Sa | ??? |
+| Rahu | Ra | ???? |
+| Ketu | Ke | ???? |
+
+### 4. Visual Styling
+- **Outer border**: Thick black line (2.5px)
+- **Diagonal cross**: Black lines (1px) creating the X pattern
+- **Rasi numbers**: Small gray text (9pt)
+- **Lagna marker**: Green bold text (10pt)
+- **Planet names**: Dark red bold text (11pt)
+
+## Example: Ramesh Birth Chart
+
+For the sample birth details (July 18, 1983, 6:35 AM, Kumbakonam):
+
+- **Lagna**: Cancer (Rasi 4, Position 5 - Right-Top)
+- **Sun**: Cancer (with Lagna)
+- **Moon**: Libra (Rasi 7, Position 8 - Bottom-Right-Center)
+- **Mars**: Gemini (Rasi 3, Position 4 - Top-Right)
+- **Mercury**: Cancer (with Lagna and Sun)
+- **Jupiter**: Scorpio (Rasi 8, Position 9 - Bottom-Left-Center)
+- **Venus**: Leo (Rasi 5, Position 6 - Right-Bottom)
+- **Saturn**: Libra (with Moon, Position 8)
+- **Rahu**: Gemini (with Mars, Position 4)
+- **Ketu**: Sagittarius (Rasi 9, Position 10 - Bottom-Left)
+
+The chart would show:
+```
+?????????????????????????????????
+?  12   ?   1   ?   2   ?   3   ?
+?       ?       ?       ? Ma Ra ?
+?????????????????????????????????
+?  11   ?       ?       ?   4   ?
+?       ?       ?       ??As Su ?
+?       ?       ?       ?  Me   ?
+?????????????????????????????????
+?  10   ?       ?       ?   5   ?
+?       ?       ?       ?  Ve   ?
+?????????????????????????????????
+?   9   ?   8   ?   7   ?   6   ?
+?  Ke   ?  Ju   ? Mo Sa ?       ?
+?????????????????????????????????
+```
+
+## Key Features
+
+1. **Fixed Traditional Layout**: Aries is always in the 2nd position from left on top row
+2. **Lagna-Independent**: Chart structure doesn't rotate with Lagna
+3. **Easy Reading**: Quick visual identification of planetary placements
+4. **Traditional**: Follows authentic South Indian Vedic astrology conventions
+5. **Clean Display**: Clear, uncluttered presentation of information
+
+## Why Aries is in Position 2?
+
+In the **traditional South Indian Rasi chart**:
+- The chart represents the fixed zodiac positions
+- Aries (Mesha) begins at the spring equinox point
+- The layout follows a counter-clockwise pattern starting from Aries
+- This format has been used for centuries in Tamil/Vedic astrology
+- It's the standard format seen on prokerala.com and other authentic sources
+
+## Usage in Application
+
+The `RasiChartControl` class in `TamilHoroscope.Desktop/Controls/RasiChartControl.xaml.cs` implements this format:
+
+1. Draws the square border
+2. Draws the diagonal cross (X pattern)
+3. Maps planets to their Rasis using traditional positions
+4. Displays Lagna marker in the correct Rasi
+5. Shows planet abbreviations in each section
+
+The chart is displayed in the main window when the "Calculate Horoscope" button is clicked.
+
+## References
+
+- Traditional South Indian Rasi Chart format
+- Prokerala.com Tamil Jathagam format: https://www.prokerala.com/astrology/jathagam-tamil.php
+- Standard Vedic astrology conventions
+- Tamil astrology textbooks and traditional practices
+
+---
+
+**Last Updated**: February 3, 2026
+**Status**: Corrected to Traditional Format with Aries in Position 2

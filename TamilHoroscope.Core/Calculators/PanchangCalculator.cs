@@ -89,11 +89,21 @@ public class PanchangCalculator : IPanchangCalculator
             Panchang = CalculatePanchang(birthDetails)
         };
         
-        // Calculate Houses and Lagna (Ascendant)
-        var (cusps, ascmc) = swissEph.CalculateHouses(julianDay, birthDetails.Latitude, birthDetails.Longitude);
+        // Calculate Houses and Lagna (Ascendant) using Whole Sign house system
+        var (cusps, ascmc) = swissEph.CalculateHouses(julianDay, birthDetails.Latitude, birthDetails.Longitude, 'W');
         
-        horoscope.LagnaLongitude = ascmc[0]; // Ascendant
-        horoscope.LagnaRasi = GetRasiNumber(ascmc[0]);
+        // Important: swe_houses returns tropical ascendant, we need to subtract ayanamsa for sidereal
+        double ayanamsa = swissEph.GetAyanamsa(julianDay);
+        double tropicalAscendant = ascmc[0];
+        double siderealAscendant = tropicalAscendant - ayanamsa;
+        
+        // Normalize to 0-360 range
+        while (siderealAscendant < 0) siderealAscendant += 360.0;
+        while (siderealAscendant >= 360.0) siderealAscendant -= 360.0;
+        
+        // Get sidereal ascendant longitude
+        horoscope.LagnaLongitude = siderealAscendant;
+        horoscope.LagnaRasi = GetRasiNumber(siderealAscendant);
         var lagnaRasiInfo = TamilNames.Rasis[horoscope.LagnaRasi];
         horoscope.LagnaRasiName = lagnaRasiInfo.English;
         horoscope.TamilLagnaRasiName = lagnaRasiInfo.Tamil;
