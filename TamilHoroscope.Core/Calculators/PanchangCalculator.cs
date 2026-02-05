@@ -67,6 +67,18 @@ public class PanchangCalculator : IPanchangCalculator
     /// </summary>
     public HoroscopeData CalculateHoroscope(BirthDetails birthDetails)
     {
+        return CalculateHoroscope(birthDetails, includeDasa: false, includeNavamsa: false);
+    }
+
+    /// <summary>
+    /// Calculate complete horoscope including chart, Panchangam, and optionally Vimshottari Dasa and Navamsa
+    /// </summary>
+    /// <param name="birthDetails">Birth details for calculation</param>
+    /// <param name="includeDasa">Whether to calculate Vimshottari Dasa periods</param>
+    /// <param name="includeNavamsa">Whether to calculate Navamsa (D-9) divisional chart</param>
+    /// <param name="dasaYears">Number of years of Dasa to calculate (default: 120)</param>
+    public HoroscopeData CalculateHoroscope(BirthDetails birthDetails, bool includeDasa = false, bool includeNavamsa = false, int dasaYears = 120)
+    {
         using var swissEph = new SwissEphemerisHelper(_ephemerisPath);
         
         double julianDay = JulianDay.ToJulianDay(birthDetails.DateTime, birthDetails.TimeZoneOffset);
@@ -91,6 +103,25 @@ public class PanchangCalculator : IPanchangCalculator
         
         // Calculate houses with planets
         CalculateHouses(horoscope, cusps);
+
+        // Calculate Vimshottari Dasa if requested
+        if (includeDasa)
+        {
+            var dasaCalculator = new DasaCalculator();
+            horoscope.VimshottariDasas = dasaCalculator.CalculateVimshottariDasa(
+                birthDetails.DateTime,
+                horoscope.Panchang.NakshatraNumber,
+                horoscope.Panchang.MoonLongitude,
+                dasaYears
+            );
+        }
+        
+        // Calculate Navamsa (D-9) divisional chart if requested
+        if (includeNavamsa)
+        {
+            var navamsaCalculator = new NavamsaCalculator();
+            horoscope.NavamsaPlanets = navamsaCalculator.CalculateNavamsaChart(horoscope.Planets);
+        }
         
         return horoscope;
     }

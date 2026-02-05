@@ -214,4 +214,63 @@ public static class TamilNames
         { 11, "Saturn" },   // Aquarius
         { 12, "Jupiter" }   // Pisces
     };
+
+    /// <summary>
+    /// Vimshottari Dasa durations in years for each planet
+    /// </summary>
+    public static readonly Dictionary<string, int> DasaDurations = new()
+    {
+        { "Sun", 6 },
+        { "Moon", 10 },
+        { "Mars", 7 },
+        { "Mercury", 17 },
+        { "Jupiter", 16 },
+        { "Venus", 20 },
+        { "Saturn", 19 },
+        { "Rahu", 18 },
+        { "Ketu", 7 }
+    };
+
+    /// <summary>
+    /// Vimshottari Dasa sequence starting from each nakshatra
+    /// The sequence is: Ketu, Venus, Sun, Moon, Mars, Rahu, Jupiter, Saturn, Mercury
+    /// </summary>
+    public static readonly Dictionary<int, string> NakshatraDasaLord = new()
+    {
+        { 1, "Ketu" },      // Ashwini
+        { 2, "Venus" },     // Bharani
+        { 3, "Sun" },       // Krittika
+        { 4, "Moon" },      // Rohini
+        { 5, "Mars" },      // Mrigashira
+        { 6, "Rahu" },      // Ardra
+        { 7, "Jupiter" },   // Punarvasu
+        { 8, "Saturn" },    // Pushya
+        { 9, "Mercury" },   // Ashlesha
+        { 10, "Ketu" },     // Magha
+        { 11, "Venus" },    // Purva Phalguni
+        { 12, "Sun" },      // Uttara Phalguni
+        { 13, "Moon" },     // Hasta
+        { 14, "Mars" },     // Chitra
+        { 15, "Rahu" },     // Swati
+        { 16, "Jupiter" },  // Vishakha
+        { 17, "Saturn" },   // Anuradha
+        { 18, "Mercury" },  // Jyeshtha
+        { 19, "Ketu" },     // Mula
+        { 20, "Venus" },    // Purva Ashadha
+        { 21, "Sun" },      // Uttara Ashadha
+        { 22, "Moon" },     // Shravana
+        { 23, "Mars" },     // Dhanishta
+        { 24, "Rahu" },     // Shatabhisha
+        { 25, "Jupiter" },  // Purva Bhadrapada
+        { 26, "Saturn" },   // Uttara Bhadrapada
+        { 27, "Mercury" }   // Revati
+    };
+
+    /// <summary>
+    /// Dasa sequence order (used for calculating subsequent dasas)
+    /// </summary>
+    public static readonly string[] DasaSequence = 
+    {
+        "Ketu", "Venus", "Sun", "Moon", "Mars", "Rahu", "Jupiter", "Saturn", "Mercury"
+    };
 }

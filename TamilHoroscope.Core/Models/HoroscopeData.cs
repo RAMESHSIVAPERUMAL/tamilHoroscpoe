@@ -49,4 +49,9 @@ public class HoroscopeData
     /// Navamsa chart data (optional, for divisional chart)
     /// </summary>
     public List<PlanetData>? NavamsaPlanets { get; set; }
+
+    /// <summary>
+    /// Vimshottari Dasa periods (optional)
+    /// </summary>
+    public List<DasaData>? VimshottariDasas { get; set; }
 }
