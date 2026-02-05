@@ -1,0 +1,417 @@
+﻿<Window x:Class="TamilHoroscope.Desktop.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TamilHoroscope.Desktop"
+        mc:Ignorable="d"
+        Title="Tamil Horoscope Calculator - தமிழ் ஜாதகம்" 
+        Height="900" Width="1400" 
+        MinHeight="700" MinWidth="1200"
+        WindowStartupLocation="CenterScreen"
+        Background="#F5F5F5">
+    
+    <Window.Resources>
+        <!-- Modern Button Style -->
+        <Style x:Key="ModernButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#2196F3"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="4" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#1976D2"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#BDBDBD"/>
+                    <Setter Property="Cursor" Value="Arrow"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Export Button Style -->
+        <Style x:Key="ExportButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButtonStyle}">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#388E3C"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Modern TextBox Style -->
+        <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="BorderBrush" Value="#BDBDBD"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="White"/>
+        </Style>
+
+        <!-- Modern ComboBox Style -->
+        <Style x:Key="ModernComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="BorderBrush" Value="#BDBDBD"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="White"/>
+        </Style>
+
+        <!-- Section Header Style -->
+        <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#212121"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+
+        <!-- Label Style -->
+        <Style x:Key="LabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#424242"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+        </Style>
+
+        <!-- Expander Style -->
+        <Style x:Key="ModernExpanderStyle" TargetType="Expander">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#2196F3" CornerRadius="8" Padding="20" Margin="0,0,0,20">
+            <StackPanel>
+                <TextBlock Text="Tamil Horoscope Calculator" 
+                           FontSize="28" 
+                           FontWeight="Bold" 
+                           Foreground="White"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="தமிழ் ஜாதக கணிப்பு" 
+                           FontSize="20" 
+                           Foreground="White"
+                           HorizontalAlignment="Center"
+                           Margin="0,5,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="400"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Panel - Input Section -->
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Margin="0,0,10,0">
+                <StackPanel>
+                    <!-- Birth Details Section -->
+                    <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,10" 
+                            BorderBrush="#E0E0E0" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Birth Details - பிறப்பு விவரங்கள்" 
+                                       Style="{StaticResource SectionHeaderStyle}"/>
+
+                            <!-- Name -->
+                            <TextBlock Text="Name / பெயர்" Style="{StaticResource LabelStyle}"/>
+                            <TextBox x:Name="txtName" 
+                                     Style="{StaticResource ModernTextBoxStyle}" 
+                                     Margin="0,0,0,10"
+                                     ToolTip="Enter the person's name"/>
+
+                            <!-- Date of Birth -->
+                            <TextBlock Text="Date of Birth / பிறந்த தேதி" Style="{StaticResource LabelStyle}"/>
+                            <DatePicker x:Name="dpBirthDate" 
+                                        Style="{StaticResource ModernTextBoxStyle}"
+                                        Margin="0,0,0,10"
+                                        ToolTip="Select birth date"/>
+
+                            <!-- Time of Birth -->
+                            <TextBlock Text="Time of Birth (HH:mm:ss) / பிறந்த நேரம்" Style="{StaticResource LabelStyle}"/>
+                            <TextBox x:Name="txtBirthTime" 
+                                     Text="10:00:00"
+                                     Style="{StaticResource ModernTextBoxStyle}" 
+                                     Margin="0,0,0,10"
+                                     ToolTip="Enter time in 24-hour format (HH:mm:ss)"/>
+
+                            <!-- Place Name -->
+                            <TextBlock Text="Place Name / இடம்" Style="{StaticResource LabelStyle}"/>
+                            <TextBox x:Name="txtPlaceName" 
+                                     Text="Chennai"
+                                     Style="{StaticResource ModernTextBoxStyle}" 
+                                     Margin="0,0,0,10"
+                                     ToolTip="Enter birth place name"/>
+
+                            <!-- Latitude -->
+                            <TextBlock Text="Latitude / அட்சரேகை" Style="{StaticResource LabelStyle}"/>
+                            <TextBox x:Name="txtLatitude" 
+                                     Text="13.0827"
+                                     Style="{StaticResource ModernTextBoxStyle}" 
+                                     Margin="0,0,0,10"
+                                     ToolTip="Enter latitude (e.g., 13.0827 for Chennai)"/>
+
+                            <!-- Longitude -->
+                            <TextBlock Text="Longitude / தீர்க்கரேகை" Style="{StaticResource LabelStyle}"/>
+                            <TextBox x:Name="txtLongitude" 
+                                     Text="80.2707"
+                                     Style="{StaticResource ModernTextBoxStyle}" 
+                                     Margin="0,0,0,10"
+                                     ToolTip="Enter longitude (e.g., 80.2707 for Chennai)"/>
+
+                            <!-- Timezone -->
+                            <TextBlock Text="Timezone Offset (hours) / நேர மண்டலம்" Style="{StaticResource LabelStyle}"/>
+                            <TextBox x:Name="txtTimezone" 
+                                     Text="5.5"
+                                     Style="{StaticResource ModernTextBoxStyle}" 
+                                     Margin="0,0,0,10"
+                                     ToolTip="Enter timezone offset in hours (e.g., 5.5 for IST)"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Advanced Options Section -->
+                    <Expander Header="Advanced Options - மேம்பட்ட விருப்பங்கள்" 
+                              Style="{StaticResource ModernExpanderStyle}"
+                              IsExpanded="False"
+                              Padding="20">
+                        <StackPanel>
+                            <!-- Vimshottari Dasa Options -->
+                            <TextBlock Text="Vimshottari Dasa Options" 
+                                       FontSize="14" 
+                                       FontWeight="SemiBold" 
+                                       Margin="0,0,0,10"/>
+
+                            <CheckBox x:Name="chkCalculateDasa" 
+                                      Content="Calculate Vimshottari Dasa / விம்சோத்தரி தசா கணக்கு"
+                                      IsChecked="True"
+                                      Margin="0,0,0,10"
+                                      ToolTip="Enable Vimshottari Dasa calculation"/>
+
+                            <TextBlock Text="Years to Display / காண்பிக்க ஆண்டுகள்" 
+                                       Style="{StaticResource LabelStyle}"/>
+                            <ComboBox x:Name="cmbDasaYears" 
+                                      Style="{StaticResource ModernComboBoxStyle}"
+                                      SelectedIndex="2"
+                                      Margin="0,0,0,15"
+                                      ToolTip="Select number of years to display">
+                                <ComboBoxItem Content="10 Years"/>
+                                <ComboBoxItem Content="25 Years"/>
+                                <ComboBoxItem Content="50 Years"/>
+                                <ComboBoxItem Content="Full 120 Years"/>
+                            </ComboBox>
+
+                            <!-- Navamsa Chart Options -->
+                            <TextBlock Text="Navamsa Chart Options" 
+                                       FontSize="14" 
+                                       FontWeight="SemiBold" 
+                                       Margin="0,10,0,10"/>
+
+                            <CheckBox x:Name="chkCalculateNavamsa" 
+                                      Content="Calculate Navamsa (D-9) Chart / நவாம்சம் கணக்கு"
+                                      IsChecked="True"
+                                      Margin="0,0,0,10"
+                                      ToolTip="Enable Navamsa divisional chart calculation"/>
+
+                            <CheckBox x:Name="chkShowNavamsaDetails" 
+                                      Content="Show Detailed Navamsa Positions"
+                                      IsChecked="True"
+                                      Margin="0,0,0,10"
+                                      ToolTip="Display detailed planet positions in Navamsa"/>
+                        </StackPanel>
+                    </Expander>
+
+                    <!-- Action Buttons -->
+                    <StackPanel Margin="0,20,0,0">
+                        <Button x:Name="btnCalculate" 
+                                Content="Calculate Horoscope / ஜாதகம் கணக்கிடு" 
+                                Style="{StaticResource ModernButtonStyle}"
+                                Click="BtnCalculate_Click"
+                                Margin="0,0,0,10"
+                                Height="45"/>
+
+                        <Button x:Name="btnExportPdf" 
+                                Content="Export to PDF / PDF ஆக சேமி" 
+                                Style="{StaticResource ExportButtonStyle}"
+                                Click="BtnExportPdf_Click"
+                                IsEnabled="False"
+                                Height="45"
+                                ToolTip="Export horoscope results to PDF"/>
+                    </StackPanel>
+
+                    <!-- Status Bar -->
+                    <Border Background="#FFF9C4" 
+                            CornerRadius="4" 
+                            Padding="10" 
+                            Margin="0,20,0,0"
+                            Visibility="{Binding ElementName=txtStatus, Path=Text, Converter={StaticResource StringToVisibilityConverter}}">
+                        <TextBlock x:Name="txtStatus" 
+                                   TextWrapping="Wrap" 
+                                   Foreground="#F57C00"
+                                   FontSize="12"/>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Right Panel - Results Section -->
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="resultsPanel" Visibility="Collapsed">
+                    <!-- Panchangam Section -->
+                    <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,10" 
+                            BorderBrush="#E0E0E0" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Panchangam - பஞ்சாங்கம்" 
+                                       Style="{StaticResource SectionHeaderStyle}"/>
+                            <TextBlock x:Name="txtPanchangam" 
+                                       TextWrapping="Wrap" 
+                                       FontSize="13"
+                                       LineHeight="22"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Lagna Section -->
+                    <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,10" 
+                            BorderBrush="#E0E0E0" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Lagna (Ascendant) - லக்னம்" 
+                                       Style="{StaticResource SectionHeaderStyle}"/>
+                            <TextBlock x:Name="txtLagna" 
+                                       TextWrapping="Wrap" 
+                                       FontSize="13"
+                                       LineHeight="22"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Planets Section -->
+                    <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,10" 
+                            BorderBrush="#E0E0E0" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Navagraha Positions - நவகிரக நிலைகள்" 
+                                       Style="{StaticResource SectionHeaderStyle}"/>
+                            <DataGrid x:Name="dgPlanets" 
+                                      AutoGenerateColumns="False"
+                                      IsReadOnly="True"
+                                      HeadersVisibility="Column"
+                                      GridLinesVisibility="Horizontal"
+                                      AlternatingRowBackground="#F5F5F5"
+                                      CanUserResizeRows="False"
+                                      CanUserSortColumns="True">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Planet" Binding="{Binding Name}" Width="*"/>
+                                    <DataGridTextColumn Header="Tamil" Binding="{Binding TamilName}" Width="*"/>
+                                    <DataGridTextColumn Header="Rasi" Binding="{Binding RasiName}" Width="*"/>
+                                    <DataGridTextColumn Header="Nakshatra" Binding="{Binding NakshatraName}" Width="*"/>
+                                    <DataGridTextColumn Header="House" Binding="{Binding House}" Width="60"/>
+                                    <DataGridTextColumn Header="Retrograde" Binding="{Binding IsRetrograde}" Width="80"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Houses Section -->
+                    <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,10" 
+                            BorderBrush="#E0E0E0" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Houses (Bhavas) - பாவங்கள்" 
+                                       Style="{StaticResource SectionHeaderStyle}"/>
+                            <DataGrid x:Name="dgHouses" 
+                                      AutoGenerateColumns="False"
+                                      IsReadOnly="True"
+                                      HeadersVisibility="Column"
+                                      GridLinesVisibility="Horizontal"
+                                      AlternatingRowBackground="#F5F5F5"
+                                      CanUserResizeRows="False">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="House" Binding="{Binding HouseNumber}" Width="70"/>
+                                    <DataGridTextColumn Header="Rasi" Binding="{Binding RasiName}" Width="*"/>
+                                    <DataGridTextColumn Header="Tamil Rasi" Binding="{Binding TamilRasiName}" Width="*"/>
+                                    <DataGridTextColumn Header="Lord" Binding="{Binding Lord}" Width="*"/>
+                                    <DataGridTextColumn Header="Planets" Binding="{Binding PlanetsDisplay}" Width="2*"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Navamsa Chart Section -->
+                    <Border x:Name="navamsaSection" 
+                            Background="White" 
+                            CornerRadius="8" 
+                            Padding="20" 
+                            Margin="0,0,0,10" 
+                            BorderBrush="#E0E0E0" 
+                            BorderThickness="1"
+                            Visibility="Collapsed">
+                        <StackPanel>
+                            <TextBlock Text="Navamsa Chart (D-9) - நவாம்சம்" 
+                                       Style="{StaticResource SectionHeaderStyle}"/>
+                            <TextBlock x:Name="txtNavamsa" 
+                                       TextWrapping="Wrap" 
+                                       FontSize="13"
+                                       LineHeight="22"
+                                       Foreground="#757575"
+                                       FontStyle="Italic"
+                                       Text="Navamsa chart calculation will be displayed here once implemented."/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Vimshottari Dasa Section -->
+                    <Border x:Name="dasaSection" 
+                            Background="White" 
+                            CornerRadius="8" 
+                            Padding="20" 
+                            Margin="0,0,0,10" 
+                            BorderBrush="#E0E0E0" 
+                            BorderThickness="1"
+                            Visibility="Collapsed">
+                        <StackPanel>
+                            <TextBlock Text="Vimshottari Dasa / Bhukti - விம்சோத்தரி தசா" 
+                                       Style="{StaticResource SectionHeaderStyle}"/>
+                            <TextBlock x:Name="txtDasa" 
+                                       TextWrapping="Wrap" 
+                                       FontSize="13"
+                                       LineHeight="22"
+                                       Foreground="#757575"
+                                       FontStyle="Italic"
+                                       Text="Vimshottari Dasa/Bhukti calculation will be displayed here once implemented."/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- Footer -->
+        <Border Grid.Row="2" 
+                Background="White" 
+                CornerRadius="4" 
+                Padding="10" 
+                Margin="0,10,0,0"
+                BorderBrush="#E0E0E0" 
+                BorderThickness="1">
+            <TextBlock Text="Tamil Horoscope Calculator v1.0 - Using Swiss Ephemeris for Astronomical Accuracy" 
+                       FontSize="11" 
+                       Foreground="#757575"
+                       HorizontalAlignment="Center"/>
+        </Border>
+    </Grid>
+</Window>
