@@ -225,4 +225,131 @@ public class PanchangCalculatorTests
             Assert.NotEmpty(panchang.TamilNakshatraName);
         }
     }
+
+    [Fact]
+    public void CalculateHoroscope_WithNavamsa_ReturnsNavamsaChart()
+    {
+        // Arrange
+        var birthDetails = new BirthDetails
+        {
+            DateTime = new DateTime(2024, 1, 1, 10, 0, 0),
+            Latitude = 13.0827,
+            Longitude = 80.2707,
+            TimeZoneOffset = 5.5,
+            PlaceName = "Chennai"
+        };
+
+        // Act
+        var horoscope = _calculator.CalculateHoroscope(birthDetails, includeDasa: false, includeNavamsa: true);
+
+        // Assert
+        Assert.NotNull(horoscope);
+        Assert.NotNull(horoscope.NavamsaPlanets);
+        
+        // Should have 9 planets in Navamsa chart
+        Assert.Equal(9, horoscope.NavamsaPlanets.Count);
+        
+        // Verify all Navamsa planets have valid data
+        foreach (var planet in horoscope.NavamsaPlanets)
+        {
+            Assert.NotEmpty(planet.Name);
+            Assert.NotEmpty(planet.TamilName);
+            Assert.InRange(planet.Rasi, 1, 12);
+            Assert.NotEmpty(planet.RasiName);
+            Assert.NotEmpty(planet.TamilRasiName);
+            Assert.InRange(planet.Nakshatra, 1, 27);
+            Assert.NotEmpty(planet.NakshatraName);
+            Assert.NotEmpty(planet.TamilNakshatraName);
+            Assert.InRange(planet.Longitude, 0.0, 360.0);
+        }
+    }
+
+    [Fact]
+    public void CalculateHoroscope_WithoutNavamsa_ReturnsNullNavamsaPlanets()
+    {
+        // Arrange
+        var birthDetails = new BirthDetails
+        {
+            DateTime = new DateTime(2024, 1, 1, 10, 0, 0),
+            Latitude = 13.0827,
+            Longitude = 80.2707,
+            TimeZoneOffset = 5.5,
+            PlaceName = "Chennai"
+        };
+
+        // Act
+        var horoscope = _calculator.CalculateHoroscope(birthDetails, includeDasa: false, includeNavamsa: false);
+
+        // Assert
+        Assert.NotNull(horoscope);
+        Assert.Null(horoscope.NavamsaPlanets);
+    }
+
+    [Fact]
+    public void CalculateHoroscope_NavamsaPositionsDifferFromNatal_ConfirmsDivisionalChart()
+    {
+        // Arrange
+        var birthDetails = new BirthDetails
+        {
+            DateTime = new DateTime(2024, 3, 15, 14, 30, 0),
+            Latitude = 9.9252,
+            Longitude = 78.1198,
+            TimeZoneOffset = 5.5,
+            PlaceName = "Madurai"
+        };
+
+        // Act
+        var horoscope = _calculator.CalculateHoroscope(birthDetails, includeDasa: false, includeNavamsa: true);
+
+        // Assert
+        Assert.NotNull(horoscope);
+        Assert.NotNull(horoscope.NavamsaPlanets);
+        Assert.Equal(9, horoscope.Planets.Count);
+        Assert.Equal(9, horoscope.NavamsaPlanets.Count);
+        
+        // Verify that at least some Navamsa positions differ from natal positions
+        // (They should differ unless by rare coincidence)
+        var differentPositions = 0;
+        for (int i = 0; i < horoscope.Planets.Count; i++)
+        {
+            var natalPlanet = horoscope.Planets[i];
+            var navamsaPlanet = horoscope.NavamsaPlanets.FirstOrDefault(p => p.Name == natalPlanet.Name);
+            
+            if (navamsaPlanet != null && navamsaPlanet.Rasi != natalPlanet.Rasi)
+            {
+                differentPositions++;
+            }
+        }
+        
+        // Most planets should have different rasi positions in Navamsa
+        Assert.True(differentPositions > 0, "Expected at least some planets to have different Navamsa positions");
+    }
+
+    [Fact]
+    public void CalculateHoroscope_WithDasaAndNavamsa_ReturnsBothFeatures()
+    {
+        // Arrange
+        var birthDetails = new BirthDetails
+        {
+            DateTime = new DateTime(2024, 6, 21, 8, 15, 0),
+            Latitude = 11.0168,
+            Longitude = 76.9558,
+            TimeZoneOffset = 5.5,
+            PlaceName = "Coimbatore"
+        };
+
+        // Act
+        var horoscope = _calculator.CalculateHoroscope(birthDetails, includeDasa: true, includeNavamsa: true, dasaYears: 120);
+
+        // Assert
+        Assert.NotNull(horoscope);
+        
+        // Verify Vimshottari Dasa is calculated
+        Assert.NotNull(horoscope.VimshottariDasas);
+        Assert.NotEmpty(horoscope.VimshottariDasas);
+        
+        // Verify Navamsa is calculated
+        Assert.NotNull(horoscope.NavamsaPlanets);
+        Assert.Equal(9, horoscope.NavamsaPlanets.Count);
+    }
 }

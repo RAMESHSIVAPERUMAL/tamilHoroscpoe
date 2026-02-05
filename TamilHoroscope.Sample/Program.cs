@@ -66,7 +66,7 @@ class Program
 
     static void DisplayHoroscope(PanchangCalculator calculator, BirthDetails birthDetails)
     {
-        var horoscope = calculator.CalculateHoroscope(birthDetails, includeDasa: true, dasaYears: 120);
+        var horoscope = calculator.CalculateHoroscope(birthDetails, includeDasa: true, includeNavamsa: true, dasaYears: 120);
 
         Console.WriteLine($"Location: {birthDetails.PlaceName}");
         Console.WriteLine($"Date/Time: {birthDetails.DateTime:yyyy-MM-dd HH:mm:ss}");
@@ -109,6 +109,37 @@ class Program
             Console.WriteLine($"  {house.HouseNumber,-8} {house.RasiName,-15} {house.TamilRasiName,-15} {house.Lord,-10} {planets}");
         }
         Console.WriteLine();
+
+        // Display Navamsa (D-9) Chart if available
+        if (horoscope.NavamsaPlanets != null && horoscope.NavamsaPlanets.Count > 0)
+        {
+            Console.WriteLine("NAVAMSA CHART (D-9) - Divisional Chart:");
+            Console.WriteLine($"  {"Planet",-12} {"Tamil Name",-15} {"Navamsa Rasi",-15} {"Tamil Rasi",-15} {"Nakshatra",-18} {"Retrograde"}");
+            Console.WriteLine($"  {new string('-', 105)}");
+            
+            foreach (var planet in horoscope.NavamsaPlanets)
+            {
+                var retrograde = planet.IsRetrograde ? "Yes" : "No";
+                Console.WriteLine($"  {planet.Name,-12} {planet.TamilName,-15} {planet.RasiName,-15} {planet.TamilRasiName,-15} {planet.NakshatraName,-18} {retrograde}");
+            }
+            Console.WriteLine();
+            
+            // Display comparison between Natal and Navamsa positions
+            Console.WriteLine("NATAL vs NAVAMSA COMPARISON:");
+            Console.WriteLine($"  {"Planet",-12} {"Natal Rasi",-15} {"Navamsa Rasi",-15} {"Changed?"}");
+            Console.WriteLine($"  {new string('-', 60)}");
+            
+            foreach (var natalPlanet in horoscope.Planets)
+            {
+                var navamsaPlanet = horoscope.NavamsaPlanets.FirstOrDefault(p => p.Name == natalPlanet.Name);
+                if (navamsaPlanet != null)
+                {
+                    var changed = natalPlanet.Rasi != navamsaPlanet.Rasi ? "Yes" : "No";
+                    Console.WriteLine($"  {natalPlanet.Name,-12} {natalPlanet.RasiName,-15} {navamsaPlanet.RasiName,-15} {changed}");
+                }
+            }
+            Console.WriteLine();
+        }
 
         // Display Vimshottari Dasa if available
         if (horoscope.VimshottariDasas != null && horoscope.VimshottariDasas.Count > 0)
