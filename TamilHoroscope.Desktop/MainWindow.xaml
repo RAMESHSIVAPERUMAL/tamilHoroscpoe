@@ -318,99 +318,6 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Planets Section -->
-                    <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,10" 
-                            BorderBrush="#E0E0E0" BorderThickness="1">
-                        <StackPanel>
-                            <TextBlock Text="Navagraha Positions - நவகிரக நிலைகள்" 
-                                       Style="{StaticResource SectionHeaderStyle}"/>
-                            <DataGrid x:Name="dgPlanets" 
-                                      AutoGenerateColumns="False"
-                                      IsReadOnly="True"
-                                      HeadersVisibility="Column"
-                                      GridLinesVisibility="Horizontal"
-                                      AlternatingRowBackground="#F5F5F5"
-                                      CanUserResizeRows="False"
-                                      CanUserSortColumns="True"
-                                      FontSize="11">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Planet" Binding="{Binding Name}" Width="75">
-                                        <DataGridTextColumn.ElementStyle>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="FontWeight" Value="SemiBold"/>
-                                            </Style>
-                                        </DataGridTextColumn.ElementStyle>
-                                    </DataGridTextColumn>
-                                    <DataGridTextColumn Header="Tamil" Binding="{Binding TamilName}" Width="75"/>
-                                    <DataGridTextColumn Header="Rasi" Binding="{Binding RasiName}" Width="95"/>
-                                    <DataGridTextColumn Header="Longitude" Binding="{Binding LongitudeFormatted}" Width="95">
-                                        <DataGridTextColumn.ElementStyle>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="HorizontalAlignment" Value="Right"/>
-                                                <Setter Property="FontFamily" Value="Consolas"/>
-                                            </Style>
-                                        </DataGridTextColumn.ElementStyle>
-                                    </DataGridTextColumn>
-                                    <DataGridTextColumn Header="Degree" Binding="{Binding DegreeFormatted}" Width="70">
-                                        <DataGridTextColumn.ElementStyle>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="HorizontalAlignment" Value="Right"/>
-                                                <Setter Property="FontFamily" Value="Consolas"/>
-                                            </Style>
-                                        </DataGridTextColumn.ElementStyle>
-                                    </DataGridTextColumn>
-                                    <DataGridTextColumn Header="Nakshatra" Binding="{Binding NakshatraName}" Width="120"/>
-                                    <DataGridTextColumn Header="Pada" Binding="{Binding NakshatraPada}" Width="50">
-                                        <DataGridTextColumn.ElementStyle>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="HorizontalAlignment" Value="Center"/>
-                                            </Style>
-                                        </DataGridTextColumn.ElementStyle>
-                                    </DataGridTextColumn>
-                                    <DataGridTextColumn Header="House" Binding="{Binding House}" Width="55">
-                                        <DataGridTextColumn.ElementStyle>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="HorizontalAlignment" Value="Center"/>
-                                            </Style>
-                                        </DataGridTextColumn.ElementStyle>
-                                    </DataGridTextColumn>
-                                    <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="55">
-                                        <DataGridTextColumn.ElementStyle>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="HorizontalAlignment" Value="Center"/>
-                                                <Setter Property="FontWeight" Value="Bold"/>
-                                            </Style>
-                                        </DataGridTextColumn.ElementStyle>
-                                    </DataGridTextColumn>
-                                </DataGrid.Columns>
-                            </DataGrid>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Houses Section -->
-                    <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,10" 
-                            BorderBrush="#E0E0E0" BorderThickness="1">
-                        <StackPanel>
-                            <TextBlock Text="Houses (Bhavas) - பாவங்கள்" 
-                                       Style="{StaticResource SectionHeaderStyle}"/>
-                            <DataGrid x:Name="dgHouses" 
-                                      AutoGenerateColumns="False"
-                                      IsReadOnly="True"
-                                      HeadersVisibility="Column"
-                                      GridLinesVisibility="Horizontal"
-                                      AlternatingRowBackground="#F5F5F5"
-                                      CanUserResizeRows="False">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="House" Binding="{Binding HouseNumber}" Width="70"/>
-                                    <DataGridTextColumn Header="Rasi" Binding="{Binding RasiName}" Width="*"/>
-                                    <DataGridTextColumn Header="Tamil Rasi" Binding="{Binding TamilRasiName}" Width="*"/>
-                                    <DataGridTextColumn Header="Lord" Binding="{Binding Lord}" Width="*"/>
-                                    <DataGridTextColumn Header="Planets" Binding="{Binding PlanetsDisplay}" Width="2*"/>
-                                </DataGrid.Columns>
-                            </DataGrid>
-                        </StackPanel>
-                    </Border>
-
                     <!-- Chart Visualization Section -->
                     <Border Background="White" 
                             CornerRadius="8" 
@@ -429,7 +336,7 @@
                                     <ColumnDefinition Width="20"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                
+
                                 <!-- Rasi Chart -->
                                 <Border Grid.Column="0" BorderBrush="#E0E0E0" BorderThickness="1" Padding="10">
                                     <StackPanel>
@@ -442,7 +349,7 @@
                                                 Height="350"/>
                                     </StackPanel>
                                 </Border>
-                                
+
                                 <!-- Navamsa Chart -->
                                 <Border Grid.Column="2" BorderBrush="#E0E0E0" BorderThickness="1" Padding="10"
                                         x:Name="navamsaChartBorder">
@@ -457,6 +364,74 @@
                                     </StackPanel>
                                 </Border>
                             </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Planets Section -->
+                    <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,10" 
+                            BorderBrush="#E0E0E0" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Navagraha Positions - நவகிரக நிலைகள்" 
+                                       Style="{StaticResource SectionHeaderStyle}"/>
+                            <DataGrid x:Name="dgPlanets" 
+                                      AutoGenerateColumns="False"
+                                      IsReadOnly="True"
+                                      HeadersVisibility="Column"
+                                      GridLinesVisibility="Horizontal"
+                                      AlternatingRowBackground="#F5F5F5"
+                                      CanUserResizeRows="False"
+                                      CanUserSortColumns="True"
+                                      FontSize="11">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="கிரகம்" Binding="{Binding TamilName}" Width="75">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+                                    <DataGridTextColumn Header="ராசி" Binding="{Binding TamilRasiName}" Width="95"/>
+                                    <DataGridTextColumn Header="Longitude" Binding="{Binding LongitudeFormatted}" Width="95">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="HorizontalAlignment" Value="Right"/>
+                                                <Setter Property="FontFamily" Value="Consolas"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+                                    <DataGridTextColumn Header="Degree" Binding="{Binding DegreeFormatted}" Width="70">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="HorizontalAlignment" Value="Right"/>
+                                                <Setter Property="FontFamily" Value="Consolas"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+                                    <DataGridTextColumn Header="நட்சத்திரம்" Binding="{Binding TamilNakshatraName}" Width="120"/>
+                                    <DataGridTextColumn Header="பாதம்" Binding="{Binding NakshatraPada}" Width="50">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="HorizontalAlignment" Value="Center"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+                                    <DataGridTextColumn Header="நிலை" Binding="{Binding StatusDisplay}" Width="55">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="HorizontalAlignment" Value="Center"/>
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+                                    <DataGridTextColumn Header="இருக்கும் வீடு" Binding="{Binding House}" Width="100">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="HorizontalAlignment" Value="Center"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
                         </StackPanel>
                     </Border>
 

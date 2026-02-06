@@ -82,10 +82,11 @@ public class SwissEphemerisHelper : IDisposable
 
     /// <summary>
     /// Calculate Rahu (North Node) position
+    /// Uses Mean Node as per traditional Vedic/Tamil astrology (Thirukanitha Panchangam)
     /// </summary>
     public double[] GetRahuPosition(double julianDay)
     {
-        return GetPlanetPosition(julianDay, SwissEph.SE_TRUE_NODE);
+        return GetPlanetPosition(julianDay, SwissEph.SE_MEAN_NODE);
     }
 
     /// <summary>

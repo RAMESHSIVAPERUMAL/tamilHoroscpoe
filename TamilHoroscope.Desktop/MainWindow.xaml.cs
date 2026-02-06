@@ -303,17 +303,6 @@ public partial class MainWindow : Window
         // Display Planets
         dgPlanets.ItemsSource = horoscope.Planets;
 
-        // Display Houses
-        var housesDisplay = horoscope.Houses.Select(h => new
-        {
-            h.HouseNumber,
-            h.RasiName,
-            h.TamilRasiName,
-            h.Lord,
-            PlanetsDisplay = h.Planets.Count > 0 ? string.Join(", ", h.Planets) : "-"
-        }).ToList();
-        dgHouses.ItemsSource = housesDisplay;
-
         // Display Rasi Chart
         chartSection.Visibility = Visibility.Visible;
         var rasiChart = new Controls.RasiChartControl();
@@ -348,6 +337,14 @@ public partial class MainWindow : Window
             
             if (currentDasa != null)
             {
+                dasaText += "Past Dasa Details:\n";
+                foreach (var dasa in horoscope.VimshottariDasas.Take(10))
+                {
+                    if (dasa.StartDate < currentDasa.StartDate)
+                        dasaText += $"{dasa.Lord,-10} ({dasa.TamilLord,-10}): {dasa.StartDate:yyyy-MM-dd} to {dasa.EndDate:yyyy-MM-dd}\n";
+                }
+                dasaText += "\n\n";
+
                 dasaText += $"CURRENT DASA: {currentDasa.Lord} ({currentDasa.TamilLord})\n";
                 dasaText += $"Period: {currentDasa.StartDate:yyyy-MM-dd} to {currentDasa.EndDate:yyyy-MM-dd}\n\n";
                 
@@ -365,8 +362,10 @@ public partial class MainWindow : Window
             dasaText += "Upcoming Dasa Periods:\n";
             foreach (var dasa in horoscope.VimshottariDasas.Take(10))
             {
+                
                 var isCurrent = dasa == currentDasa ? " ← CURRENT" : "";
-                dasaText += $"{dasa.Lord,-10} ({dasa.TamilLord,-10}): {dasa.StartDate:yyyy-MM-dd} to {dasa.EndDate:yyyy-MM-dd}{isCurrent}\n";
+                if(dasa.StartDate >= DateTime.Now)
+                    dasaText += $"{dasa.Lord,-10} ({dasa.TamilLord,-10}): {dasa.StartDate:yyyy-MM-dd} to {dasa.EndDate:yyyy-MM-dd}{isCurrent}\n";
             }
             
             txtDasa.Text = dasaText;
@@ -551,33 +550,6 @@ public partial class MainWindow : Window
             document.Add(navamsaTable);
             document.Add(new Paragraph("\n"));
         }
-
-        // Add Houses table
-        document.Add(new Paragraph("Houses (Bhavas) - பாவங்கள்", headerFont));
-        var housesTable = new PdfPTable(5);
-        housesTable.WidthPercentage = 100;
-        housesTable.SetWidths(new float[] { 1f, 2f, 2f, 2f, 3f });
-
-        // Table headers
-        housesTable.AddCell(CreateHeaderCell("House", cellFont));
-        housesTable.AddCell(CreateHeaderCell("Rasi", cellFont));
-        housesTable.AddCell(CreateHeaderCell("Tamil Rasi", cellFont));
-        housesTable.AddCell(CreateHeaderCell("Lord", cellFont));
-        housesTable.AddCell(CreateHeaderCell("Planets", cellFont));
-
-        // Table data
-        foreach (var house in _currentHoroscope.Houses)
-        {
-            housesTable.AddCell(new PdfPCell(new Phrase(house.HouseNumber.ToString(), dataCellFont)));
-            housesTable.AddCell(new PdfPCell(new Phrase(house.RasiName, dataCellFont)));
-            housesTable.AddCell(new PdfPCell(new Phrase(house.TamilRasiName, dataCellFont)));
-            housesTable.AddCell(new PdfPCell(new Phrase(house.Lord, dataCellFont)));
-            var planets = house.Planets.Count > 0 ? string.Join(", ", house.Planets) : "-";
-            housesTable.AddCell(new PdfPCell(new Phrase(planets, smallFont)));
-        }
-
-        document.Add(housesTable);
-        document.Add(new Paragraph("\n"));
 
         // Add Vimshottari Dasa if calculated
         if (_currentHoroscope.VimshottariDasas != null && _currentHoroscope.VimshottariDasas.Count > 0)

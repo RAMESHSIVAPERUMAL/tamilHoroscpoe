@@ -1,4 +1,4 @@
-namespace TamilHoroscope.Core.Models;
+ï»¿namespace TamilHoroscope.Core.Models;
 
 /// <summary>
 /// Planet position and related data
@@ -87,7 +87,7 @@ public class PlanetData
     public bool IsRetrograde { get; set; }
 
     /// <summary>
-    /// Formatted degree position within the rasi (e.g., "23°45'")
+    /// Formatted degree position within the rasi (e.g., "23Â°45'")
     /// </summary>
     public string DegreeFormatted
     {
@@ -97,7 +97,7 @@ public class PlanetData
             int degrees = (int)degreeInSign;
             double minutesDecimal = (degreeInSign - degrees) * 60.0;
             int minutes = (int)minutesDecimal;
-            return $"{degrees}°{minutes:D2}'";
+            return $"{degrees}Â°{minutes:D2}'";
         }
     }
 
@@ -108,12 +108,12 @@ public class PlanetData
     {
         get
         {
-            return IsRetrograde ? "R" : "D";
+            return IsRetrograde ? "à®µà®•à¯à®°à®®à¯" : "";
         }
     }
 
     /// <summary>
-    /// Full longitude display in degree-minute-second format (e.g., "102°34'15\"")
+    /// Full longitude display in degree-minute-second format (e.g., "102Â°34'15\"")
     /// </summary>
     public string LongitudeFormatted
     {
@@ -124,12 +124,12 @@ public class PlanetData
             int minutes = (int)minutesDecimal;
             double secondsDecimal = (minutesDecimal - minutes) * 60.0;
             int seconds = (int)secondsDecimal;
-            return $"{degrees}°{minutes:D2}'{seconds:D2}\"";
+            return $"{degrees}Â°{minutes:D2}'{seconds:D2}\"";
         }
     }
 
     /// <summary>
-    /// Speed display in degrees per day (e.g., "13°15'/day" or "-0°45'/day")
+    /// Speed display in degrees per day (e.g., "13Â°15'/day" or "-0Â°45'/day")
     /// </summary>
     public string SpeedDisplay
     {
@@ -139,7 +139,7 @@ public class PlanetData
             double minutesDecimal = (Math.Abs(Speed) - degrees) * 60.0;
             int minutes = (int)minutesDecimal;
             string sign = Speed < 0 ? "-" : "";
-            return $"{sign}{degrees}°{minutes:D2}'/day";
+            return $"{sign}{degrees}Â°{minutes:D2}'/day";
         }
     }
 
@@ -150,8 +150,8 @@ public class PlanetData
     {
         get
         {
-            double nakshatraDegree = 360.0 / 27.0; // 13°20'
-            double padaDegree = nakshatraDegree / 4.0; // 3°20' per pada
+            double nakshatraDegree = 360.0 / 27.0; // 13Â°20'
+            double padaDegree = nakshatraDegree / 4.0; // 3Â°20' per pada
             
             // Normalize longitude
             double normLongitude = Longitude % 360.0;
@@ -169,7 +169,7 @@ public class PlanetData
     }
 
     /// <summary>
-    /// Formatted latitude display in degree-minute format (e.g., "+2°15'" or "-1°30'")
+    /// Formatted latitude display in degree-minute format (e.g., "+2Â°15'" or "-1Â°30'")
     /// </summary>
     public string LatitudeFormatted
     {
@@ -179,7 +179,7 @@ public class PlanetData
             double minutesDecimal = (Math.Abs(Latitude) - degrees) * 60.0;
             int minutes = (int)minutesDecimal;
             string sign = Latitude < 0 ? "-" : "+";
-            return $"{sign}{degrees}°{minutes:D2}'";
+            return $"{sign}{degrees}Â°{minutes:D2}'";
         }
     }
 
@@ -195,7 +195,7 @@ public class PlanetData
     }
 
     /// <summary>
-    /// Speed in latitude display (e.g., "+0°03'/day" or "-0°02'/day")
+    /// Speed in latitude display (e.g., "+0Â°03'/day" or "-0Â°02'/day")
     /// </summary>
     public string SpeedInLatitudeFormatted
     {
@@ -205,7 +205,7 @@ public class PlanetData
             double minutesDecimal = (Math.Abs(SpeedInLatitude) - degrees) * 60.0;
             int minutes = (int)minutesDecimal;
             string sign = SpeedInLatitude < 0 ? "-" : "+";
-            return $"{sign}{degrees}°{minutes:D2}'/day";
+            return $"{sign}{degrees}Â°{minutes:D2}'/day";
         }
     }
 
