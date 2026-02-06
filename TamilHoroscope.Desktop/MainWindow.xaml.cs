@@ -2,6 +2,8 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using TamilHoroscope.Core.Calculators;
 using TamilHoroscope.Core.Models;
 using TamilHoroscope.Desktop.Models;
@@ -329,43 +331,75 @@ public partial class MainWindow : Window
             dasaSection.Visibility = Visibility.Visible;
             
             // Display Dasa information
-            var dasaText = "Vimshottari Dasa Periods:\n\n";
+            var dasaText = "Vimshottari Dasa / Bhukti Periods:\n\n";
             
             // Find current dasa
             var currentDasa = horoscope.VimshottariDasas.FirstOrDefault(d => 
                 d.StartDate <= DateTime.Now && d.EndDate >= DateTime.Now);
             
-            if (currentDasa != null)
+            // Display each Dasa with its Bhukti periods
+            foreach (var dasa in horoscope.VimshottariDasas.Take(15)) // Show first 15 Dasas
             {
-                dasaText += "Past Dasa Details:\n";
-                foreach (var dasa in horoscope.VimshottariDasas.Take(10))
-                {
-                    if (dasa.StartDate < currentDasa.StartDate)
-                        dasaText += $"{dasa.Lord,-10} ({dasa.TamilLord,-10}): {dasa.StartDate:yyyy-MM-dd} to {dasa.EndDate:yyyy-MM-dd}\n";
-                }
-                dasaText += "\n\n";
-
-                dasaText += $"CURRENT DASA: {currentDasa.Lord} ({currentDasa.TamilLord})\n";
-                dasaText += $"Period: {currentDasa.StartDate:yyyy-MM-dd} to {currentDasa.EndDate:yyyy-MM-dd}\n\n";
+                var isCurrent = dasa == currentDasa;
+                var dasaMarker = isCurrent ? " ← CURRENT DASA" : "";
+                var durationYears = (dasa.EndDate - dasa.StartDate).Days / 365.25;
                 
-                // Show current Bhukti
-                var currentBhukti = currentDasa.Bhuktis.FirstOrDefault(b => 
-                    b.StartDate <= DateTime.Now && b.EndDate >= DateTime.Now);
-                if (currentBhukti != null)
+                // Dasa Header with period
+                dasaText += $"\n{'=', 80}\n";
+                dasaText += $"{dasa.Lord} Dasa ({dasa.TamilLord} தசா){dasaMarker}\n";
+                dasaText += $"Period: {dasa.StartDate:yyyy-MM-dd} to {dasa.EndDate:yyyy-MM-dd} ({durationYears:F1} years)\n";
+                dasaText += $"{'=', 80}\n\n";
+                
+                // Display all Bhuktis for this Dasa
+                if (dasa.Bhuktis != null && dasa.Bhuktis.Count > 0)
                 {
-                    dasaText += $"Current Bhukti: {currentBhukti.Lord} ({currentBhukti.TamilLord})\n";
-                    dasaText += $"Period: {currentBhukti.StartDate:yyyy-MM-dd} to {currentBhukti.EndDate:yyyy-MM-dd}\n\n";
+                    dasaText += "  Bhukti Periods:\n";
+                    dasaText += "  " + new string('-', 76) + "\n";
+                    
+                    foreach (var bhukti in dasa.Bhuktis)
+                    {
+                        var isCurrentBhukti = isCurrent && 
+                            bhukti.StartDate <= DateTime.Now && 
+                            bhukti.EndDate >= DateTime.Now;
+                        var bhuktiMarker = isCurrentBhukti ? " ← NOW" : "";
+                        var bhuktiDurationDays = (bhukti.EndDate - bhukti.StartDate).Days;
+                        var bhuktiDurationMonths = bhuktiDurationDays / 30.0;
+                        
+                        dasaText += $"  • {bhukti.Lord,-10} ({bhukti.TamilLord,-10}): " +
+                                  $"{bhukti.StartDate:yyyy-MM-dd} to {bhukti.EndDate:yyyy-MM-dd} " +
+                                  $"({bhuktiDurationMonths:F1} months){bhuktiMarker}\n";
+                    }
+                    
+                    dasaText += "\n";
+                }
+                else
+                {
+                    dasaText += "  (No Bhukti details available)\n\n";
                 }
             }
             
-            // Show next few dasas
-            dasaText += "Upcoming Dasa Periods:\n";
-            foreach (var dasa in horoscope.VimshottariDasas.Take(10))
+            // Add summary at the end
+            if (currentDasa != null)
             {
+                var currentBhukti = currentDasa.Bhuktis?.FirstOrDefault(b => 
+                    b.StartDate <= DateTime.Now && b.EndDate >= DateTime.Now);
                 
-                var isCurrent = dasa == currentDasa ? " ← CURRENT" : "";
-                if(dasa.StartDate >= DateTime.Now)
-                    dasaText += $"{dasa.Lord,-10} ({dasa.TamilLord,-10}): {dasa.StartDate:yyyy-MM-dd} to {dasa.EndDate:yyyy-MM-dd}{isCurrent}\n";
+                dasaText += "\n" + new string('=', 80) + "\n";
+                dasaText += "CURRENT STATUS SUMMARY\n";
+                dasaText += new string('=', 80) + "\n";
+                dasaText += $"Current Dasa: {currentDasa.Lord} ({currentDasa.TamilLord})\n";
+                dasaText += $"Dasa Period: {currentDasa.StartDate:yyyy-MM-dd} to {currentDasa.EndDate:yyyy-MM-dd}\n";
+                
+                if (currentBhukti != null)
+                {
+                    dasaText += $"\nCurrent Bhukti: {currentBhukti.Lord} ({currentBhukti.TamilLord})\n";
+                    dasaText += $"Bhukti Period: {currentBhukti.StartDate:yyyy-MM-dd} to {currentBhukti.EndDate:yyyy-MM-dd}\n";
+                    
+                    var daysRemaining = (currentBhukti.EndDate - DateTime.Now).Days;
+                    dasaText += $"Days Remaining: {daysRemaining}\n";
+                }
+                
+                dasaText += new string('=', 80) + "\n";
             }
             
             txtDasa.Text = dasaText;
@@ -481,8 +515,52 @@ public partial class MainWindow : Window
         document.Add(new Paragraph($"Longitude: {_currentHoroscope.LagnaLongitude:F2}° ({GetDegreesMinutes(_currentHoroscope.LagnaLongitude % 30)})", normalFont));
         document.Add(new Paragraph("\n"));
 
+        // Add Charts on new page
+        document.NewPage();
+        document.Add(new Paragraph("Birth Charts - ஜாதக கட்டம்", headerFont));
+        document.Add(new Paragraph("\n"));
+
+        // Create Rasi Chart as image
+        document.Add(new Paragraph("Rasi Chart (D-1) - ராசி கட்டம்", subHeaderFont));
+        document.Add(new Paragraph("\n"));
+
+        // Render Rasi Chart to image
+        var rasiChartControl = new Controls.RasiChartControl();
+        rasiChartControl.DrawChart(_currentHoroscope);
+        var rasiChartImage = RenderControlToImage(rasiChartControl, 400, 400);
+        if (rasiChartImage != null)
+        {
+            // Center the image
+            rasiChartImage.Alignment = Element.ALIGN_CENTER;
+            rasiChartImage.ScaleToFit(350f, 350f);
+            document.Add(rasiChartImage);
+            document.NewPage();
+        }
+        document.Add(new Paragraph("\n"));
+
+        // Create Navamsa Chart if calculated
+        if (_currentHoroscope.NavamsaPlanets != null && _currentHoroscope.NavamsaPlanets.Count > 0)
+        {
+            document.Add(new Paragraph("Navamsa Chart (D-9) - நவாம்சம் கட்டம்", subHeaderFont));
+
+            // Render Navamsa Chart to image
+            var navamsaChartControl = new Controls.NavamsaChartControl();
+            navamsaChartControl.DrawChart(_currentHoroscope);
+            var navamsaChartImage = RenderControlToImage(navamsaChartControl, 400, 400);
+            if (navamsaChartImage != null)
+            {
+                // Center the image
+                navamsaChartImage.Alignment = Element.ALIGN_CENTER;
+                navamsaChartImage.ScaleToFit(350f, 350f);
+                document.Add(navamsaChartImage);
+                document.NewPage();
+            }
+        }
+        document.Add(new Paragraph("\n"));
+
         // Add Planets table (Rasi Chart - D1) - Simplified to match screen display
         document.Add(new Paragraph("Navagraha Positions (Rasi Chart - D1) - நவகிரக நிலைகள்", headerFont));
+        document.Add(new Paragraph("\n"));
         var planetsTable = new PdfPTable(9); // Changed from 6 to 9 columns
         planetsTable.WidthPercentage = 100;
         planetsTable.SetWidths(new float[] { 1.5f, 1.5f, 2f, 2f, 1.5f, 2.5f, 0.8f, 1f, 1f });
@@ -522,6 +600,7 @@ public partial class MainWindow : Window
         if (_currentHoroscope.NavamsaPlanets != null && _currentHoroscope.NavamsaPlanets.Count > 0)
         {
             document.Add(new Paragraph("Navamsa Positions (D-9 Chart) - நவாம்சம்", headerFont));
+            document.Add(new Paragraph("\n"));
             var navamsaTable = new PdfPTable(7); // Simplified columns (no House for Navamsa)
             navamsaTable.WidthPercentage = 100;
             navamsaTable.SetWidths(new float[] { 1.5f, 1.5f, 2f, 2f, 1.5f, 2.5f, 0.8f });
@@ -563,71 +642,102 @@ public partial class MainWindow : Window
             var currentDasa = _currentHoroscope.VimshottariDasas.FirstOrDefault(d =>
                 d.StartDate <= DateTime.Now && d.EndDate >= DateTime.Now);
 
+            // Display each Dasa with its Bhukti periods
+            foreach (var dasa in _currentHoroscope.VimshottariDasas.Take(12)) // Show first 12 Dasas in PDF
+            {
+                var isCurrent = dasa == currentDasa;
+                var durationYears = (dasa.EndDate - dasa.StartDate).Days / 365.25;
+                
+                // Dasa Header
+                var dasaHeaderFont = isCurrent ? 
+                    FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 11, new BaseColor(0, 0, 128)) : 
+                    FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10);
+                
+                var dasaHeader = new Paragraph(
+                    $"{dasa.Lord} Dasa ({dasa.TamilLord} தசா)" + 
+                    (isCurrent ? " ← CURRENT DASA" : ""), 
+                    dasaHeaderFont);
+                dasaHeader.SpacingBefore = 10;
+                document.Add(dasaHeader);
+                
+                var dasaPeriod = new Paragraph(
+                    $"Period: {dasa.StartDate:yyyy-MM-dd} to {dasa.EndDate:yyyy-MM-dd} ({durationYears:F1} years)", 
+                    normalFont);
+                document.Add(dasaPeriod);
+                
+                // Bhukti Table for this Dasa
+                if (dasa.Bhuktis != null && dasa.Bhuktis.Count > 0)
+                {
+                    var bhuktiTable = new PdfPTable(5);
+                    bhuktiTable.WidthPercentage = 100;
+                    bhuktiTable.SetWidths(new float[] { 2f, 2f, 2.5f, 2.5f, 1.5f });
+                    bhuktiTable.SpacingBefore = 5;
+                    bhuktiTable.SpacingAfter = 10;
+                    
+                    // Bhukti headers
+                    bhuktiTable.AddCell(CreateHeaderCell("Bhukti Lord", smallFont));
+                    bhuktiTable.AddCell(CreateHeaderCell("Tamil Name", smallFont));
+                    bhuktiTable.AddCell(CreateHeaderCell("Start Date", smallFont));
+                    bhuktiTable.AddCell(CreateHeaderCell("End Date", smallFont));
+                    bhuktiTable.AddCell(CreateHeaderCell("Duration", smallFont));
+                    
+                    // Bhukti rows
+                    foreach (var bhukti in dasa.Bhuktis)
+                    {
+                        var isCurrentBhukti = isCurrent && 
+                            bhukti.StartDate <= DateTime.Now && 
+                            bhukti.EndDate >= DateTime.Now;
+                        
+                        var bhuktiFont = isCurrentBhukti ? subHeaderFont : dataCellFont;
+                        var bgColor = isCurrentBhukti ? 
+                            new BaseColor(255, 255, 150) : 
+                            (isCurrent ? new BaseColor(240, 240, 255) : new BaseColor(255, 255, 255));
+                        
+                        var bhuktiDurationDays = (bhukti.EndDate - bhukti.StartDate).Days;
+                        var bhuktiDurationMonths = bhuktiDurationDays / 30.0;
+                        
+                        bhuktiTable.AddCell(new PdfPCell(new Phrase(bhukti.Lord, bhuktiFont)) 
+                            { BackgroundColor = bgColor, Padding = 3 });
+                        bhuktiTable.AddCell(new PdfPCell(new Phrase(bhukti.TamilLord, bhuktiFont)) 
+                            { BackgroundColor = bgColor, Padding = 3 });
+                        bhuktiTable.AddCell(new PdfPCell(new Phrase(bhukti.StartDate.ToString("yyyy-MM-dd"), bhuktiFont)) 
+                            { BackgroundColor = bgColor, Padding = 3 });
+                        bhuktiTable.AddCell(new PdfPCell(new Phrase(bhukti.EndDate.ToString("yyyy-MM-dd"), bhuktiFont)) 
+                            { BackgroundColor = bgColor, Padding = 3 });
+                        bhuktiTable.AddCell(new PdfPCell(new Phrase($"{bhuktiDurationMonths:F1} mo", bhuktiFont)) 
+                            { BackgroundColor = bgColor, Padding = 3, HorizontalAlignment = Element.ALIGN_CENTER });
+                    }
+                    
+                    document.Add(bhuktiTable);
+                }
+            }
+            
+            // Add current status summary
             if (currentDasa != null)
             {
-                document.Add(new Paragraph($"CURRENT DASA: {currentDasa.Lord} ({currentDasa.TamilLord})", subHeaderFont));
-                document.Add(new Paragraph($"Period: {currentDasa.StartDate:yyyy-MM-dd} to {currentDasa.EndDate:yyyy-MM-dd}", normalFont));
                 document.Add(new Paragraph("\n"));
-
-                // Show current Bhukti
-                var currentBhukti = currentDasa.Bhuktis.FirstOrDefault(b =>
+                var summaryHeader = new Paragraph("CURRENT STATUS SUMMARY", subHeaderFont);
+                summaryHeader.SpacingBefore = 10;
+                document.Add(summaryHeader);
+                
+                document.Add(new Paragraph($"Current Dasa: {currentDasa.Lord} ({currentDasa.TamilLord})", normalFont));
+                document.Add(new Paragraph($"Dasa Period: {currentDasa.StartDate:yyyy-MM-dd} to {currentDasa.EndDate:yyyy-MM-dd}", normalFont));
+                
+                var currentBhukti = currentDasa.Bhuktis?.FirstOrDefault(b =>
                     b.StartDate <= DateTime.Now && b.EndDate >= DateTime.Now);
+                    
                 if (currentBhukti != null)
                 {
                     document.Add(new Paragraph($"Current Bhukti: {currentBhukti.Lord} ({currentBhukti.TamilLord})", normalFont));
-                    document.Add(new Paragraph($"Period: {currentBhukti.StartDate:yyyy-MM-dd} to {currentBhukti.EndDate:yyyy-MM-dd}", normalFont));
-                    document.Add(new Paragraph("\n"));
+                    document.Add(new Paragraph($"Bhukti Period: {currentBhukti.StartDate:yyyy-MM-dd} to {currentBhukti.EndDate:yyyy-MM-dd}", normalFont));
+                    
+                    var daysRemaining = (currentBhukti.EndDate - DateTime.Now).Days;
+                    document.Add(new Paragraph($"Days Remaining in Current Bhukti: {daysRemaining}", normalFont));
                 }
             }
-
-            // Show upcoming dasas
-            document.Add(new Paragraph("Upcoming Dasa Periods:", subHeaderFont));
-            var dasaTable = new PdfPTable(5);
-            dasaTable.WidthPercentage = 100;
-            dasaTable.SetWidths(new float[] { 2f, 2f, 2f, 2f, 1f });
-
-            dasaTable.AddCell(CreateHeaderCell("Dasa Lord", cellFont));
-            dasaTable.AddCell(CreateHeaderCell("Tamil Name", cellFont));
-            dasaTable.AddCell(CreateHeaderCell("Start Date", cellFont));
-            dasaTable.AddCell(CreateHeaderCell("End Date", cellFont));
-            dasaTable.AddCell(CreateHeaderCell("Years", cellFont));
-
-            foreach (var dasa in _currentHoroscope.VimshottariDasas.Take(20))
-            {
-                var isCurrent = dasa == currentDasa;
-                var font = isCurrent ? subHeaderFont : dataCellFont;
-                var bgColor = isCurrent ? new BaseColor(255, 255, 200) : new BaseColor(255, 255, 255);
-                
-                var durationYears = (dasa.EndDate - dasa.StartDate).Days / 365.25;
-
-                dasaTable.AddCell(new PdfPCell(new Phrase(dasa.Lord, font)) { BackgroundColor = bgColor });
-                dasaTable.AddCell(new PdfPCell(new Phrase(dasa.TamilLord, font)) { BackgroundColor = bgColor });
-                dasaTable.AddCell(new PdfPCell(new Phrase(dasa.StartDate.ToString("yyyy-MM-dd"), font)) { BackgroundColor = bgColor });
-                dasaTable.AddCell(new PdfPCell(new Phrase(dasa.EndDate.ToString("yyyy-MM-dd"), font)) { BackgroundColor = bgColor });
-                dasaTable.AddCell(new PdfPCell(new Phrase(durationYears.ToString("F1"), font)) { BackgroundColor = bgColor });
-            }
-
-            document.Add(dasaTable);
         }
 
-        // Add Charts on new page
-        document.NewPage();
-        document.Add(new Paragraph("Birth Charts - ஜாதக கட்டம்", headerFont));
-        document.Add(new Paragraph("\n"));
-
-        // Create Rasi Chart as text representation
-        document.Add(new Paragraph("Rasi Chart (D-1) - ராசி கட்டம்", subHeaderFont));
-        var rasiChartText = GenerateTextChart(_currentHoroscope, isNavamsa: false);
-        document.Add(new Paragraph(rasiChartText, FontFactory.GetFont(FontFactory.COURIER, 8)));
-        document.Add(new Paragraph("\n"));
-
-        // Create Navamsa Chart if calculated
-        if (_currentHoroscope.NavamsaPlanets != null && _currentHoroscope.NavamsaPlanets.Count > 0)
-        {
-            document.Add(new Paragraph("Navamsa Chart (D-9) - நவாம்சம் கட்டம்", subHeaderFont));
-            var navamsaChartText = GenerateTextChart(_currentHoroscope, isNavamsa: true);
-            document.Add(new Paragraph(navamsaChartText, FontFactory.GetFont(FontFactory.COURIER, 8)));
-        }
+      
 
         // Add footer
         document.Add(new Paragraph("\n\n"));
@@ -662,6 +772,50 @@ public partial class MainWindow : Window
         double minutesDecimal = (degrees - deg) * 60;
         int min = (int)minutesDecimal;
         return $"{deg}°{min:D2}'";
+    }
+
+    /// <summary>
+    /// Renders a WPF UserControl to an iTextSharp Image for PDF inclusion
+    /// </summary>
+    private iTextSharp.text.Image? RenderControlToImage(UserControl control, int width, int height)
+    {
+        try
+        {
+            // Set the size of the control
+            control.Width = width;
+            control.Height = height;
+            control.Measure(new System.Windows.Size(width, height));
+            control.Arrange(new Rect(0, 0, width, height));
+            control.UpdateLayout();
+
+            // Create a RenderTargetBitmap
+            var renderBitmap = new RenderTargetBitmap(
+                width,
+                height,
+                96,  // DPI X
+                96,  // DPI Y
+                PixelFormats.Pbgra32);
+
+            renderBitmap.Render(control);
+
+            // Convert to PNG byte array
+            var encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
+
+            using (var memoryStream = new MemoryStream())
+            {
+                encoder.Save(memoryStream);
+                var imageBytes = memoryStream.ToArray();
+
+                // Create iTextSharp Image from byte array
+                return iTextSharp.text.Image.GetInstance(imageBytes);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error rendering control to image: {ex.Message}");
+            return null;
+        }
     }
 
     private string GenerateTextChart(HoroscopeData horoscope, bool isNavamsa)

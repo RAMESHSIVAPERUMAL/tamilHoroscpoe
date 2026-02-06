@@ -131,6 +131,13 @@ public class PanchangCalculator : IPanchangCalculator
         {
             var navamsaCalculator = new NavamsaCalculator();
             horoscope.NavamsaPlanets = navamsaCalculator.CalculateNavamsaChart(horoscope.Planets);
+            
+            // Calculate Navamsa Lagna
+            double navamsaLagnaLongitude = navamsaCalculator.CalculateNavamsaPosition(horoscope.LagnaLongitude);
+            horoscope.NavamsaLagnaRasi = GetRasiNumber(navamsaLagnaLongitude);
+            var navamsaLagnaRasiInfo = TamilNames.Rasis[horoscope.NavamsaLagnaRasi];
+            horoscope.NavamsaLagnaRasiName = navamsaLagnaRasiInfo.English;
+            horoscope.TamilNavamsaLagnaRasiName = navamsaLagnaRasiInfo.Tamil;
         }
         
         return horoscope;

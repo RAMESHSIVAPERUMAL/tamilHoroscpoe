@@ -51,6 +51,21 @@ public class HoroscopeData
     public List<PlanetData>? NavamsaPlanets { get; set; }
 
     /// <summary>
+    /// Navamsa Lagna rasi number (1-12)
+    /// </summary>
+    public int NavamsaLagnaRasi { get; set; }
+
+    /// <summary>
+    /// Navamsa Lagna rasi name in English
+    /// </summary>
+    public string NavamsaLagnaRasiName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Tamil Navamsa lagna rasi name
+    /// </summary>
+    public string TamilNavamsaLagnaRasiName { get; set; } = string.Empty;
+
+    /// <summary>
     /// Vimshottari Dasa periods (optional)
     /// </summary>
     public List<DasaData>? VimshottariDasas { get; set; }

@@ -96,6 +96,30 @@ public partial class NavamsaChartControl : UserControl
                 VerticalAlignment = VerticalAlignment.Center
             };
 
+            // Add Lagna marker if this is the Navamsa Lagna Rasi
+            bool isNavamsaLagna = (rasiNum == horoscope.NavamsaLagnaRasi);
+            if (isNavamsaLagna)
+            {
+                var lagnaMarker = new Border
+                {
+                    Background = new SolidColorBrush(Color.FromRgb(0xDC, 0x35, 0x45)), // Bootstrap danger red
+                    CornerRadius = new CornerRadius(3),
+                    Padding = new Thickness(6, 2, 6, 2),
+                    Margin = new Thickness(0, 2, 0, 2),
+                    HorizontalAlignment = HorizontalAlignment.Center
+                };    
+                var lagnaText = new TextBlock
+                {
+                    Text = "லக்",  // Tamil "Lak" for Lagna
+                    FontSize = 9,
+                    FontWeight = FontWeights.Bold,
+                    Foreground = Brushes.White,
+                    HorizontalAlignment = HorizontalAlignment.Center
+                };
+                lagnaMarker.Child = lagnaText;
+                contentStack.Children.Add(lagnaMarker);
+            }
+
             // Add planets in this Rasi
             var planets = rasiToPlanets[rasiNum];
             if (planets.Count > 0)
