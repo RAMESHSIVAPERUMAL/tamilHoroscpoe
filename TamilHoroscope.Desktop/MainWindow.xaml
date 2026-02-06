@@ -167,12 +167,16 @@
                                      ToolTip="Enter time in 24-hour format (HH:mm:ss)"/>
 
                             <!-- Place Name -->
-                            <TextBlock Text="Place Name / இடம்" Style="{StaticResource LabelStyle}"/>
-                            <TextBox x:Name="txtPlaceName" 
-                                     Text="Chennai"
-                                     Style="{StaticResource ModernTextBoxStyle}" 
-                                     Margin="0,0,0,10"
-                                     ToolTip="Enter birth place name"/>
+                            <TextBlock Text="Birth Place / பிறந்த இடம்" Style="{StaticResource LabelStyle}"/>
+                            <ComboBox x:Name="cmbBirthPlace" 
+                                      Style="{StaticResource ModernComboBoxStyle}"
+                                      IsEditable="True"
+                                      IsTextSearchEnabled="True"
+                                      StaysOpenOnEdit="True"
+                                      Margin="0,0,0,10"
+                                      ToolTip="Type to search or select birth place"
+                                      TextBoxBase.TextChanged="CmbBirthPlace_TextChanged"
+                                      SelectionChanged="CmbBirthPlace_SelectionChanged"/>
 
                             <!-- Latitude -->
                             <TextBlock Text="Latitude / அட்சரேகை" Style="{StaticResource LabelStyle}"/>
@@ -180,7 +184,8 @@
                                      Text="13.0827"
                                      Style="{StaticResource ModernTextBoxStyle}" 
                                      Margin="0,0,0,10"
-                                     ToolTip="Enter latitude (e.g., 13.0827 for Chennai)"/>
+                                     ToolTip="Enter latitude (auto-filled from place selection)"
+                                     IsReadOnly="False"/>
 
                             <!-- Longitude -->
                             <TextBlock Text="Longitude / தீர்க்கரேகை" Style="{StaticResource LabelStyle}"/>
@@ -188,7 +193,8 @@
                                      Text="80.2707"
                                      Style="{StaticResource ModernTextBoxStyle}" 
                                      Margin="0,0,0,10"
-                                     ToolTip="Enter longitude (e.g., 80.2707 for Chennai)"/>
+                                     ToolTip="Enter longitude (auto-filled from place selection)"
+                                     IsReadOnly="False"/>
 
                             <!-- Timezone -->
                             <TextBlock Text="Timezone Offset (hours) / நேர மண்டலம்" Style="{StaticResource LabelStyle}"/>

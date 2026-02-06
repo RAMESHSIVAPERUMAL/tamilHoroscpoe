@@ -4,6 +4,8 @@ using System.Windows;
 using System.Windows.Controls;
 using TamilHoroscope.Core.Calculators;
 using TamilHoroscope.Core.Models;
+using TamilHoroscope.Desktop.Models;
+using TamilHoroscope.Desktop.Services;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
 
@@ -17,17 +19,120 @@ public partial class MainWindow : Window
     private HoroscopeData? _currentHoroscope;
     private BirthDetails? _currentBirthDetails;
     private readonly PanchangCalculator _calculator;
+    private readonly BirthPlaceService _birthPlaceService;
+    private List<BirthPlace> _allPlaces = new();
 
     public MainWindow()
     {
         InitializeComponent();
         _calculator = new PanchangCalculator();
+        _birthPlaceService = new BirthPlaceService();
+
+        // Load birth places data
+        LoadBirthPlaces();
 
         // Set default date to today
         dpBirthDate.SelectedDate = DateTime.Today;
 
         // Add keyboard shortcuts
         this.KeyDown += MainWindow_KeyDown;
+    }
+
+    /// <summary>
+    /// Loads birth places from XML data file
+    /// </summary>
+    private void LoadBirthPlaces()
+    {
+        try
+        {
+            _birthPlaceService.LoadBirthPlaces();
+            _allPlaces = _birthPlaceService.GetAllPlaces();
+            
+            // Set initial items for ComboBox
+            cmbBirthPlace.ItemsSource = _allPlaces;
+            cmbBirthPlace.DisplayMemberPath = "DisplayName";
+            
+            // Set default selection to Chennai
+            var chennai = _allPlaces.FirstOrDefault(p => p.Name == "Chennai");
+            if (chennai != null)
+            {
+                cmbBirthPlace.SelectedItem = chennai;
+            }
+
+            var onlineStatus = _birthPlaceService.IsOnline ? "Online" : "Offline";
+            UpdateStatus($"Loaded {_allPlaces.Count} birth places successfully. Mode: {onlineStatus}", true);
+        }
+        catch (Exception ex)
+        {
+            UpdateStatus($"Warning: Could not load birth places - {ex.Message}", false);
+            MessageBox.Show($"Could not load birth places database:\n\n{ex.Message}\n\nYou can still enter coordinates manually.", 
+                          "Birth Places Data", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    /// <summary>
+    /// Handles text changes in the ComboBox for auto-complete functionality with online search
+    /// </summary>
+    private async void CmbBirthPlace_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (!cmbBirthPlace.IsDropDownOpen)
+        {
+            cmbBirthPlace.IsDropDownOpen = true;
+        }
+
+        var textBox = e.OriginalSource as TextBox;
+        if (textBox == null || string.IsNullOrWhiteSpace(textBox.Text))
+        {
+            cmbBirthPlace.ItemsSource = _allPlaces;
+            return;
+        }
+
+        // Filter places based on search text
+        var searchText = textBox.Text;
+        
+        // Show loading indicator
+        var currentText = textBox.Text;
+        
+        try
+        {
+            // Try online search first if connected
+            if (_birthPlaceService.IsOnline)
+            {
+                var filteredPlaces = await _birthPlaceService.SearchPlacesOnlineAsync(searchText);
+                
+                // Only update if the text hasn't changed during the async operation
+                if (textBox.Text == currentText)
+                {
+                    cmbBirthPlace.ItemsSource = filteredPlaces;
+                }
+            }
+            else
+            {
+                // Fallback to local search
+                var filteredPlaces = _birthPlaceService.SearchPlaces(searchText);
+                cmbBirthPlace.ItemsSource = filteredPlaces;
+            }
+        }
+        catch
+        {
+            // On error, use local search
+            var filteredPlaces = _birthPlaceService.SearchPlaces(searchText);
+            cmbBirthPlace.ItemsSource = filteredPlaces;
+        }
+    }
+
+    /// <summary>
+    /// Handles selection changes in the birth place ComboBox
+    /// </summary>
+    private void CmbBirthPlace_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (cmbBirthPlace.SelectedItem is BirthPlace selectedPlace)
+        {
+            // Auto-fill latitude, longitude, and timezone
+            txtLatitude.Text = selectedPlace.Latitude.ToString("F4", CultureInfo.InvariantCulture);
+            txtLongitude.Text = selectedPlace.Longitude.ToString("F4", CultureInfo.InvariantCulture);
+            txtTimezone.Text = selectedPlace.TimeZone.ToString("F1", CultureInfo.InvariantCulture);
+        }
     }
 
     private void MainWindow_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -153,13 +258,24 @@ public partial class MainWindow : Window
         var time = TimeSpan.Parse(txtBirthTime.Text);
         var dateTime = date.Date.Add(time);
 
+        // Get place name from ComboBox
+        string placeName = "Unknown";
+        if (cmbBirthPlace.SelectedItem is BirthPlace selectedPlace)
+        {
+            placeName = selectedPlace.Name;
+        }
+        else if (!string.IsNullOrWhiteSpace(cmbBirthPlace.Text))
+        {
+            placeName = cmbBirthPlace.Text;
+        }
+
         return new BirthDetails
         {
             DateTime = dateTime,
             Latitude = double.Parse(txtLatitude.Text, CultureInfo.InvariantCulture),
             Longitude = double.Parse(txtLongitude.Text, CultureInfo.InvariantCulture),
             TimeZoneOffset = double.Parse(txtTimezone.Text, CultureInfo.InvariantCulture),
-            PlaceName = txtPlaceName.Text
+            PlaceName = placeName
         };
     }
 

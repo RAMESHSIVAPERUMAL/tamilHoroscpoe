@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BirthPlaces>
+  <!-- Major Cities in Tamil Nadu -->
+  <Place>
+    <Name>Chennai</Name>
+    <TamilName>??????</TamilName>
+    <Latitude>13.0827</Latitude>
+    <Longitude>80.2707</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Tamil Nadu</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Coimbatore</Name>
+    <TamilName>????</TamilName>
+    <Latitude>11.0168</Latitude>
+    <Longitude>76.9558</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Tamil Nadu</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Madurai</Name>
+    <TamilName>?????</TamilName>
+    <Latitude>9.9252</Latitude>
+    <Longitude>78.1198</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Tamil Nadu</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Tiruchirappalli</Name>
+    <TamilName>?????????????????</TamilName>
+    <Latitude>10.7905</Latitude>
+    <Longitude>78.7047</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Tamil Nadu</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Salem</Name>
+    <TamilName>?????</TamilName>
+    <Latitude>11.6643</Latitude>
+    <Longitude>78.1460</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Tamil Nadu</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Tirunelveli</Name>
+    <TamilName>????????????</TamilName>
+    <Latitude>8.7139</Latitude>
+    <Longitude>77.7567</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Tamil Nadu</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Erode</Name>
+    <TamilName>?????</TamilName>
+    <Latitude>11.3410</Latitude>
+    <Longitude>77.7172</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Tamil Nadu</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Vellore</Name>
+    <TamilName>??????</TamilName>
+    <Latitude>12.9165</Latitude>
+    <Longitude>79.1325</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Tamil Nadu</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Thoothukudi</Name>
+    <TamilName>????????????</TamilName>
+    <Latitude>8.7642</Latitude>
+    <Longitude>78.1348</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Tamil Nadu</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Thanjavur</Name>
+    <TamilName>?????????</TamilName>
+    <Latitude>10.7870</Latitude>
+    <Longitude>79.1378</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Tamil Nadu</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Nagercoil</Name>
+    <TamilName>???????????</TamilName>
+    <Latitude>8.1790</Latitude>
+    <Longitude>77.4338</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Tamil Nadu</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Kumbakonam</Name>
+    <TamilName>??????????</TamilName>
+    <Latitude>10.9617</Latitude>
+    <Longitude>79.3881</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Tamil Nadu</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Tiruppur</Name>
+    <TamilName>??????????</TamilName>
+    <Latitude>11.1085</Latitude>
+    <Longitude>77.3411</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Tamil Nadu</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Karur</Name>
+    <TamilName>?????</TamilName>
+    <Latitude>10.9601</Latitude>
+    <Longitude>78.0766</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Tamil Nadu</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Dindigul</Name>
+    <TamilName>???????????</TamilName>
+    <Latitude>10.3673</Latitude>
+    <Longitude>77.9803</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Tamil Nadu</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Kanchipuram</Name>
+    <TamilName>???????????</TamilName>
+    <Latitude>12.8342</Latitude>
+    <Longitude>79.7036</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Tamil Nadu</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Cuddalore</Name>
+    <TamilName>??????</TamilName>
+    <Latitude>11.7480</Latitude>
+    <Longitude>79.7714</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Tamil Nadu</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Tiruvannamalai</Name>
+    <TamilName>????????????</TamilName>
+    <Latitude>12.2253</Latitude>
+    <Longitude>79.0747</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Tamil Nadu</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Ramanathapuram</Name>
+    <TamilName>???????????</TamilName>
+    <Latitude>9.3639</Latitude>
+    <Longitude>78.8370</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Tamil Nadu</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Sivakasi</Name>
+    <TamilName>???????</TamilName>
+    <Latitude>9.4534</Latitude>
+    <Longitude>77.8081</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Tamil Nadu</State>
+    <Country>India</Country>
+  </Place>
+  
+  <!-- Major Cities in Other Indian States -->
+  <Place>
+    <Name>Mumbai</Name>
+    <TamilName>??????</TamilName>
+    <Latitude>19.0760</Latitude>
+    <Longitude>72.8777</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Maharashtra</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Delhi</Name>
+    <TamilName>??????</TamilName>
+    <Latitude>28.7041</Latitude>
+    <Longitude>77.1025</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Delhi</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Bangalore</Name>
+    <TamilName>?????????</TamilName>
+    <Latitude>12.9716</Latitude>
+    <Longitude>77.5946</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Karnataka</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Hyderabad</Name>
+    <TamilName>?????????</TamilName>
+    <Latitude>17.3850</Latitude>
+    <Longitude>78.4867</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Telangana</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Kolkata</Name>
+    <TamilName>?????????</TamilName>
+    <Latitude>22.5726</Latitude>
+    <Longitude>88.3639</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>West Bengal</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Pune</Name>
+    <TamilName>????</TamilName>
+    <Latitude>18.5204</Latitude>
+    <Longitude>73.8567</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Maharashtra</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Ahmedabad</Name>
+    <TamilName>?????????</TamilName>
+    <Latitude>23.0225</Latitude>
+    <Longitude>72.5714</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Gujarat</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Kochi</Name>
+    <TamilName>??????</TamilName>
+    <Latitude>9.9312</Latitude>
+    <Longitude>76.2673</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Kerala</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Thiruvananthapuram</Name>
+    <TamilName>??????????????</TamilName>
+    <Latitude>8.5241</Latitude>
+    <Longitude>76.9366</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Kerala</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Visakhapatnam</Name>
+    <TamilName>???????????????</TamilName>
+    <Latitude>17.6869</Latitude>
+    <Longitude>83.2185</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Andhra Pradesh</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Jaipur</Name>
+    <TamilName>??????????</TamilName>
+    <Latitude>26.9124</Latitude>
+    <Longitude>75.7873</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Rajasthan</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Lucknow</Name>
+    <TamilName>?????</TamilName>
+    <Latitude>26.8467</Latitude>
+    <Longitude>80.9462</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Uttar Pradesh</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Chandigarh</Name>
+    <TamilName>????????</TamilName>
+    <Latitude>30.7333</Latitude>
+    <Longitude>76.7794</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Chandigarh</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Bhopal</Name>
+    <TamilName>??????</TamilName>
+    <Latitude>23.2599</Latitude>
+    <Longitude>77.4126</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Madhya Pradesh</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
+    <Name>Patna</Name>
+    <TamilName>??????</TamilName>
+    <Latitude>25.5941</Latitude>
+    <Longitude>85.1376</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Bihar</State>
+    <Country>India</Country>
+  </Place>
+
+  <!-- International Cities -->
+  <Place>
+    <Name>Singapore</Name>
+    <TamilName>???????????</TamilName>
+    <Latitude>1.3521</Latitude>
+    <Longitude>103.8198</Longitude>
+    <TimeZone>8.0</TimeZone>
+    <State></State>
+    <Country>Singapore</Country>
+  </Place>
+  <Place>
+    <Name>London</Name>
+    <TamilName>??????</TamilName>
+    <Latitude>51.5074</Latitude>
+    <Longitude>-0.1278</Longitude>
+    <TimeZone>0.0</TimeZone>
+    <State></State>
+    <Country>United Kingdom</Country>
+  </Place>
+  <Place>
+    <Name>New York</Name>
+    <TamilName>??????????</TamilName>
+    <Latitude>40.7128</Latitude>
+    <Longitude>-74.0060</Longitude>
+    <TimeZone>-5.0</TimeZone>
+    <State>New York</State>
+    <Country>USA</Country>
+  </Place>
+  <Place>
+    <Name>Los Angeles</Name>
+    <TamilName>???? ???????</TamilName>
+    <Latitude>34.0522</Latitude>
+    <Longitude>-118.2437</Longitude>
+    <TimeZone>-8.0</TimeZone>
+    <State>California</State>
+    <Country>USA</Country>
+  </Place>
+  <Place>
+    <Name>Dubai</Name>
+    <TamilName>??????</TamilName>
+    <Latitude>25.2048</Latitude>
+    <Longitude>55.2708</Longitude>
+    <TimeZone>4.0</TimeZone>
+    <State></State>
+    <Country>UAE</Country>
+  </Place>
+  <Place>
+    <Name>Sydney</Name>
+    <TamilName>??????</TamilName>
+    <Latitude>-33.8688</Latitude>
+    <Longitude>151.2093</Longitude>
+    <TimeZone>10.0</TimeZone>
+    <State>New South Wales</State>
+    <Country>Australia</Country>
+  </Place>
+  <Place>
+    <Name>Toronto</Name>
+    <TamilName>????????</TamilName>
+    <Latitude>43.6532</Latitude>
+    <Longitude>-79.3832</Longitude>
+    <TimeZone>-5.0</TimeZone>
+    <State>Ontario</State>
+    <Country>Canada</Country>
+  </Place>
+  <Place>
+    <Name>Kuala Lumpur</Name>
+    <TamilName>?????????????</TamilName>
+    <Latitude>3.1390</Latitude>
+    <Longitude>101.6869</Longitude>
+    <TimeZone>8.0</TimeZone>
+    <State></State>
+    <Country>Malaysia</Country>
+  </Place>
+</BirthPlaces>
