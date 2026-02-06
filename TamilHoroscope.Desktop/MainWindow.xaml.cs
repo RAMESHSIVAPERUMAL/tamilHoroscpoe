@@ -366,55 +366,70 @@ public partial class MainWindow : Window
         document.Add(new Paragraph($"Longitude: {_currentHoroscope.LagnaLongitude:F2}° ({GetDegreesMinutes(_currentHoroscope.LagnaLongitude % 30)})", normalFont));
         document.Add(new Paragraph("\n"));
 
-        // Add Planets table (Rasi Chart - D1)
+        // Add Planets table (Rasi Chart - D1) - Simplified to match screen display
         document.Add(new Paragraph("Navagraha Positions (Rasi Chart - D1) - நவகிரக நிலைகள்", headerFont));
-        var planetsTable = new PdfPTable(6);
+        var planetsTable = new PdfPTable(9); // Changed from 6 to 9 columns
         planetsTable.WidthPercentage = 100;
-        planetsTable.SetWidths(new float[] { 2f, 2f, 2.5f, 1.5f, 1.5f, 1.5f });
+        planetsTable.SetWidths(new float[] { 1.5f, 1.5f, 2f, 2f, 1.5f, 2.5f, 0.8f, 1f, 1f });
 
-        // Table headers
+        // Table headers - matching screen display
         planetsTable.AddCell(CreateHeaderCell("Planet", cellFont));
+        planetsTable.AddCell(CreateHeaderCell("Tamil", cellFont));
         planetsTable.AddCell(CreateHeaderCell("Rasi", cellFont));
+        planetsTable.AddCell(CreateHeaderCell("Longitude", cellFont));
+        planetsTable.AddCell(CreateHeaderCell("Degree", cellFont));
         planetsTable.AddCell(CreateHeaderCell("Nakshatra", cellFont));
+        planetsTable.AddCell(CreateHeaderCell("Pada", cellFont));
         planetsTable.AddCell(CreateHeaderCell("House", cellFont));
-        planetsTable.AddCell(CreateHeaderCell("Retro", cellFont));
-        planetsTable.AddCell(CreateHeaderCell("Degrees", cellFont));
+        planetsTable.AddCell(CreateHeaderCell("Status", cellFont));
 
-        // Table data
+        // Table data - matching screen display
         foreach (var planet in _currentHoroscope.Planets)
         {
-            planetsTable.AddCell(new PdfPCell(new Phrase($"{planet.Name}\n{planet.TamilName}", dataCellFont)));
+            planetsTable.AddCell(new PdfPCell(new Phrase(planet.Name, dataCellFont)));
+            planetsTable.AddCell(new PdfPCell(new Phrase(planet.TamilName, smallFont)));
             planetsTable.AddCell(new PdfPCell(new Phrase($"{planet.RasiName}\n{planet.TamilRasiName}", smallFont)));
+            planetsTable.AddCell(new PdfPCell(new Phrase(planet.LongitudeFormatted, smallFont)));
+            planetsTable.AddCell(new PdfPCell(new Phrase(planet.DegreeFormatted, smallFont)));
             planetsTable.AddCell(new PdfPCell(new Phrase($"{planet.NakshatraName}\n{planet.TamilNakshatraName}", smallFont)));
+            planetsTable.AddCell(new PdfPCell(new Phrase(planet.NakshatraPada.ToString(), dataCellFont)));
             planetsTable.AddCell(new PdfPCell(new Phrase(planet.House.ToString(), dataCellFont)));
-            planetsTable.AddCell(new PdfPCell(new Phrase(planet.IsRetrograde ? "Yes" : "No", dataCellFont)));
-            planetsTable.AddCell(new PdfPCell(new Phrase(GetDegreesMinutes(planet.Longitude % 30), smallFont)));
+            planetsTable.AddCell(new PdfPCell(new Phrase(planet.StatusDisplay, dataCellFont)) 
+            { 
+                HorizontalAlignment = Element.ALIGN_CENTER 
+            });
         }
 
         document.Add(planetsTable);
         document.Add(new Paragraph("\n"));
 
-        // Add Navamsa Planets table if calculated
+        // Add Navamsa Planets table if calculated - matching screen display format
         if (_currentHoroscope.NavamsaPlanets != null && _currentHoroscope.NavamsaPlanets.Count > 0)
         {
             document.Add(new Paragraph("Navamsa Positions (D-9 Chart) - நவாம்சம்", headerFont));
-            var navamsaTable = new PdfPTable(4);
+            var navamsaTable = new PdfPTable(7); // Simplified columns (no House for Navamsa)
             navamsaTable.WidthPercentage = 100;
-            navamsaTable.SetWidths(new float[] { 2f, 2f, 2.5f, 1.5f });
+            navamsaTable.SetWidths(new float[] { 1.5f, 1.5f, 2f, 2f, 1.5f, 2.5f, 0.8f });
 
-            // Headers
+            // Headers - matching essential display
             navamsaTable.AddCell(CreateHeaderCell("Planet", cellFont));
+            navamsaTable.AddCell(CreateHeaderCell("Tamil", cellFont));
             navamsaTable.AddCell(CreateHeaderCell("Navamsa Rasi", cellFont));
+            navamsaTable.AddCell(CreateHeaderCell("Longitude", cellFont));
+            navamsaTable.AddCell(CreateHeaderCell("Degree", cellFont));
             navamsaTable.AddCell(CreateHeaderCell("Nakshatra", cellFont));
-            navamsaTable.AddCell(CreateHeaderCell("Degrees", cellFont));
+            navamsaTable.AddCell(CreateHeaderCell("Pada", cellFont));
 
             // Data
             foreach (var planet in _currentHoroscope.NavamsaPlanets)
             {
-                navamsaTable.AddCell(new PdfPCell(new Phrase($"{planet.Name}\n{planet.TamilName}", dataCellFont)));
+                navamsaTable.AddCell(new PdfPCell(new Phrase(planet.Name, dataCellFont)));
+                navamsaTable.AddCell(new PdfPCell(new Phrase(planet.TamilName, smallFont)));
                 navamsaTable.AddCell(new PdfPCell(new Phrase($"{planet.RasiName}\n{planet.TamilRasiName}", smallFont)));
+                navamsaTable.AddCell(new PdfPCell(new Phrase(planet.LongitudeFormatted, smallFont)));
+                navamsaTable.AddCell(new PdfPCell(new Phrase(planet.DegreeFormatted, smallFont)));
                 navamsaTable.AddCell(new PdfPCell(new Phrase(planet.NakshatraName, smallFont)));
-                navamsaTable.AddCell(new PdfPCell(new Phrase(GetDegreesMinutes(planet.Longitude % 30), smallFont)));
+                navamsaTable.AddCell(new PdfPCell(new Phrase(planet.NakshatraPada.ToString(), dataCellFont)));
             }
 
             document.Add(navamsaTable);

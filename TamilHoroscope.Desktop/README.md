@@ -11,7 +11,9 @@ Modern desktop application for generating Tamil horoscopes with professional PDF
 - ✅ **Modern UI**: Material Design-inspired WPF interface
 - ✅ **Birth Details Input**: Comprehensive form with validation
 - ✅ **Real-time Calculation**: Instant horoscope generation
-- ✅ **PDF Export**: Professional horoscope reports
+- ✅ **South Indian Style Charts**: Traditional 4x4 grid layout for Rasi and Navamsa
+- ✅ **Chart Visualization**: Professional chart display with Tamil Unicode
+- ✅ **PDF Export**: Professional horoscope reports with charts
 - ✅ **Tamil Language**: Bilingual interface (English/Tamil)
 - ✅ **Advanced Options**: Vimshottari Dasa and Navamsa settings
 - ✅ **Accessibility**: Keyboard shortcuts and tooltips
@@ -79,10 +81,15 @@ See `/docs` folder for complete documentation:
 ### Project Structure
 ```
 TamilHoroscope.Desktop/
-├── App.xaml               # Application resources
-├── MainWindow.xaml        # Main UI definition
-├── MainWindow.xaml.cs     # Business logic
-└── Converters/            # Value converters
+├── App.xaml                          # Application resources
+├── MainWindow.xaml                   # Main UI definition
+├── MainWindow.xaml.cs                # Business logic
+├── Controls/                         # Custom UI controls
+│   ├── RasiChartControl.xaml         # Rasi chart view
+│   ├── RasiChartControl.xaml.cs      # Rasi chart logic
+│   ├── NavamsaChartControl.xaml      # Navamsa chart view
+│   └── NavamsaChartControl.xaml.cs   # Navamsa chart logic
+└── Converters/                       # Value converters
 ```
 
 ## Dependencies
@@ -98,17 +105,19 @@ TamilHoroscope.Desktop/
 ## Known Limitations
 
 1. **Windows Only**: WPF requires Windows OS
-2. **Navamsa**: Calculation not yet implemented (placeholder)
-3. **Vimshottari Dasa**: Calculation not yet implemented (placeholder)
-4. **Charts**: No graphical chart display yet
+2. **Vimshottari Dasa**: Calculation not yet implemented (UI ready)
+3. **Print Preview**: Not yet implemented
 
 ## Future Enhancements
 
-- Implement Vimshottari Dasa calculation
-- Implement Navamsa chart calculation
-- Add visual chart graphics (South Indian, North Indian styles)
+- Implement Vimshottari Dasa calculation (UI already implemented)
+- Add North Indian style chart option
+- Chart export as images (PNG, SVG)
 - Database integration for saving charts
 - Print preview functionality
+- Comparison charts (side-by-side analysis)
+- Transit calculations overlay
+- Interactive chart tooltips
 
 ## License
 

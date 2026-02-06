@@ -317,8 +317,20 @@ public class PanchangCalculator : IPanchangCalculator
     /// </summary>
     private PlanetData CreatePlanetData(string name, double[] position, double[] cusps, double lagnaLongitude)
     {
+        // Swiss Ephemeris returns:
+        // position[0] = longitude
+        // position[1] = latitude
+        // position[2] = distance from Earth (AU)
+        // position[3] = speed in longitude (degrees/day)
+        // position[4] = speed in latitude (degrees/day)
+        // position[5] = speed in distance (AU/day)
+        
         double longitude = position[0];
         double latitude = position[1];
+        double distance = position.Length > 2 ? position[2] : 0.0;
+        double speed = position.Length > 3 ? position[3] : 0.0;
+        double speedInLatitude = position.Length > 4 ? position[4] : 0.0;
+        double speedInDistance = position.Length > 5 ? position[5] : 0.0;
         
         int rasi = GetRasiNumber(longitude);
         var rasiInfo = TamilNames.Rasis[rasi];
@@ -328,7 +340,7 @@ public class PanchangCalculator : IPanchangCalculator
         
         int house = GetHouseNumber(longitude, cusps, lagnaLongitude);
         
-        bool isRetrograde = position.Length > 3 && position[3] < 0; // Speed < 0 means retrograde
+        bool isRetrograde = speed < 0; // Negative speed means retrograde
         
         return new PlanetData
         {
@@ -336,6 +348,10 @@ public class PanchangCalculator : IPanchangCalculator
             TamilName = TamilNames.Planets.TryGetValue(name, out var tamilName) ? tamilName : name,
             Longitude = longitude,
             Latitude = latitude,
+            Speed = speed,
+            Distance = distance,
+            SpeedInLatitude = speedInLatitude,
+            SpeedInDistance = speedInDistance,
             Rasi = rasi,
             RasiName = rasiInfo.English,
             TamilRasiName = rasiInfo.Tamil,
@@ -412,6 +428,8 @@ public class PanchangCalculator : IPanchangCalculator
 
     /// <summary>
     /// Get house number where a planet is located
+    /// For Whole Sign house system in Vedic astrology:
+    /// House 1 = Lagna Rasi, House 2 = Next Rasi, etc.
     /// </summary>
     private int GetHouseNumber(double planetLongitude, double[] cusps, double lagnaLongitude)
     {
@@ -419,30 +437,29 @@ public class PanchangCalculator : IPanchangCalculator
         while (planetLongitude < 0) planetLongitude += 360.0;
         while (planetLongitude >= 360.0) planetLongitude -= 360.0;
         
-        // Find which house the planet is in
-        for (int i = 1; i <= 12; i++)
+        // Get the Rasi (sign) of the planet
+        int planetRasi = GetRasiNumber(planetLongitude);
+        
+        // Get the Lagna Rasi (1st house)
+        int lagnaRasi = GetRasiNumber(lagnaLongitude);
+        
+        // Calculate house number by counting from Lagna
+        // House = (Planet Rasi - Lagna Rasi + 1), wrapping around if necessary
+        int house = planetRasi - lagnaRasi + 1;
+        
+        // Handle wrap-around: if result is 0 or negative, add 12
+        if (house <= 0)
         {
-            double cuspStart = cusps[i];
-            double cuspEnd = i < 12 ? cusps[i + 1] : cusps[1];
-            
-            // Handle wrap-around at 360°/0°
-            if (cuspEnd < cuspStart)
-            {
-                if (planetLongitude >= cuspStart || planetLongitude < cuspEnd)
-                {
-                    return i;
-                }
-            }
-            else
-            {
-                if (planetLongitude >= cuspStart && planetLongitude < cuspEnd)
-                {
-                    return i;
-                }
-            }
+            house += 12;
         }
         
-        return 1; // Default to first house if not found
+        // Ensure house is in range 1-12
+        while (house > 12)
+        {
+            house -= 12;
+        }
+        
+        return house;
     }
 
     #endregion
