@@ -395,15 +395,15 @@
                                       CanUserSortColumns="True"
                                       FontSize="11">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="கிரகம்" Binding="{Binding TamilName}" Width="75">
+                                    <DataGridTextColumn Header="கிரகம்" Binding="{Binding TamilName}" Width="100">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="FontWeight" Value="SemiBold"/>
                                             </Style>
                                         </DataGridTextColumn.ElementStyle>
                                     </DataGridTextColumn>
-                                    <DataGridTextColumn Header="ராசி" Binding="{Binding TamilRasiName}" Width="95"/>
-                                    <DataGridTextColumn Header="Longitude" Binding="{Binding LongitudeFormatted}" Width="95">
+                                    <DataGridTextColumn Header="ராசி" Binding="{Binding TamilRasiName}" Width="100"/>
+                                    <DataGridTextColumn Header="Longitude" Binding="{Binding LongitudeFormatted}" Width="100">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="HorizontalAlignment" Value="Right"/>
@@ -411,7 +411,7 @@
                                             </Style>
                                         </DataGridTextColumn.ElementStyle>
                                     </DataGridTextColumn>
-                                    <DataGridTextColumn Header="Degree" Binding="{Binding DegreeFormatted}" Width="70">
+                                    <DataGridTextColumn Header="Degree" Binding="{Binding DegreeFormatted}" Width="100">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="HorizontalAlignment" Value="Right"/>
@@ -419,15 +419,15 @@
                                             </Style>
                                         </DataGridTextColumn.ElementStyle>
                                     </DataGridTextColumn>
-                                    <DataGridTextColumn Header="நட்சத்திரம்" Binding="{Binding TamilNakshatraName}" Width="120"/>
-                                    <DataGridTextColumn Header="பாதம்" Binding="{Binding NakshatraPada}" Width="50">
+                                    <DataGridTextColumn Header="நட்சத்திரம்" Binding="{Binding TamilNakshatraName}" Width="150"/>
+                                    <DataGridTextColumn Header="பாதம்" Binding="{Binding NakshatraPada}" Width="100">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="HorizontalAlignment" Value="Center"/>
                                             </Style>
                                         </DataGridTextColumn.ElementStyle>
                                     </DataGridTextColumn>
-                                    <DataGridTextColumn Header="நிலை" Binding="{Binding StatusDisplay}" Width="55">
+                                    <DataGridTextColumn Header="நிலை" Binding="{Binding StatusDisplay}" Width="100">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -435,10 +435,11 @@
                                             </Style>
                                         </DataGridTextColumn.ElementStyle>
                                     </DataGridTextColumn>
-                                    <DataGridTextColumn Header="இருக்கும் வீடு" Binding="{Binding House}" Width="100">
+                                    <DataGridTextColumn Header="அஸ்தம்" Binding="{Binding CombustionStatusDisplay}" Width="100">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="HorizontalAlignment" Value="Center"/>
+                                                <Setter Property="FontWeight" Value="Bold"/>
                                             </Style>
                                         </DataGridTextColumn.ElementStyle>
                                     </DataGridTextColumn>

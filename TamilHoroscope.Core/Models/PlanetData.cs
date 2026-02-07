@@ -87,6 +87,24 @@ public class PlanetData
     public bool IsRetrograde { get; set; }
 
     /// <summary>
+    /// Combustion status (Astam/Asthangam)
+    /// True if the planet is too close to the Sun
+    /// </summary>
+    public bool IsCombust { get; set; }
+
+    /// <summary>
+    /// Angular distance from the Sun in degrees
+    /// Used for combustion calculation
+    /// </summary>
+    public double DistanceFromSun { get; set; }
+
+    /// <summary>
+    /// Combustion threshold for this planet (in degrees)
+    /// The orb within which the planet is considered combust
+    /// </summary>
+    public double CombustionThreshold { get; set; }
+
+    /// <summary>
     /// Formatted degree position within the rasi (e.g., "23°45'")
     /// </summary>
     public string DegreeFormatted
@@ -108,7 +126,39 @@ public class PlanetData
     {
         get
         {
-            return IsRetrograde ? "வக்ரம்" : "";
+            return (IsRetrograde &&  Name != "Rahu" &&  Name != "Ketu") ? "வக்ரம்" : "";
+        }
+    }
+
+    /// <summary>
+    /// Combustion status display in Tamil
+    /// </summary>
+    public string CombustionStatusDisplay
+    {
+        get
+        {
+            return IsCombust ? "அஸ்தம்" : "";
+        }
+    }
+
+    /// <summary>
+    /// Combined status display showing both retrograde and combustion
+    /// </summary>
+    public string FullStatusDisplay
+    {
+        get
+        {
+            var status = StatusDisplay;
+            var combustStatus = CombustionStatusDisplay;
+            
+            if (!string.IsNullOrEmpty(status) && !string.IsNullOrEmpty(combustStatus))
+                return $"{status}, {combustStatus}";
+            else if (!string.IsNullOrEmpty(status))
+                return status;
+            else if (!string.IsNullOrEmpty(combustStatus))
+                return combustStatus;
+            else
+                return "";
         }
     }
 
@@ -218,6 +268,23 @@ public class PlanetData
         {
             string sign = SpeedInDistance < 0 ? "" : "+";
             return $"{sign}{SpeedInDistance:F6} AU/day";
+        }
+    }
+
+    /// <summary>
+    /// Distance from Sun formatted display (e.g., "5°30'")
+    /// Only applicable for planets other than Sun
+    /// </summary>
+    public string DistanceFromSunFormatted
+    {
+        get
+        {
+            if (Name == "Sun") return "N/A";
+            
+            int degrees = (int)DistanceFromSun;
+            double minutesDecimal = (DistanceFromSun - degrees) * 60.0;
+            int minutes = (int)minutesDecimal;
+            return $"{degrees}°{minutes:D2}'";
         }
     }
 }
