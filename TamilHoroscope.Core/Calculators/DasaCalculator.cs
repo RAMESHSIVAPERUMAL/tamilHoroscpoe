@@ -47,10 +47,10 @@ public class DasaCalculator
         // Calculate total years to generate
         double totalYearsGenerated = 0;
 
-        // First, add the balance of the starting Dasa
+        // First, add the balance of the starting Dasa (with balance Bhuktis)
         if (balanceYears > 0.001) // Only add if significant balance remains
         {
-            var firstDasa = CreateDasa(startingLord, currentDate, balanceYears);
+            var firstDasa = CreateBalanceDasa(startingLord, currentDate, balanceYears, startingDasaDuration, fractionTraversed);
             dasas.Add(firstDasa);
             currentDate = firstDasa.EndDate;
             totalYearsGenerated += balanceYears;
@@ -75,6 +75,26 @@ public class DasaCalculator
         }
 
         return dasas;
+    }
+
+    /// <summary>
+    /// Create a balance Dasa period with only the remaining Bhukti sub-periods
+    /// </summary>
+    private DasaData CreateBalanceDasa(string lord, DateTime startDate, double balanceYears, double fullDasaDuration, double fractionTraversed)
+    {
+        var dasa = new DasaData
+        {
+            Lord = lord,
+            TamilLord = TamilNames.Planets[lord],
+            StartDate = startDate,
+            EndDate = startDate.AddYears((int)balanceYears).AddDays((balanceYears - (int)balanceYears) * 365.25),
+            DurationYears = (int)Math.Ceiling(balanceYears)
+        };
+
+        // Calculate only the balance Bhuktis (not all 9)
+        dasa.Bhuktis = CalculateBalanceBhuktis(lord, startDate, balanceYears, fullDasaDuration, fractionTraversed);
+
+        return dasa;
     }
 
     /// <summary>
@@ -121,6 +141,85 @@ public class DasaCalculator
             // Bhukti duration is proportional to both Dasa lord and Bhukti lord durations
             // Formula: (Dasa Lord Years × Bhukti Lord Years) / 120
             var bhuktiDurationYears = (dasaDurationYears * TamilNames.DasaDurations[bhuktiLord]) / 120.0;
+            var bhuktiDurationDays = bhuktiDurationYears * 365.25;
+
+            var bhukti = new BhuktiData
+            {
+                Lord = bhuktiLord,
+                TamilLord = TamilNames.Planets[bhuktiLord],
+                StartDate = currentDate,
+                EndDate = currentDate.AddDays(bhuktiDurationDays),
+                DurationDays = bhuktiDurationDays
+            };
+
+            bhuktis.Add(bhukti);
+            currentDate = bhukti.EndDate;
+        }
+
+        return bhuktis;
+    }
+
+    /// <summary>
+    /// Calculate only the balance Bhuktis for a balance Dasa period
+    /// This is used for the first Dasa when it's not a full period
+    /// </summary>
+    private List<BhuktiData> CalculateBalanceBhuktis(string dasaLord, DateTime dasaStartDate, double balanceDasaYears, double fullDasaDuration, double fractionTraversed)
+    {
+        var bhuktis = new List<BhuktiData>();
+
+        // Find the starting index of Dasa lord in the sequence
+        int dasaLordIndex = Array.IndexOf(TamilNames.DasaSequence, dasaLord);
+
+        // Calculate cumulative durations to find which Bhukti to start from
+        double cumulativeYears = 0;
+        double elapsedYears = fullDasaDuration * fractionTraversed;
+        int startingBhuktiIndex = 0;
+        double bhuktiBalance = 0;
+
+        // Find which Bhukti we're in based on elapsed time
+        for (int i = 0; i < TamilNames.DasaSequence.Length; i++)
+        {
+            int bhuktiIndex = (dasaLordIndex + i) % TamilNames.DasaSequence.Length;
+            var bhuktiLord = TamilNames.DasaSequence[bhuktiIndex];
+            
+            // Full Bhukti duration in years
+            var fullBhuktiDuration = (fullDasaDuration * TamilNames.DasaDurations[bhuktiLord]) / 120.0;
+            
+            if (cumulativeYears + fullBhuktiDuration > elapsedYears)
+            {
+                // This is the starting Bhukti
+                startingBhuktiIndex = i;
+                bhuktiBalance = fullBhuktiDuration - (elapsedYears - cumulativeYears);
+                break;
+            }
+            
+            cumulativeYears += fullBhuktiDuration;
+        }
+
+        // Now calculate Bhuktis starting from the balance Bhukti
+        DateTime currentDate = dasaStartDate;
+        bool isFirstBhukti = true;
+
+        for (int i = startingBhuktiIndex; i < TamilNames.DasaSequence.Length; i++)
+        {
+            int bhuktiIndex = (dasaLordIndex + i) % TamilNames.DasaSequence.Length;
+            var bhuktiLord = TamilNames.DasaSequence[bhuktiIndex];
+
+            // For the first Bhukti, use the balance duration
+            // For subsequent Bhuktis, calculate based on the balance Dasa proportion
+            double bhuktiDurationYears;
+            
+            if (isFirstBhukti)
+            {
+                bhuktiDurationYears = bhuktiBalance;
+                isFirstBhukti = false;
+            }
+            else
+            {
+                // Calculate proportional Bhukti duration based on balance Dasa
+                bhuktiDurationYears = (balanceDasaYears * TamilNames.DasaDurations[bhuktiLord]) / fullDasaDuration;
+            }
+            
             var bhuktiDurationDays = bhuktiDurationYears * 365.25;
 
             var bhukti = new BhuktiData
