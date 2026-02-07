@@ -77,23 +77,35 @@ public partial class MainWindow : Window
     /// </summary>
     private async void CmbBirthPlace_TextChanged(object sender, TextChangedEventArgs e)
     {
-        if (!cmbBirthPlace.IsDropDownOpen)
+        // Don't process if selection is being changed programmatically
+        if (cmbBirthPlace.SelectedItem != null)
         {
-            cmbBirthPlace.IsDropDownOpen = true;
+            return;
         }
 
         var textBox = e.OriginalSource as TextBox;
-        if (textBox == null || string.IsNullOrWhiteSpace(textBox.Text))
+        if (textBox == null)
+        {
+            return;
+        }
+
+        // If text is empty, reset to all places
+        if (string.IsNullOrWhiteSpace(textBox.Text))
         {
             cmbBirthPlace.ItemsSource = _allPlaces;
             return;
         }
 
+        // Open dropdown for autocomplete
+        if (!cmbBirthPlace.IsDropDownOpen)
+        {
+            cmbBirthPlace.IsDropDownOpen = true;
+        }
+
         // Filter places based on search text
         var searchText = textBox.Text;
-        
-        // Show loading indicator
         var currentText = textBox.Text;
+        var caretIndex = textBox.CaretIndex;
         
         try
         {
@@ -103,9 +115,13 @@ public partial class MainWindow : Window
                 var filteredPlaces = await _birthPlaceService.SearchPlacesOnlineAsync(searchText);
                 
                 // Only update if the text hasn't changed during the async operation
-                if (textBox.Text == currentText)
+                if (textBox.Text == currentText && cmbBirthPlace.SelectedItem == null)
                 {
                     cmbBirthPlace.ItemsSource = filteredPlaces;
+                    
+                    // Restore text and caret position
+                    textBox.Text = currentText;
+                    textBox.CaretIndex = caretIndex;
                 }
             }
             else
@@ -113,6 +129,10 @@ public partial class MainWindow : Window
                 // Fallback to local search
                 var filteredPlaces = _birthPlaceService.SearchPlaces(searchText);
                 cmbBirthPlace.ItemsSource = filteredPlaces;
+                
+                // Restore text and caret position
+                textBox.Text = currentText;
+                textBox.CaretIndex = caretIndex;
             }
         }
         catch
@@ -120,6 +140,10 @@ public partial class MainWindow : Window
             // On error, use local search
             var filteredPlaces = _birthPlaceService.SearchPlaces(searchText);
             cmbBirthPlace.ItemsSource = filteredPlaces;
+            
+            // Restore text and caret position
+            textBox.Text = currentText;
+            textBox.CaretIndex = caretIndex;
         }
     }
 
@@ -176,6 +200,7 @@ public partial class MainWindow : Window
             // Calculate horoscope with optional features based on UI settings
             bool includeDasa = chkCalculateDasa.IsChecked == true;
             bool includeNavamsa = chkCalculateNavamsa.IsChecked == true;
+            bool includeStrength = chkCalculateStrength.IsChecked == true;
             int dasaYears = cmbDasaYears.SelectedIndex switch
             {
                 0 => 10,
@@ -185,7 +210,7 @@ public partial class MainWindow : Window
                 _ => 50
             };
 
-            _currentHoroscope = _calculator.CalculateHoroscope(birthDetails, includeDasa, includeNavamsa, dasaYears);
+            _currentHoroscope = _calculator.CalculateHoroscope(birthDetails, includeDasa, includeNavamsa, dasaYears, includeStrength);
 
             // Display results
             DisplayResults(_currentHoroscope, birthDetails);
@@ -302,8 +327,35 @@ public partial class MainWindow : Window
         txtLagna.Text = $"Rasi: {horoscope.LagnaRasiName} ({horoscope.TamilLagnaRasiName})\n" +
                        $"Longitude: {horoscope.LagnaLongitude:F2}°";
 
-        // Display Planets
-        dgPlanets.ItemsSource = horoscope.Planets;
+        // Display Planets with Lagna as first row
+        var planetsWithLagna = new List<PlanetData>();
+        
+        // Add Lagna as first row
+        planetsWithLagna.Add(new PlanetData
+        {
+            Name = "Lagna",
+            TamilName = "லக்னம்",
+            Longitude = horoscope.LagnaLongitude,
+            Latitude = 0.0,
+            Speed = 0.0,
+            Rasi = horoscope.LagnaRasi,
+            RasiName = horoscope.LagnaRasiName,
+            TamilRasiName = horoscope.TamilLagnaRasiName,
+            Nakshatra = GetNakshatraNumber(horoscope.LagnaLongitude),
+            House = 1, // Lagna is always 1st house
+            IsRetrograde = false
+        });
+        
+        // Add nakshatra name for Lagna
+        var lagnaData = planetsWithLagna[0];
+        var nakshatraInfo = TamilHoroscope.Core.Data.TamilNames.Nakshatras[lagnaData.Nakshatra];
+        lagnaData.NakshatraName = nakshatraInfo.English;
+        lagnaData.TamilNakshatraName = nakshatraInfo.Tamil;
+        
+        // Add all planets
+        planetsWithLagna.AddRange(horoscope.Planets);
+        
+        dgPlanets.ItemsSource = planetsWithLagna;
 
         // Display Rasi Chart
         chartSection.Visibility = Visibility.Visible;
@@ -323,6 +375,20 @@ public partial class MainWindow : Window
         else
         {
             navamsaChartBorder.Visibility = Visibility.Collapsed;
+        }
+
+        // Show/hide Planetary Strength section
+        if (chkCalculateStrength.IsChecked == true && horoscope.PlanetStrengths != null && horoscope.PlanetStrengths.Count > 0)
+        {
+            strengthSection.Visibility = Visibility.Visible;
+            
+            var strengthChart = new Controls.PlanetStrengthChartControl();
+            strengthChart.DisplayStrengths(horoscope.PlanetStrengths);
+            strengthChartContainer.Child = strengthChart;
+        }
+        else
+        {
+            strengthSection.Visibility = Visibility.Collapsed;
         }
 
         // Show/hide Dasa section
@@ -576,6 +642,44 @@ public partial class MainWindow : Window
         planetsTable.AddCell(CreateHeaderCell("House", cellFont));
         planetsTable.AddCell(CreateHeaderCell("Status", cellFont));
 
+        // Add Lagna as first row
+        planetsTable.AddCell(new PdfPCell(new Phrase("Lagna", dataCellFont)) 
+            { BackgroundColor = new BaseColor(255, 250, 205) }); // Light yellow background
+        planetsTable.AddCell(new PdfPCell(new Phrase("லக்னம்", smallFont)) 
+            { BackgroundColor = new BaseColor(255, 250, 205) });
+        planetsTable.AddCell(new PdfPCell(new Phrase($"{_currentHoroscope.LagnaRasiName}\n{_currentHoroscope.TamilLagnaRasiName}", smallFont)) 
+            { BackgroundColor = new BaseColor(255, 250, 205) });
+        
+        // Calculate Lagna longitude formatted
+        int lagnaDeg = (int)_currentHoroscope.LagnaLongitude;
+        double lagnaMinDec = (_currentHoroscope.LagnaLongitude - lagnaDeg) * 60.0;
+        int lagnaMin = (int)lagnaMinDec;
+        double lagnaSecDec = (lagnaMinDec - lagnaMin) * 60.0;
+        int lagnaSec = (int)lagnaSecDec;
+        string lagnaLongitudeFormatted = $"{lagnaDeg}°{lagnaMin:D2}'{lagnaSec:D2}\"";
+        
+        planetsTable.AddCell(new PdfPCell(new Phrase(lagnaLongitudeFormatted, smallFont)) 
+            { BackgroundColor = new BaseColor(255, 250, 205) });
+        planetsTable.AddCell(new PdfPCell(new Phrase(GetDegreesMinutes(_currentHoroscope.LagnaLongitude % 30), smallFont)) 
+            { BackgroundColor = new BaseColor(255, 250, 205) });
+        
+        // Calculate Lagna Nakshatra
+        int lagnaNakshatra = GetNakshatraNumber(_currentHoroscope.LagnaLongitude);
+        var lagnaNakshatraInfo = TamilHoroscope.Core.Data.TamilNames.Nakshatras[lagnaNakshatra];
+        planetsTable.AddCell(new PdfPCell(new Phrase($"{lagnaNakshatraInfo.English}\n{lagnaNakshatraInfo.Tamil}", smallFont)) 
+            { BackgroundColor = new BaseColor(255, 250, 205) });
+        
+        // Calculate Lagna Pada
+        double lagnaPosinNaks = (_currentHoroscope.LagnaLongitude % (360.0 / 27.0));
+        int lagnaPada = (int)(lagnaPosinNaks / ((360.0 / 27.0) / 4.0)) + 1;
+        if (lagnaPada > 4) lagnaPada = 4;
+        planetsTable.AddCell(new PdfPCell(new Phrase(lagnaPada.ToString(), dataCellFont)) 
+            { BackgroundColor = new BaseColor(255, 250, 205) });
+        planetsTable.AddCell(new PdfPCell(new Phrase("1", dataCellFont)) 
+            { BackgroundColor = new BaseColor(255, 250, 205) }); // Lagna is always 1st house
+        planetsTable.AddCell(new PdfPCell(new Phrase("", dataCellFont)) 
+            { BackgroundColor = new BaseColor(255, 250, 205) }); // No status for Lagna
+
         // Table data - matching screen display
         foreach (var planet in _currentHoroscope.Planets)
         {
@@ -626,8 +730,149 @@ public partial class MainWindow : Window
                 navamsaTable.AddCell(new PdfPCell(new Phrase(planet.NakshatraPada.ToString(), dataCellFont)));
             }
 
-            document.Add(navamsaTable);
+        document.Add(navamsaTable);
             document.Add(new Paragraph("\n"));
+        }
+
+        // Add Planetary Strength (Shadbala) section if calculated
+        if (_currentHoroscope.PlanetStrengths != null && _currentHoroscope.PlanetStrengths.Count > 0)
+        {
+            document.NewPage(); // New page for Strength
+            
+            document.Add(new Paragraph("Planetary Strength (Shadbala) - கிரக பலம்", headerFont));
+            document.Add(new Paragraph("\n"));
+            document.Add(new Paragraph("Note: Rahu and Ketu are excluded as they don't have Shadbala in traditional Vedic astrology.", smallFont));
+            document.Add(new Paragraph("\n"));
+
+            // Create detailed components table
+            var componentsTable = new PdfPTable(10);
+            componentsTable.WidthPercentage = 100;
+            componentsTable.SetWidths(new float[] { 1.5f, 1f, 1f, 1f, 1f, 1f, 1f, 1.2f, 1f, 1.2f });
+
+            // Headers
+            componentsTable.AddCell(CreateHeaderCell("Planet", cellFont));
+            componentsTable.AddCell(CreateHeaderCell("Positional", cellFont));
+            componentsTable.AddCell(CreateHeaderCell("Directional", cellFont));
+            componentsTable.AddCell(CreateHeaderCell("Motional", cellFont));
+            componentsTable.AddCell(CreateHeaderCell("Natural", cellFont));
+            componentsTable.AddCell(CreateHeaderCell("Temporal", cellFont));
+            componentsTable.AddCell(CreateHeaderCell("Aspectual", cellFont));
+            componentsTable.AddCell(CreateHeaderCell("Total", cellFont));
+            componentsTable.AddCell(CreateHeaderCell("Required", cellFont));
+            componentsTable.AddCell(CreateHeaderCell("Grade", cellFont));
+
+            // Data rows
+            foreach (var strength in _currentHoroscope.PlanetStrengths)
+            {
+                // Planet name cell with Tamil
+                var planetCell = new PdfPCell(new Phrase($"{strength.Name}\n{strength.TamilName}", smallFont));
+                componentsTable.AddCell(planetCell);
+
+                // Strength components
+                componentsTable.AddCell(new PdfPCell(new Phrase($"{strength.PositionalStrength:F1}", dataCellFont))
+                    { HorizontalAlignment = Element.ALIGN_RIGHT });
+                componentsTable.AddCell(new PdfPCell(new Phrase($"{strength.DirectionalStrength:F1}", dataCellFont))
+                    { HorizontalAlignment = Element.ALIGN_RIGHT });
+                componentsTable.AddCell(new PdfPCell(new Phrase($"{strength.MotionalStrength:F1}", dataCellFont))
+                    { HorizontalAlignment = Element.ALIGN_RIGHT });
+                componentsTable.AddCell(new PdfPCell(new Phrase($"{strength.NaturalStrength:F1}", dataCellFont))
+                    { HorizontalAlignment = Element.ALIGN_RIGHT });
+                componentsTable.AddCell(new PdfPCell(new Phrase($"{strength.TemporalStrength:F1}", dataCellFont))
+                    { HorizontalAlignment = Element.ALIGN_RIGHT });
+                componentsTable.AddCell(new PdfPCell(new Phrase($"{strength.AspectualStrength:F1}", dataCellFont))
+                    { HorizontalAlignment = Element.ALIGN_RIGHT });
+
+                // Total strength (bold)
+                var totalCell = new PdfPCell(new Phrase($"{strength.TotalStrength:F1}", subHeaderFont));
+                totalCell.HorizontalAlignment = Element.ALIGN_RIGHT;
+                componentsTable.AddCell(totalCell);
+
+                // Required minimum (red)
+                var requiredFont = FontFactory.GetFont(FontFactory.HELVETICA, 8, new BaseColor(220, 20, 60));
+                var requiredCell = new PdfPCell(new Phrase($"{strength.RequiredStrength:F1}", requiredFont));
+                requiredCell.HorizontalAlignment = Element.ALIGN_RIGHT;
+                componentsTable.AddCell(requiredCell);
+
+                // Grade with color indicator
+                var gradeFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 9, GetPdfColorForStrength(strength.StrengthPercentage));
+                var gradeCell = new PdfPCell(new Phrase(strength.StrengthGrade, gradeFont));
+                gradeCell.HorizontalAlignment = Element.ALIGN_CENTER;
+                componentsTable.AddCell(gradeCell);
+            }
+
+            document.Add(componentsTable);
+            document.Add(new Paragraph("\n"));
+
+            // Create summary strength table (simpler view)
+            document.Add(new Paragraph("Strength Summary", subHeaderFont));
+            document.Add(new Paragraph("\n"));
+            
+            var strengthTable = new PdfPTable(4);
+            strengthTable.WidthPercentage = 100;
+            strengthTable.SetWidths(new float[] { 2f, 1.5f, 1.5f, 2f });
+
+            // Headers
+            strengthTable.AddCell(CreateHeaderCell("Planet / கிரகம்", cellFont));
+            strengthTable.AddCell(CreateHeaderCell("Strength", cellFont));
+            strengthTable.AddCell(CreateHeaderCell("Percentage", cellFont));
+            strengthTable.AddCell(CreateHeaderCell("Grade / தரம்", cellFont));
+
+            // Data rows
+            foreach (var strength in _currentHoroscope.PlanetStrengths)
+            {
+                // Planet name cell with Tamil
+                var planetCell = new PdfPCell(new Phrase($"{strength.Name}\n{strength.TamilName}", smallFont));
+                strengthTable.AddCell(planetCell);
+
+                // Strength in Rupas and Virupas
+                var strengthCell = new PdfPCell(new Phrase(
+                    $"{strength.TotalStrength:F1} R\n({strength.TotalStrengthVirupas:F0} V)", 
+                    dataCellFont));
+                strengthCell.HorizontalAlignment = Element.ALIGN_RIGHT;
+                strengthTable.AddCell(strengthCell);
+
+                // Percentage
+                var percentCell = new PdfPCell(new Phrase($"{strength.StrengthPercentage:F0}%", dataCellFont));
+                percentCell.HorizontalAlignment = Element.ALIGN_CENTER;
+                strengthTable.AddCell(percentCell);
+
+                // Grade with color indicator
+                var gradeFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 9, GetPdfColorForStrength(strength.StrengthPercentage));
+                var gradeCell = new PdfPCell(new Phrase($"{strength.StrengthGrade}\n{strength.TamilStrengthGrade}", gradeFont));
+                strengthTable.AddCell(gradeCell);
+            }
+
+            document.Add(strengthTable);
+            document.Add(new Paragraph("\n"));
+
+            // Add strength bar chart as image
+            var strengthChart = new Controls.PlanetStrengthChartControl();
+            strengthChart.DisplayStrengths(_currentHoroscope.PlanetStrengths);
+            var strengthChartImage = RenderControlToImage(strengthChart, 700, 500);
+            if (strengthChartImage != null)
+            {
+                strengthChartImage.Alignment = Element.ALIGN_CENTER;
+                strengthChartImage.ScaleToFit(500f, 350f);
+                document.Add(strengthChartImage);
+            }
+
+            // Add explanation
+            document.Add(new Paragraph("\n"));
+            var explanationFont = FontFactory.GetFont(FontFactory.HELVETICA, 9);
+            var explanation = new Paragraph(
+                "Strength Components Explained:\n" +
+                "• Positional (Sthana Bala): Based on sign placement (exaltation, own sign, etc.)\n" +
+                "• Directional (Dig Bala): Based on house placement relative to cardinal directions\n" +
+                "• Motional (Chesta Bala): Based on speed and retrograde status\n" +
+                "• Natural (Naisargika Bala): Inherent luminosity and power of the planet\n" +
+                "• Temporal (Kala Bala): Based on time factors (day/night, paksha)\n" +
+                "• Aspectual (Drik Bala): Based on aspects received from other planets\n\n" +
+                "Units: R = Rupas (1 Rupa = 60 Virupas), V = Virupas. " +
+                "Required minimum strength varies by planet and is shown in red. " +
+                "A planet meeting or exceeding its required minimum can deliver positive results.",
+                explanationFont);
+            explanation.Alignment = Element.ALIGN_JUSTIFIED;
+            document.Add(explanation);
         }
 
         // Add Vimshottari Dasa if calculated
@@ -775,6 +1020,21 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
+    /// Get PDF color based on strength percentage
+    /// </summary>
+    private BaseColor GetPdfColorForStrength(double percentage)
+    {
+        return percentage switch
+        {
+            >= 80 => new BaseColor(34, 139, 34),    // Forest Green
+            >= 60 => new BaseColor(50, 205, 50),    // Lime Green
+            >= 40 => new BaseColor(255, 215, 0),    // Gold
+            >= 20 => new BaseColor(255, 140, 0),    // Dark Orange
+            _ => new BaseColor(220, 20, 60)         // Crimson
+        };
+    }
+
+    /// <summary>
     /// Renders a WPF UserControl to an iTextSharp Image for PDF inclusion
     /// </summary>
     private iTextSharp.text.Image? RenderControlToImage(UserControl control, int width, int height)
@@ -899,5 +1159,19 @@ public partial class MainWindow : Window
         txtStatus.Foreground = isSuccess ? 
             System.Windows.Media.Brushes.Green : 
             System.Windows.Media.Brushes.Red;
+    }
+    
+    /// <summary>
+    /// Calculate Nakshatra number from longitude
+    /// </summary>
+    private int GetNakshatraNumber(double longitude)
+    {
+        // Normalize longitude to 0-360
+        while (longitude < 0) longitude += 360.0;
+        while (longitude >= 360.0) longitude -= 360.0;
+        
+        // Each nakshatra is 13°20' (360/27)
+        double nakshatraDegree = 360.0 / 27.0;
+        return (int)(longitude / nakshatraDegree) + 1;
     }
 }

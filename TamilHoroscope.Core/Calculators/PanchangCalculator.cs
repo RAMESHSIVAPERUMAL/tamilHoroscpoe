@@ -77,7 +77,8 @@ public class PanchangCalculator : IPanchangCalculator
     /// <param name="includeDasa">Whether to calculate Vimshottari Dasa periods</param>
     /// <param name="includeNavamsa">Whether to calculate Navamsa (D-9) divisional chart</param>
     /// <param name="dasaYears">Number of years of Dasa to calculate (default: 120)</param>
-    public HoroscopeData CalculateHoroscope(BirthDetails birthDetails, bool includeDasa = false, bool includeNavamsa = false, int dasaYears = 120)
+    /// <param name="includeStrength">Whether to calculate planetary strengths (Shadbala)</param>
+    public HoroscopeData CalculateHoroscope(BirthDetails birthDetails, bool includeDasa = false, bool includeNavamsa = false, int dasaYears = 120, bool includeStrength = false)
     {
         using var swissEph = new SwissEphemerisHelper(_ephemerisPath);
         
@@ -138,6 +139,13 @@ public class PanchangCalculator : IPanchangCalculator
             var navamsaLagnaRasiInfo = TamilNames.Rasis[horoscope.NavamsaLagnaRasi];
             horoscope.NavamsaLagnaRasiName = navamsaLagnaRasiInfo.English;
             horoscope.TamilNavamsaLagnaRasiName = navamsaLagnaRasiInfo.Tamil;
+        }
+
+        // Calculate Planetary Strengths (Shadbala) if requested
+        if (includeStrength)
+        {
+            var strengthCalculator = new PlanetStrengthCalculator();
+            horoscope.PlanetStrengths = strengthCalculator.CalculatePlanetaryStrengths(horoscope);
         }
         
         return horoscope;

@@ -254,6 +254,18 @@
                                       IsChecked="True"
                                       Margin="0,0,0,10"
                                       ToolTip="Display detailed planet positions in Navamsa"/>
+
+                            <!-- Planetary Strength Options -->
+                            <TextBlock Text="Planetary Strength Options" 
+                                       FontSize="14" 
+                                       FontWeight="SemiBold" 
+                                       Margin="0,10,0,10"/>
+
+                            <CheckBox x:Name="chkCalculateStrength" 
+                                      Content="Calculate Planetary Strength (Shadbala) / கிரக பலம்"
+                                      IsChecked="True"
+                                      Margin="0,0,0,10"
+                                      ToolTip="Calculate and display simplified Shadbala (planetary strength)"/>
                         </StackPanel>
                     </Expander>
 
@@ -432,6 +444,20 @@
                                     </DataGridTextColumn>
                                 </DataGrid.Columns>
                             </DataGrid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Planetary Strength Section -->
+                    <Border x:Name="strengthSection" 
+                            Background="White" 
+                            CornerRadius="8" 
+                            Padding="20" 
+                            Margin="0,0,0,10" 
+                            BorderBrush="#E0E0E0" 
+                            BorderThickness="1"
+                            Visibility="Collapsed">
+                        <StackPanel>
+                            <Border x:Name="strengthChartContainer" Background="White"/>
                         </StackPanel>
                     </Border>
 

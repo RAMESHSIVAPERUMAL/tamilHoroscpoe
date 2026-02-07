@@ -69,4 +69,9 @@ public class HoroscopeData
     /// Vimshottari Dasa periods (optional)
     /// </summary>
     public List<DasaData>? VimshottariDasas { get; set; }
+
+    /// <summary>
+    /// Planetary strength data (Shadbala) for all planets (optional)
+    /// </summary>
+    public List<PlanetStrengthData>? PlanetStrengths { get; set; }
 }
