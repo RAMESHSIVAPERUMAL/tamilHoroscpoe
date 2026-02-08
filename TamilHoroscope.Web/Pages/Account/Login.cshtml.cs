@@ -1,30 +1,27 @@
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using TamilHoroscope.Web.Data.Entities;
+using TamilHoroscope.Web.Services.Implementations;
 
 namespace TamilHoroscope.Web.Pages.Account;
 
 public class LoginModel : PageModel
 {
-    private readonly SignInManager<User> _signInManager;
-    private readonly UserManager<User> _userManager;
+    private readonly IAuthenticationService _authService;
     private readonly ILogger<LoginModel> _logger;
 
     public LoginModel(
-        SignInManager<User> signInManager,
-        UserManager<User> userManager,
+        IAuthenticationService authService,
         ILogger<LoginModel> logger)
     {
-        _signInManager = signInManager;
-        _userManager = userManager;
+        _authService = authService;
         _logger = logger;
     }
 
     [BindProperty]
     public InputModel Input { get; set; } = null!;
 
+    [BindProperty(SupportsGet = true)]
     public string? ReturnUrl { get; set; }
 
     [TempData]
@@ -55,75 +52,45 @@ public class LoginModel : PageModel
         ReturnUrl = returnUrl;
     }
 
-    public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
+    public async Task<IActionResult> OnPostAsync()
     {
-        returnUrl ??= Url.Content("~/");
-
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
-            // Try to find user by email or mobile number
-            User? user = null;
-
-            // Check if input looks like an email
-            if (Input.EmailOrMobile.Contains('@'))
-            {
-                user = await _userManager.FindByEmailAsync(Input.EmailOrMobile);
-            }
-            else
-            {
-                // Try to find by mobile number
-                user = _userManager.Users
-                    .FirstOrDefault(u => u.MobileNumber == Input.EmailOrMobile);
-            }
-
-            if (user == null)
-            {
-                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                return Page();
-            }
-
-            // Check if user is active
-            if (!user.IsActive)
-            {
-                ModelState.AddModelError(string.Empty, "Your account has been deactivated. Please contact support.");
-                return Page();
-            }
-
-            // Attempt to sign in
-            var result = await _signInManager.PasswordSignInAsync(
-                user.UserName!,
-                Input.Password,
-                Input.RememberMe,
-                lockoutOnFailure: true);
-
-            if (result.Succeeded)
-            {
-                // Update last login date
-                user.LastLoginDate = DateTime.UtcNow;
-                await _userManager.UpdateAsync(user);
-
-                _logger.LogInformation("User {UserId} logged in successfully", user.Id);
-                return LocalRedirect(returnUrl);
-            }
-
-            if (result.RequiresTwoFactor)
-            {
-                return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, RememberMe = Input.RememberMe });
-            }
-
-            if (result.IsLockedOut)
-            {
-                _logger.LogWarning("User {UserId} account locked out", user.Id);
-                ModelState.AddModelError(string.Empty, "Your account has been locked due to multiple failed login attempts. Please try again later.");
-                return Page();
-            }
-            else
-            {
-                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                return Page();
-            }
+            return Page();
         }
 
-        return Page();
+        try
+        {
+            // Authenticate user
+            var (success, user) = await _authService.AuthenticateAsync(Input.EmailOrMobile, Input.Password);
+
+            if (!success || user == null)
+            {
+                _logger.LogWarning("Failed login attempt for: {EmailOrMobile}", Input.EmailOrMobile);
+                ModelState.AddModelError(string.Empty, "Invalid email/mobile or password.");
+                return Page();
+            }
+
+            // Store user ID in session
+            HttpContext.Session.SetString("UserId", user.UserId.ToString());
+            HttpContext.Session.SetString("UserEmail", user.Email ?? string.Empty);
+            HttpContext.Session.SetString("UserFullName", user.FullName);
+
+            _logger.LogInformation("User {UserId} logged in successfully", user.UserId);
+
+            // Validate and redirect to return URL or home page
+            if (!string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl))
+            {
+                return LocalRedirect(ReturnUrl);
+            }
+
+            return RedirectToPage("/Index");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during login for: {EmailOrMobile}", Input.EmailOrMobile);
+            ModelState.AddModelError(string.Empty, "An error occurred during login. Please try again.");
+            return Page();
+        }
     }
 }

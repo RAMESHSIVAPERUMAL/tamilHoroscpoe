@@ -12,36 +12,63 @@ public class HoroscopeGenerationConfiguration : IEntityTypeConfiguration<Horosco
 
         builder.HasKey(h => h.GenerationId);
 
-        builder.Property(h => h.GenerationDate)
-            .IsRequired()
-            .HasColumnType("date");
-
-        builder.Property(h => h.BirthDateTime)
+        builder.Property(h => h.UserId)
             .IsRequired();
 
+        builder.Property(h => h.GenerationDate)
+            .IsRequired()
+            .HasColumnType("date")
+            .HasComment("Date of generation for daily tracking");
+
+        builder.Property(h => h.BirthDateTime)
+            .IsRequired()
+            .HasComment("Birth date and time for the horoscope");
+
         builder.Property(h => h.PlaceName)
-            .HasMaxLength(200);
+            .HasMaxLength(200)
+            .IsRequired(false)
+            .HasComment("Place name where the person was born");
 
         builder.Property(h => h.Latitude)
             .IsRequired()
-            .HasColumnType("decimal(10,6)");
+            .HasColumnType("decimal(10,6)")
+            .HasComment("Latitude of the birth location");
 
         builder.Property(h => h.Longitude)
             .IsRequired()
-            .HasColumnType("decimal(10,6)");
+            .HasColumnType("decimal(10,6)")
+            .HasComment("Longitude of the birth location");
 
         builder.Property(h => h.AmountDeducted)
             .IsRequired()
             .HasColumnType("decimal(10,2)")
-            .HasDefaultValue(0.00m);
+            .HasDefaultValue(0.00m)
+            .HasComment("Amount deducted from wallet (0 for trial users)");
 
         builder.Property(h => h.WasTrialPeriod)
-            .IsRequired();
+            .IsRequired()
+            .HasDefaultValue(false)
+            .HasComment("Whether this generation was during trial period");
 
         builder.Property(h => h.CreatedDateTime)
-            .IsRequired();
+            .IsRequired()
+            .HasDefaultValueSql("GETUTCDATE()")
+            .HasComment("Date and time when the record was created");
 
-        // CRITICAL INDEX: For daily deduction logic
-        builder.HasIndex(h => new { h.UserId, h.GenerationDate });
+        // CRITICAL INDEX: For daily deduction logic - check if user generated horoscope today
+        builder.HasIndex(h => new { h.UserId, h.GenerationDate })
+            .HasDatabaseName("IX_HoroscopeGenerations_UserId_Date")
+            .IsDescending(false, true);
+
+        // Index for horoscope history queries
+        builder.HasIndex(h => h.CreatedDateTime)
+            .HasDatabaseName("IX_HoroscopeGenerations_CreatedDateTime")
+            .IsDescending(true);
+
+        // Foreign key constraint
+        builder.HasOne(h => h.User)
+            .WithMany(u => u.HoroscopeGenerations)
+            .HasForeignKey(h => h.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

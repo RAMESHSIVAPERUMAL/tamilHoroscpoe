@@ -19,8 +19,9 @@ IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Users_Email' AND objec
 BEGIN
     CREATE NONCLUSTERED INDEX [IX_Users_Email]
     ON [dbo].[Users] ([Email] ASC)
-    WHERE [Email] IS NOT NULL
-    INCLUDE ([UserId], [PasswordHash], [IsActive]);
+    INCLUDE ([UserId],[PasswordHash],[IsActive])
+    WHERE [Email] IS NOT NULL;
+
     
     PRINT 'Index [IX_Users_Email] created successfully.';
 END
@@ -28,15 +29,15 @@ ELSE
 BEGIN
     PRINT 'Index [IX_Users_Email] already exists.';
 END
-GO
 
 -- Index for mobile number login lookup
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Users_MobileNumber' AND object_id = OBJECT_ID('dbo.Users'))
 BEGIN
     CREATE NONCLUSTERED INDEX [IX_Users_MobileNumber]
     ON [dbo].[Users] ([MobileNumber] ASC)
-    WHERE [MobileNumber] IS NOT NULL
-    INCLUDE ([UserId], [PasswordHash], [IsActive]);
+    INCLUDE ([UserId], [PasswordHash], [IsActive])
+    WHERE [MobileNumber] IS NOT NULL;
+
     
     PRINT 'Index [IX_Users_MobileNumber] created successfully.';
 END
@@ -44,7 +45,6 @@ ELSE
 BEGIN
     PRINT 'Index [IX_Users_MobileNumber] already exists.';
 END
-GO
 
 -- Index for trial period queries
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Users_TrialStatus' AND object_id = OBJECT_ID('dbo.Users'))
@@ -59,7 +59,6 @@ ELSE
 BEGIN
     PRINT 'Index [IX_Users_TrialStatus] already exists.';
 END
-GO
 
 -- =============================================
 -- Indexes for Wallets table
@@ -78,7 +77,6 @@ ELSE
 BEGIN
     PRINT 'Index [IX_Wallets_UserId_Balance] already exists.';
 END
-GO
 
 -- =============================================
 -- Indexes for Transactions table
@@ -97,7 +95,6 @@ ELSE
 BEGIN
     PRINT 'Index [IX_Transactions_UserId_Date] already exists.';
 END
-GO
 
 -- Index for wallet transaction history
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Transactions_WalletId_Date' AND object_id = OBJECT_ID('dbo.Transactions'))
@@ -111,7 +108,6 @@ ELSE
 BEGIN
     PRINT 'Index [IX_Transactions_WalletId_Date] already exists.';
 END
-GO
 
 -- Index for transaction type filtering
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Transactions_TransactionType' AND object_id = OBJECT_ID('dbo.Transactions'))
@@ -125,7 +121,6 @@ ELSE
 BEGIN
     PRINT 'Index [IX_Transactions_TransactionType] already exists.';
 END
-GO
 
 -- =============================================
 -- Indexes for HoroscopeGenerations table
@@ -144,7 +139,6 @@ ELSE
 BEGIN
     PRINT 'Index [IX_HoroscopeGenerations_UserId_Date] already exists.';
 END
-GO
 
 -- Index for horoscope history queries
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_HoroscopeGenerations_CreatedDateTime' AND object_id = OBJECT_ID('dbo.HoroscopeGenerations'))
@@ -158,7 +152,6 @@ ELSE
 BEGIN
     PRINT 'Index [IX_HoroscopeGenerations_CreatedDateTime] already exists.';
 END
-GO
 
 -- =============================================
 -- Indexes for SystemConfig table
@@ -177,7 +170,6 @@ ELSE
 BEGIN
     PRINT 'Index [IX_SystemConfig_IsActive] already exists.';
 END
-GO
 
 PRINT '';
 PRINT '=============================================';

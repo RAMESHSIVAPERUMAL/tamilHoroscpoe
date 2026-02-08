@@ -1,21 +1,35 @@
-using Microsoft.AspNetCore.Identity;
-
 namespace TamilHoroscope.Web.Data.Entities;
 
 /// <summary>
 /// Represents a user in the Tamil Horoscope system with trial period tracking
+/// Database-first implementation without Identity framework
 /// </summary>
-public class User : IdentityUser<int>
+public class User
 {
+    /// <summary>
+    /// Unique user identifier (primary key)
+    /// </summary>
+    public int UserId { get; set; }
+
+    /// <summary>
+    /// User's email address (optional)
+    /// </summary>
+    public string? Email { get; set; }
+
+    /// <summary>
+    /// Mobile number (Indian format, optional)
+    /// </summary>
+    public string? MobileNumber { get; set; }
+
+    /// <summary>
+    /// Hashed password
+    /// </summary>
+    public string PasswordHash { get; set; } = string.Empty;
+
     /// <summary>
     /// User's full name
     /// </summary>
     public string FullName { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Mobile number (Indian format +91)
-    /// </summary>
-    public string? MobileNumber { get; set; }
 
     /// <summary>
     /// Date when the account was created

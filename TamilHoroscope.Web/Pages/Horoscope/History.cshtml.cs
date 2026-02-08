@@ -1,8 +1,7 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TamilHoroscope.Core.Models;
+using TamilHoroscope.Web.Data;
 using TamilHoroscope.Web.Data.Entities;
 using TamilHoroscope.Web.Services.Interfaces;
 
@@ -11,12 +10,11 @@ namespace TamilHoroscope.Web.Pages.Horoscope;
 /// <summary>
 /// Page for displaying horoscope generation history
 /// </summary>
-[Authorize]
 public class HistoryModel : PageModel
 {
     private readonly IHoroscopeService _horoscopeService;
     private readonly ISubscriptionService _subscriptionService;
-    private readonly UserManager<User> _userManager;
+    private readonly ApplicationDbContext _context;
     private readonly ILogger<HistoryModel> _logger;
 
     private const int PageSize = 10;
@@ -24,12 +22,12 @@ public class HistoryModel : PageModel
     public HistoryModel(
         IHoroscopeService horoscopeService,
         ISubscriptionService subscriptionService,
-        UserManager<User> userManager,
+        ApplicationDbContext context,
         ILogger<HistoryModel> logger)
     {
         _horoscopeService = horoscopeService;
         _subscriptionService = subscriptionService;
-        _userManager = userManager;
+        _context = context;
         _logger = logger;
     }
 
@@ -63,8 +61,9 @@ public class HistoryModel : PageModel
     /// </summary>
     public async Task<IActionResult> OnGetAsync(int page = 1)
     {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
+        // Get user ID from session
+        var userIdStr = HttpContext.Session.GetString("UserId");
+        if (!int.TryParse(userIdStr, out var userId))
         {
             return RedirectToPage("/Account/Login");
         }
@@ -74,8 +73,8 @@ public class HistoryModel : PageModel
             CurrentPage = page > 0 ? page : 1;
 
             // Get generation history
-            Generations = await _horoscopeService.GetGenerationHistoryAsync(user.Id, CurrentPage, PageSize);
-            TotalCount = await _horoscopeService.GetGenerationCountAsync(user.Id);
+            Generations = await _horoscopeService.GetGenerationHistoryAsync(userId, CurrentPage, PageSize);
+            TotalCount = await _horoscopeService.GetGenerationCountAsync(userId);
             TotalPages = (int)Math.Ceiling((double)TotalCount / PageSize);
 
             // Ensure current page is within bounds
@@ -88,7 +87,7 @@ public class HistoryModel : PageModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error loading horoscope history for user {UserId}", user.Id);
+            _logger.LogError(ex, "Error loading horoscope history for user {UserId}", userIdStr);
             ErrorMessage = "An error occurred while loading your horoscope history. Please try again.";
             return Page();
         }
@@ -99,8 +98,9 @@ public class HistoryModel : PageModel
     /// </summary>
     public async Task<IActionResult> OnPostRegenerateAsync(int generationId)
     {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
+        // Get user ID from session
+        var userIdStr = HttpContext.Session.GetString("UserId");
+        if (!int.TryParse(userIdStr, out var userId))
         {
             return RedirectToPage("/Account/Login");
         }
@@ -108,7 +108,7 @@ public class HistoryModel : PageModel
         try
         {
             // Get the generation record by ID
-            var generation = await _horoscopeService.GetGenerationByIdAsync(user.Id, generationId);
+            var generation = await _horoscopeService.GetGenerationByIdAsync(userId, generationId);
 
             if (generation == null)
             {
@@ -117,7 +117,7 @@ public class HistoryModel : PageModel
             }
 
             // Check if user is currently in trial
-            var isTrialUser = await _subscriptionService.IsUserInTrialAsync(user.Id);
+            var isTrialUser = await _subscriptionService.IsUserInTrialAsync(userId);
 
             // Regenerate the horoscope (no charge)
             var horoscope = await _horoscopeService.RegenerateHoroscopeAsync(generation, isTrialUser);
@@ -142,7 +142,7 @@ public class HistoryModel : PageModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error regenerating horoscope {GenerationId} for user {UserId}", generationId, user.Id);
+            _logger.LogError(ex, "Error regenerating horoscope {GenerationId} for user {UserId}", generationId, userIdStr);
             TempData["ErrorMessage"] = "An error occurred while regenerating the horoscope. Please try again.";
             return RedirectToPage();
         }

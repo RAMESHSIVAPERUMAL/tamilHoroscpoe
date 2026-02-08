@@ -37,18 +37,10 @@
                 <div class="card-body">
                     <div class="row mb-3">
                         <div class="col-sm-4">
-                            <strong>Username:</strong>
-                        </div>
-                        <div class="col-sm-8">
-                            @Model.User?.UserName
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-sm-4">
                             <strong>Full Name:</strong>
                         </div>
                         <div class="col-sm-8">
-                            @Model.User?.FullName
+                            @Model.CurrentUser?.FullName
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -56,10 +48,10 @@
                             <strong>Email:</strong>
                         </div>
                         <div class="col-sm-8">
-                            @if (!string.IsNullOrEmpty(Model.User?.Email))
+                            @if (!string.IsNullOrEmpty(Model.CurrentUser?.Email))
                             {
-                                <span>@Model.User.Email</span>
-                                @if (Model.User.IsEmailVerified)
+                                <span>@Model.CurrentUser.Email</span>
+                                @if (Model.CurrentUser.IsEmailVerified)
                                 {
                                     <span class="badge bg-success ms-2">
                                         <i class="bi bi-check-circle"></i> Verified
@@ -83,10 +75,10 @@
                             <strong>Mobile:</strong>
                         </div>
                         <div class="col-sm-8">
-                            @if (!string.IsNullOrEmpty(Model.User?.MobileNumber))
+                            @if (!string.IsNullOrEmpty(Model.CurrentUser?.MobileNumber))
                             {
-                                <span>@Model.User.MobileNumber</span>
-                                @if (Model.User.IsMobileVerified)
+                                <span>@Model.CurrentUser.MobileNumber</span>
+                                @if (Model.CurrentUser.IsMobileVerified)
                                 {
                                     <span class="badge bg-success ms-2">
                                         <i class="bi bi-check-circle"></i> Verified
@@ -110,7 +102,7 @@
                             <strong>Account Created:</strong>
                         </div>
                         <div class="col-sm-8">
-                            @Model.User?.CreatedDate.ToLocalTime().ToString("MMMM dd, yyyy")
+                            @Model.CurrentUser?.CreatedDate.ToLocalTime().ToString("MMMM dd, yyyy")
                         </div>
                     </div>
                     <div class="row">
@@ -118,9 +110,9 @@
                             <strong>Last Login:</strong>
                         </div>
                         <div class="col-sm-8">
-                            @if (Model.User?.LastLoginDate.HasValue == true)
+                            @if (Model.CurrentUser?.LastLoginDate.HasValue == true)
                             {
-                                @Model.User.LastLoginDate.Value.ToLocalTime().ToString("MMMM dd, yyyy h:mm tt")
+                                @Model.CurrentUser.LastLoginDate.Value.ToLocalTime().ToString("MMMM dd, yyyy h:mm tt")
                             }
                             else
                             {
@@ -147,7 +139,7 @@
                             <p class="mb-0 mt-2">
                                 You are currently in the trial period with limited features.
                                 <br />
-                                Trial ends: <strong>@Model.User?.TrialEndDate.ToLocalTime().ToString("MMMM dd, yyyy")</strong>
+                                Trial ends: <strong>@Model.CurrentUser?.TrialEndDate.ToLocalTime().ToString("MMMM dd, yyyy")</strong>
                                 <br />
                                 Days remaining: <strong>@Model.TrialDaysRemaining days</strong>
                             </p>

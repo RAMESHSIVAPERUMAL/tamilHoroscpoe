@@ -1,53 +1,37 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TamilHoroscope.Web.Data;
-using TamilHoroscope.Web.Data.Entities;
 using TamilHoroscope.Web.Services.Implementations;
 using TamilHoroscope.Web.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-// Configure Entity Framework Core with SQL Server
+// Configure Entity Framework Core with SQL Server (Database-First approach)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
-
-// Configure ASP.NET Core Identity
-builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
 {
-    // Password settings
-    options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequiredLength = 8;
+    options.UseSqlServer(connectionString, sqlOptions =>
+    {
+        sqlOptions.CommandTimeout(30);
+        // Fix: Use the correct EnableRetryOnFailure overload with TimeSpan for maxRetryDelay
+        Microsoft.EntityFrameworkCore.Infrastructure.SqlServerDbContextOptionsBuilder sqlServerDbContextOptionsBuilder =
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 3,
+                maxRetryDelay: TimeSpan.FromSeconds(5),
+                errorNumbersToAdd: null
+            );
+    });
 
-    // Lockout settings
-    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
-    options.Lockout.MaxFailedAccessAttempts = 5;
-    options.Lockout.AllowedForNewUsers = true;
-
-    // User settings
-    options.User.RequireUniqueEmail = false; // Email is optional
-    options.SignIn.RequireConfirmedEmail = false;
-    options.SignIn.RequireConfirmedAccount = false;
-})
-.AddEntityFrameworkStores<ApplicationDbContext>()
-.AddDefaultTokenProviders();
-
-// Configure application cookie
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.Cookie.HttpOnly = true;
-    options.ExpireTimeSpan = TimeSpan.FromDays(7);
-    options.LoginPath = "/Account/Login";
-    options.LogoutPath = "/Account/Logout";
-    options.AccessDeniedPath = "/Account/AccessDenied";
-    options.SlidingExpiration = true;
+    // Enable query logging in development
+    if (builder.Environment.IsDevelopment())
+    {
+        options.EnableSensitiveDataLogging(true);
+    }
 });
+
+// Register custom authentication service
+builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
 // Register application services
 builder.Services.AddScoped<IConfigService, ConfigService>();
@@ -55,21 +39,47 @@ builder.Services.AddScoped<IWalletService, WalletService>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<IHoroscopeService, HoroscopeService>();
 
-// Add Razor Pages with runtime compilation in development
+// Add Razor Pages
 builder.Services.AddRazorPages()
     .AddRazorRuntimeCompilation();
 
-// Add session support for temporary data
+// Add session support
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = SameSiteMode.Strict;
 });
+
+builder.Services.AddLogging();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Apply pending migrations and initialize database
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<ApplicationDbContext>();
+
+        // Apply any pending migrations
+        context.Database.Migrate();
+
+        // Optional: Seed data
+        // await DbInitializer.InitializeAsync(context);
+
+        app.Logger.LogInformation("Database migration completed successfully");
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "An error occurred while migrating the database");
+        throw;
+    }
+}
+
+// Configure HTTP pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
@@ -82,13 +92,8 @@ else
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
-app.UseAuthentication(); // Must come before UseAuthorization
-app.UseAuthorization();
-
-app.UseSession(); // Enable session
+app.UseSession();
 
 app.MapRazorPages();
 

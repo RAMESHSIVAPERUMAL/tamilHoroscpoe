@@ -12,6 +12,12 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
 
         builder.HasKey(t => t.TransactionId);
 
+        builder.Property(t => t.WalletId)
+            .IsRequired();
+
+        builder.Property(t => t.UserId)
+            .IsRequired();
+
         builder.Property(t => t.TransactionType)
             .IsRequired()
             .HasMaxLength(50);
@@ -29,16 +35,45 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
             .HasColumnType("decimal(10,2)");
 
         builder.Property(t => t.Description)
-            .HasMaxLength(500);
+            .HasMaxLength(500)
+            .IsRequired(false);
 
         builder.Property(t => t.TransactionDate)
-            .IsRequired();
+            .IsRequired()
+            .HasDefaultValueSql("GETUTCDATE()");
 
         builder.Property(t => t.ReferenceId)
-            .HasMaxLength(100);
+            .HasMaxLength(100)
+            .IsRequired(false);
 
-        // Index for efficient querying
-        builder.HasIndex(t => new { t.UserId, t.TransactionDate });
-        builder.HasIndex(t => new { t.WalletId, t.TransactionDate });
+        // Index for user transaction history with date ordering (as per SQL script)
+        builder.HasIndex(t => new { t.UserId, t.TransactionDate })
+            .HasDatabaseName("IX_Transactions_UserId_Date")
+            .IsDescending(false, true);
+
+        // Index for wallet transaction history
+        builder.HasIndex(t => new { t.WalletId, t.TransactionDate })
+            .HasDatabaseName("IX_Transactions_WalletId_Date")
+            .IsDescending(false, true);
+
+        // Index for transaction type filtering
+        builder.HasIndex(t => new { t.TransactionType, t.TransactionDate })
+            .HasDatabaseName("IX_Transactions_TransactionType")
+            .IsDescending(false, true);
+
+        // Foreign key constraints
+        builder.HasOne(t => t.Wallet)
+            .WithMany(w => w.Transactions)
+            .HasForeignKey(t => t.WalletId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        builder.HasOne(t => t.User)
+            .WithMany(u => u.Transactions)
+            .HasForeignKey(t => t.UserId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        // Check constraint: TransactionType must be one of these values
+        builder.ToTable(t => t.HasCheckConstraint("CK_Transactions_Type", 
+            "[TransactionType] IN ('Credit', 'Debit', 'Refund')"));
     }
 }

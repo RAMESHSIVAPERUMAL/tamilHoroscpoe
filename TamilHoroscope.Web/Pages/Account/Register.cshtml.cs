@@ -1,32 +1,21 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using TamilHoroscope.Web.Data.Entities;
-using TamilHoroscope.Web.Services.Interfaces;
+using TamilHoroscope.Web.Services.Implementations;
 
 namespace TamilHoroscope.Web.Pages.Account;
 
 public class RegisterModel : PageModel
 {
-    private readonly UserManager<User> _userManager;
-    private readonly SignInManager<User> _signInManager;
-    private readonly IWalletService _walletService;
-    private readonly IConfigService _configService;
+    private readonly IAuthenticationService _authService;
     private readonly ILogger<RegisterModel> _logger;
 
     public RegisterModel(
-        UserManager<User> userManager,
-        SignInManager<User> signInManager,
-        IWalletService walletService,
-        IConfigService configService,
+        IAuthenticationService authService,
         ILogger<RegisterModel> logger)
     {
-        _userManager = userManager;
-        _signInManager = signInManager;
-        _walletService = walletService;
-        _configService = configService;
+        _authService = authService;
         _logger = logger;
     }
 
@@ -71,85 +60,49 @@ public class RegisterModel : PageModel
     {
         returnUrl ??= Url.Content("~/");
         
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
-            // Validate that either email or mobile is provided
-            var hasEmail = !string.IsNullOrWhiteSpace(Input.Email);
-            var hasMobile = !string.IsNullOrWhiteSpace(Input.MobileNumber);
+            return Page();
+        }
 
-            if (!hasEmail && !hasMobile)
+        // Validate that either email or mobile is provided
+        var hasEmail = !string.IsNullOrWhiteSpace(Input.Email);
+        var hasMobile = !string.IsNullOrWhiteSpace(Input.MobileNumber);
+
+        if (!hasEmail && !hasMobile)
+        {
+            ModelState.AddModelError(string.Empty, "Either email or mobile number must be provided.");
+            return Page();
+        }
+
+        try
+        {
+            // Register user using authentication service
+            // Service handles transaction management internally
+            var (success, message, user) = await _authService.RegisterUserAsync(
+                Input.Email ?? string.Empty,
+                Input.MobileNumber,
+                Input.FullName,
+                Input.Password);
+
+            if (!success || user == null)
             {
-                ModelState.AddModelError(string.Empty, "Either email or mobile number must be provided.");
+                ModelState.AddModelError(string.Empty, message);
+                _logger.LogWarning("Registration failed: {Message}", message);
                 return Page();
             }
 
-            // Check if email already exists (if provided)
-            if (hasEmail)
-            {
-                var existingEmailUser = await _userManager.FindByEmailAsync(Input.Email!);
-                if (existingEmailUser != null)
-                {
-                    ModelState.AddModelError(string.Empty, "This email is already registered.");
-                    return Page();
-                }
-            }
+            _logger.LogInformation("User registered successfully: UserId={UserId}", user.UserId);
 
-            // Check if mobile number already exists (if provided)
-            if (hasMobile)
-            {
-                var existingMobileUser = _userManager.Users
-                    .FirstOrDefault(u => u.MobileNumber == Input.MobileNumber);
-                if (existingMobileUser != null)
-                {
-                    ModelState.AddModelError(string.Empty, "This mobile number is already registered.");
-                    return Page();
-                }
-            }
-
-            // Get trial period configuration
-            var trialPeriodDays = await _configService.GetTrialPeriodDaysAsync();
-
-            // Create new user
-            var user = new User
-            {
-                UserName = hasEmail ? Input.Email : Input.MobileNumber, // Use email or mobile as username
-                Email = hasEmail ? Input.Email : null,
-                MobileNumber = hasMobile ? Input.MobileNumber : null,
-                FullName = Input.FullName,
-                CreatedDate = DateTime.UtcNow,
-                IsEmailVerified = false,
-                IsMobileVerified = false,
-                IsActive = true,
-                TrialStartDate = DateTime.UtcNow,
-                TrialEndDate = DateTime.UtcNow.AddDays(trialPeriodDays),
-                IsTrialActive = true
-            };
-
-            var result = await _userManager.CreateAsync(user, Input.Password);
-
-            if (result.Succeeded)
-            {
-                _logger.LogInformation("User created successfully with trial period of {Days} days", trialPeriodDays);
-
-                // Create wallet for the new user
-                await _walletService.GetOrCreateWalletAsync(user.Id);
-
-                _logger.LogInformation("Wallet created for user {UserId}", user.Id);
-
-                // Sign in the user
-                await _signInManager.SignInAsync(user, isPersistent: false);
-
-                _logger.LogInformation("User signed in successfully");
-
-                return LocalRedirect(returnUrl);
-            }
-
-            foreach (var error in result.Errors)
-            {
-                ModelState.AddModelError(string.Empty, error.Description);
-            }
+            // TODO: Implement session/cookie-based authentication
+            // For now, redirect to login page
+            return LocalRedirect("/Account/Login");
         }
-
-        return Page();
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error during registration");
+            ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
+            return Page();
+        }
     }
 }
