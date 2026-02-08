@@ -35,9 +35,9 @@ public partial class PlanetStrengthChartControl : UserControl
             return;
         }
 
-        // Find maximum strength for scaling
+        // Find maximum strength for scaling (in Rupas)
         double maxStrength = strengths.Max(s => s.TotalStrength);
-        maxStrength = Math.Max(maxStrength, 390); // Theoretical maximum
+        maxStrength = Math.Max(maxStrength, 12.0); // Reasonable upper bound in Rupas
 
         // Create bar for each planet
         foreach (var strength in strengths)
@@ -50,12 +50,12 @@ public partial class PlanetStrengthChartControl : UserControl
         dgDetailsTable.ItemsSource = strengths;
 
         // Add summary
-        var strongPlanets = strengths.Where(s => s.StrengthPercentage >= 60).Count();
-        var weakPlanets = strengths.Where(s => s.StrengthPercentage < 40).Count();
+        var sufficientPlanets = strengths.Where(s => s.HasSufficientStrength).Count();
+        var weakPlanets = strengths.Where(s => !s.HasSufficientStrength).Count();
         
-        SummaryText.Text = $"Summary: {strongPlanets} strong planets (?60%), {weakPlanets} weak planets (<40%)\n" +
+        SummaryText.Text = $"Summary: {sufficientPlanets} planets above required minimum, {weakPlanets} below minimum\n" +
                           $"Note: Rahu and Ketu are excluded as they don't have Shadbala in traditional astrology.\n" +
-                          $"Minimum required strength varies by planet. Strength above required minimum indicates positive results.";
+                          $"Strength is in Rupas (1 Rupa = 60 Virupas). Ratio >= 1.0 means sufficient per BPHS.";
     }
 
     /// <summary>

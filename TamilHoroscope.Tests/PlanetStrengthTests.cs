@@ -54,24 +54,24 @@ public class PlanetStrengthTests
         Assert.Contains("Venus", planetNames);
         Assert.Contains("Saturn", planetNames);
         
-        // Verify all planets have positive total strength
+        // Verify all planets have positive total strength (in Rupas)
         foreach (var strength in horoscope.PlanetStrengths)
         {
             Assert.True(strength.TotalStrength > 0, $"{strength.Name} should have positive total strength");
             
-            // Verify all components are present
+            // Positional and Motional are always >= 0
             Assert.True(strength.PositionalStrength >= 0, $"{strength.Name} should have non-negative positional strength");
-            Assert.True(strength.DirectionalStrength >= 0, $"{strength.Name} should have non-negative directional strength");
+            Assert.True(strength.DirectionalStrength >= 0, $"{strength.Name} should have non-negative directional strength (Dig Bala)");
             Assert.True(strength.MotionalStrength >= 0, $"{strength.Name} should have non-negative motional strength");
             Assert.True(strength.NaturalStrength > 0, $"{strength.Name} should have positive natural strength");
             Assert.True(strength.TemporalStrength >= 0, $"{strength.Name} should have non-negative temporal strength");
-            Assert.True(strength.AspectualStrength >= 0, $"{strength.Name} should have non-negative aspectual strength");
+            // Drik Bala (Aspectual) CAN be negative per Parasara
             
             // Verify total equals sum of components
             var sum = strength.PositionalStrength + strength.DirectionalStrength + 
                      strength.MotionalStrength + strength.NaturalStrength + 
                      strength.TemporalStrength + strength.AspectualStrength;
-            Assert.Equal(sum, strength.TotalStrength, 2); // Allow 2 decimal places tolerance
+            Assert.Equal(sum, strength.TotalStrength, 2);
         }
     }
 
@@ -97,43 +97,41 @@ public class PlanetStrengthTests
             dasaYears: 0,
             includeStrength: true);
 
-        // Assert - Check reasonable ranges for components
+        // Assert - Check reasonable ranges for components (all in Rupas now)
         foreach (var strength in horoscope.PlanetStrengths!)
         {
-            // Positional strength: 0-290 Rupas (complex calculation with multiple sub-components)
-            Assert.InRange(strength.PositionalStrength, 0, 300);
+            // Sthana Bala (Positional): max ~8 Rupas (Uchcha 1R + Sapta ~5.6R + Ojha 0.5R + Kendra 1R + Drekk 0.25R)
+            Assert.InRange(strength.PositionalStrength, 0, 10);
             
-            // Directional strength: 0-60 Rupas
-            Assert.InRange(strength.DirectionalStrength, 0, 60);
+            // Dig Bala (Directional): 0-1 Rupa (60V / 60)
+            Assert.InRange(strength.DirectionalStrength, 0, 1.01);
             
-            // Motional strength: 0-60 Rupas (Sun/Moon should be ~30)
-            Assert.InRange(strength.MotionalStrength, 0, 60);
-            if (strength.Name == "Sun" || strength.Name == "Moon")
-            {
-                Assert.Equal(30.0, strength.MotionalStrength, 1);
-            }
+            // Chesta Bala (Motional): 0-1 Rupa.
+            // Sun's Chesta = Ayana Bala, Moon's Chesta = Paksha Bala (both 0-1R)
+            Assert.InRange(strength.MotionalStrength, 0, 1.01);
             
-            // Natural strength: Fixed values (Sun highest at 60)
-            Assert.InRange(strength.NaturalStrength, 0, 65);
+            // Naisargika Bala (Natural): Sun = 60V/60 = 1.0 Rupa
+            Assert.InRange(strength.NaturalStrength, 0, 1.01);
             if (strength.Name == "Sun")
             {
-                Assert.Equal(60.0, strength.NaturalStrength, 1);
+                Assert.Equal(1.0, strength.NaturalStrength, 1);
             }
             
-            // Temporal strength: 0-112 Rupas (sum of all temporal components)
-            Assert.InRange(strength.TemporalStrength, 0, 120);
+            // Kala Bala (Temporal): max ~6 Rupas
+            Assert.InRange(strength.TemporalStrength, 0, 7);
             
-            // Aspectual strength: 0-60 Rupas
-            Assert.InRange(strength.AspectualStrength, 0, 60);
+            // Drik Bala (Aspectual): can be negative (range roughly -1 to +1 Rupa)
+            Assert.InRange(strength.AspectualStrength, -2, 2);
             
-            // Total strength: Should be reasonable (0-642 theoretical max)
-            Assert.InRange(strength.TotalStrength, 0, 650);
+            // Total strength in Rupas: typical range 3-12 Rupas
+            Assert.InRange(strength.TotalStrength, 0, 20);
             
             // Percentage should be 0-100
             Assert.InRange(strength.StrengthPercentage, 0, 100);
             
-            // Required strength should be positive
+            // Required strength should be positive (5-7 Rupas per BPHS)
             Assert.True(strength.RequiredStrength > 0);
+            Assert.InRange(strength.RequiredStrength, 4.0, 8.0);
             
             // Grade should not be empty
             Assert.NotEmpty(strength.StrengthGrade);
@@ -164,22 +162,38 @@ public class PlanetStrengthTests
             includeStrength: true);
 
         // Assert - Display for debugging/verification
-        Console.WriteLine("Planetary Strength Components:");
-        Console.WriteLine("Planet\tPositional\tDirectional\tMotional\tNatural\tTemporal\tAspectual\tTotal\tRequired\tGrade");
-        Console.WriteLine(new string('-', 120));
+        Console.WriteLine("Shadbala Components (all values in Rupas, 1 Rupa = 60 Virupas):");
+        Console.WriteLine("Planet\tSthana\tDig\tChesta\tNaisarg\tKala\tDrik\tTotal\tReqd\tRatio\tGrade");
+        Console.WriteLine(new string('-', 110));
         
         foreach (var strength in horoscope.PlanetStrengths!)
         {
+            double ratio = strength.RequiredStrength > 0 ? strength.TotalStrength / strength.RequiredStrength : 0;
             Console.WriteLine($"{strength.Name}\t" +
-                            $"{strength.PositionalStrength:F1}\t\t" +
-                            $"{strength.DirectionalStrength:F1}\t\t" +
-                            $"{strength.MotionalStrength:F1}\t\t" +
-                            $"{strength.NaturalStrength:F1}\t" +
-                            $"{strength.TemporalStrength:F1}\t\t" +
-                            $"{strength.AspectualStrength:F1}\t\t" +
-                            $"{strength.TotalStrength:F1}\t" +
-                            $"{strength.RequiredStrength:F1}\t\t" +
+                            $"{strength.PositionalStrength:F2}\t" +
+                            $"{strength.DirectionalStrength:F2}\t" +
+                            $"{strength.MotionalStrength:F2}\t" +
+                            $"{strength.NaturalStrength:F2}\t" +
+                            $"{strength.TemporalStrength:F2}\t" +
+                            $"{strength.AspectualStrength:F2}\t" +
+                            $"{strength.TotalStrength:F2}\t" +
+                            $"{strength.RequiredStrength:F1}\t" +
+                            $"{ratio:F2}\t" +
                             $"{strength.StrengthGrade}");
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("Virupas breakdown:");
+        foreach (var strength in horoscope.PlanetStrengths!)
+        {
+            Console.WriteLine($"{strength.Name}: " +
+                            $"Sthana={strength.PositionalStrength * 60:F0}V, " +
+                            $"Dig={strength.DirectionalStrength * 60:F0}V, " +
+                            $"Chesta={strength.MotionalStrength * 60:F0}V, " +
+                            $"Naisarg={strength.NaturalStrength * 60:F0}V, " +
+                            $"Kala={strength.TemporalStrength * 60:F0}V, " +
+                            $"Drik={strength.AspectualStrength * 60:F0}V, " +
+                            $"Total={strength.TotalStrength * 60:F0}V ({strength.TotalStrength:F2}R)");
         }
     }
 }

@@ -10,19 +10,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="iTextSharp.LGPLv2.Core" Version="3.4.23" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\TamilHoroscope.Core\TamilHoroscope.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="iTextSharp.LGPLv2.Core" Version="3.4.23" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Data\BirthPlaces.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
-
 
 </Project>

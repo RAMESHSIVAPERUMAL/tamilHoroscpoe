@@ -73,7 +73,8 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Handles text changes in the ComboBox for auto-complete functionality with online search
+    /// Handles text changes in the ComboBox for auto-complete functionality
+    /// Priority: Local XML first, then API if no results found
     /// </summary>
     private async void CmbBirthPlace_TextChanged(object sender, TextChangedEventArgs e)
     {
@@ -109,15 +110,33 @@ public partial class MainWindow : Window
         
         try
         {
-            // Try online search first if connected
+            // PRIORITY 1: Check local XML cache FIRST
+            var localResults = _birthPlaceService.SearchPlaces(searchText);
+            
+            // If we have results from local cache, use them immediately
+            if (localResults.Count > 0)
+            {
+                cmbBirthPlace.ItemsSource = localResults;
+                
+                // Restore text and caret position
+                textBox.Text = currentText;
+                textBox.CaretIndex = caretIndex;
+                
+                System.Diagnostics.Debug.WriteLine($"Using local XML cache for '{searchText}': {localResults.Count} results");
+                return;
+            }
+            
+            // PRIORITY 2: If NO results in local cache AND online, try API
             if (_birthPlaceService.IsOnline)
             {
-                var filteredPlaces = await _birthPlaceService.SearchPlacesOnlineAsync(searchText);
+                System.Diagnostics.Debug.WriteLine($"No local results for '{searchText}', calling API...");
+                
+                var onlineResults = await _birthPlaceService.SearchPlacesOnlineAsync(searchText);
                 
                 // Only update if the text hasn't changed during the async operation
                 if (textBox.Text == currentText && cmbBirthPlace.SelectedItem == null)
                 {
-                    cmbBirthPlace.ItemsSource = filteredPlaces;
+                    cmbBirthPlace.ItemsSource = onlineResults;
                     
                     // Restore text and caret position
                     textBox.Text = currentText;
@@ -126,18 +145,17 @@ public partial class MainWindow : Window
             }
             else
             {
-                // Fallback to local search
-                var filteredPlaces = _birthPlaceService.SearchPlaces(searchText);
-                cmbBirthPlace.ItemsSource = filteredPlaces;
+                // Offline and no local results - show empty
+                cmbBirthPlace.ItemsSource = new List<BirthPlace>();
                 
-                // Restore text and caret position
-                textBox.Text = currentText;
-                textBox.CaretIndex = caretIndex;
+                System.Diagnostics.Debug.WriteLine($"Offline and no local results for '{searchText}'");
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // On error, use local search
+            System.Diagnostics.Debug.WriteLine($"Error in CmbBirthPlace_TextChanged: {ex.Message}");
+            
+            // On error, try local search again
             var filteredPlaces = _birthPlaceService.SearchPlaces(searchText);
             cmbBirthPlace.ItemsSource = filteredPlaces;
             
@@ -179,7 +197,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void BtnCalculate_Click(object sender, RoutedEventArgs e)
+    private async void BtnCalculate_Click(object sender, RoutedEventArgs e)
     {
         try
         {
@@ -196,6 +214,13 @@ public partial class MainWindow : Window
             // Parse birth details
             var birthDetails = ParseBirthDetails();
             _currentBirthDetails = birthDetails;
+
+            // Save the confirmed birth place to XML (if it's from API/not already in cache)
+            if (cmbBirthPlace.SelectedItem is BirthPlace selectedPlace)
+            {
+                // Save the user-confirmed location to XML
+                await _birthPlaceService.SaveConfirmedPlaceAsync(selectedPlace);
+            }
 
             // Calculate horoscope with optional features based on UI settings
             bool includeDasa = chkCalculateDasa.IsChecked == true;

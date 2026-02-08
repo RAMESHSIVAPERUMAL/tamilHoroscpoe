@@ -265,6 +265,15 @@
     <Country>India</Country>
   </Place>
   <Place>
+    <Name>Kannur</Name>
+    <TamilName>??????????????</TamilName>
+    <Latitude>11.8764</Latitude>
+    <Longitude>75.3738</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <State>Kerala</State>
+    <Country>India</Country>
+  </Place>
+  <Place>
     <Name>Visakhapatnam</Name>
     <TamilName>???????????????</TamilName>
     <Latitude>17.6869</Latitude>

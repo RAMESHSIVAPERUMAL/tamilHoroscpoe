@@ -1,93 +1,68 @@
-﻿# Quick Reference: Online/Offline Birth Place Picker
+# Quick Reference: Birth Place Picker
 
-## Features at a Glance
-
-✅ **Online Search** - Search worldwide locations via OpenStreetMap API  
-✅ **Offline Fallback** - Works without internet using local XML database  
-✅ **Auto-Complete** - Real-time filtering as you type  
-✅ **Auto-Fill** - Automatically fills latitude, longitude, timezone  
-✅ **Self-Learning** - Saves new places to local database  
-✅ **Smart Merge** - Combines online and offline results  
-✅ **Error Handling** - Graceful degradation on network errors  
-✅ **Status Indicator** - Shows Online/Offline mode in UI  
+## Features
+- Online search via OpenStreetMap API
+- Offline fallback with local XML database
+- Real-time auto-complete
+- Auto-fill latitude, longitude, and timezone
+- Saves new places for future offline use
 
 ## User Guide
 
-### Search for a Birth Place
+### Searching for a Birth Place
+1. Click the Birth Place field
+2. Type a city name (e.g., "Chennai", "Paris")
+3. Select your location from results
+4. Coordinates and timezone auto-fill
 
-1. **Click** on the Birth Place dropdown
-2. **Type** any part of a city name (e.g., "Chen", "Paris", "Tokyo")
-3. **Watch** as results appear in real-time
-4. **Select** your desired location
-5. **Done!** - Coordinates and timezone auto-filled
+### Online/Offline Status
+- "Mode: Online" - Using internet and API
+- "Mode: Offline" - Using local database only
 
-### Online Mode Indicator
-Look for status message at bottom:
-- `"Loaded 40 birth places successfully. Mode: Online"` ✓
-  → Internet available, using API + local
-- `"Loaded 40 birth places successfully. Mode: Offline"` ⊘
-  → No internet, using local database only
+The app automatically switches based on internet availability.
 
-### What Gets Auto-Filled
-When you select a place:
-- ✓ Latitude (e.g., 13.0827)
-- ✓ Longitude (e.g., 80.2707)
-- ✓ Timezone offset (e.g., 5.5 for IST)
+## Developer Guide
 
-## Developer Quick Start
-
-### How to Use in Code
+### Using BirthPlaceService
 
 ```csharp
-// Initialize
-var birthPlaceService = new BirthPlaceService();
-birthPlaceService.LoadBirthPlaces();
+var service = new BirthPlaceService();
+service.LoadBirthPlaces();
 
-// Check if online
-bool isOnline = birthPlaceService.IsOnline;
+// Search with online fallback
+var results = await service.SearchPlacesOnlineAsync("Chennai");
 
-// Search online (with offline fallback)
-var results = await birthPlaceService.SearchPlacesOnlineAsync("Chennai");
+// Search local only
+var localResults = service.SearchPlaces("Chennai");
 
-// Search offline only
-var localResults = birthPlaceService.SearchPlaces("Chennai");
-
-// Get all cached places
-var allPlaces = birthPlaceService.GetAllPlaces();
+// Check online status
+if (service.IsOnline)
+{
+    // Connected to internet
+}
 ```
 
 ### Key Methods
-
-| Method | Description | Return Type |
-|--------|-------------|-------------|
-| `LoadBirthPlaces()` | Loads XML + checks internet | void |
-| `SearchPlacesOnlineAsync(string)` | Online search with fallback | `Task<List<BirthPlace>>` |
-| `SearchPlaces(string)` | Local search only | `List<BirthPlace>` |
-| `GetAllPlaces()` | Get all cached places | `List<BirthPlace>` |
-| `IsOnline` | Check internet status | bool |
+- `LoadBirthPlaces()` - Load XML and check internet
+- `SearchPlacesOnlineAsync(string)` - Search online with offline fallback
+- `SearchPlaces(string)` - Search local database only
+- `GetAllPlaces()` - Get all cached places
+- `IsOnline` - Check internet connection status
 
 ## API Configuration
 
-### Current: OpenStreetMap Nominatim (FREE)
-
-```
-Endpoint: https://nominatim.openstreetmap.org/search
-Rate Limit: 1 request/second
-Cost: Free
-Attribution Required: Yes
-```
+### Current API: OpenStreetMap Nominatim
+- Free tier
+- Rate limit: 1 request/second
+- Endpoint: https://nominatim.openstreetmap.org/search
 
 ### Switch to Google Maps API
 
-1. Get API key from: https://console.cloud.google.com
-2. In `BirthPlaceService.cs`, change:
-
 ```csharp
+// In BirthPlaceService.cs
 private const string GeocodingApiUrl = 
     "https://maps.googleapis.com/maps/api/geocode/json";
-
-// In SearchPlacesOnlineAsync method:
-var url = $"{GeocodingApiUrl}?address={searchText}&key={YOUR_API_KEY}";
+var url = $"{GeocodingApiUrl}?address={Uri.EscapeDataString(searchText)}&key={YOUR_API_KEY}";
 ```
 
 ### Switch to Mapbox API
@@ -95,146 +70,87 @@ var url = $"{GeocodingApiUrl}?address={searchText}&key={YOUR_API_KEY}";
 ```csharp
 private const string GeocodingApiUrl = 
     "https://api.mapbox.com/geocoding/v5/mapbox.places";
-    
-var url = $"{GeocodingApiUrl}/{searchText}.json?access_token={YOUR_TOKEN}";
+var url = $"{GeocodingApiUrl}/{Uri.EscapeDataString(searchText)}.json?access_token={YOUR_TOKEN}";
 ```
 
-## XML Structure
-
-### Adding Places Manually
+## Adding Places Manually
 
 Edit `TamilHoroscope.Desktop/Data/BirthPlaces.xml`:
 
 ```xml
 <Place>
-  <Name>Your City</Name>
-  <TamilName>உங்கள் நகரம்</TamilName>
+  <Name>City Name</Name>
+  <TamilName>????? ?????</TamilName>
   <Latitude>12.3456</Latitude>
   <Longitude>78.9012</Longitude>
   <TimeZone>5.5</TimeZone>
-  <State>Your State</State>
-  <Country>Your Country</Country>
+  <State>State Name</State>
+  <Country>Country Name</Country>
 </Place>
 ```
 
-## Troubleshooting Quick Fixes
+## Troubleshooting
 
-| Problem | Quick Fix |
-|---------|-----------|
-| No search results | Check internet, verify API endpoint |
-| Slow performance | Reduce timeout in `BirthPlaceService.cs` |
+| Problem | Solution |
+|---------|----------|
+| No search results | Check internet connection or API endpoint |
+| Slow search | Verify network speed and API response time |
 | XML not updating | Check file permissions, run as admin |
-| Duplicates | Manually edit XML to remove |
-| API errors | Check User-Agent header is set |
+| Duplicate entries | Manually clean BirthPlaces.xml |
+| API errors | Verify User-Agent header is set |
 
 ## Performance Tips
 
-### Optimize Search Speed
+### Add Search Debounce
 ```csharp
-// Add debounce delay (wait for user to finish typing)
-private Timer _searchTimer = new Timer(300); // 300ms delay
-
+private Timer _searchTimer = new Timer(300);
 _searchTimer.Tick += async (s, e) => 
 {
     _searchTimer.Stop();
     await PerformSearch();
 };
-
-// On text change:
-_searchTimer.Stop();
-_searchTimer.Start();
 ```
 
-### Reduce API Calls
+### Cache Recent Searches
 ```csharp
-// Cache recent searches
-private Dictionary<string, List<BirthPlace>> _searchCache = new();
-
-if (_searchCache.ContainsKey(searchText))
-{
-    return _searchCache[searchText];
-}
+private Dictionary<string, List<BirthPlace>> _cache = new();
+if (_cache.ContainsKey(searchText))
+    return _cache[searchText];
 ```
-
-## Status Messages
-
-| Message | Meaning |
-|---------|---------|
-| "Loaded X birth places successfully. Mode: Online" | Connected to internet |
-| "Loaded X birth places successfully. Mode: Offline" | No internet, using cache |
-| "Warning: Could not load birth places" | XML file missing or corrupt |
-
-## Testing Checklist
-
-- [ ] Test online search (connect to internet)
-- [ ] Test offline search (disconnect internet)
-- [ ] Test invalid city names
-- [ ] Test special characters (தமிழ், etc.)
-- [ ] Test auto-fill after selection
-- [ ] Test XML update after online search
-- [ ] Test with slow network (simulate)
-- [ ] Test with API timeout
 
 ## Code Locations
 
-```
-Project Structure:
-├── TamilHoroscope.Desktop/
-│   ├── Data/
-│   │   └── BirthPlaces.xml           # Local database
-│   ├── Models/
-│   │   ├── BirthPlace.cs             # Place model
-│   │   └── GeocodeResponse.cs        # API response model
-│   ├── Services/
-│   │   └── BirthPlaceService.cs      # Core logic
-│   ├── MainWindow.xaml               # UI definition
-│   └── MainWindow.xaml.cs            # UI code-behind
-```
+- BirthPlaceService: `Services/BirthPlaceService.cs`
+- Birth Place Model: `Models/BirthPlace.cs`
+- API Response Model: `Models/GeocodeResponse.cs`
+- Local Database: `Data/BirthPlaces.xml`
+- UI Integration: `MainWindow.xaml.cs`
 
-## Common Customizations
+## Testing Checklist
 
-### Change Number of Results
-```csharp
-// In BirthPlaceService.cs, line ~127
-var url = $"{GeocodingApiUrl}?q={searchText}&format=json&limit=20";
-//                                                              ^^^ Change here
-```
-
-### Change Timeout Duration
-```csharp
-// In BirthPlaceService.cs, line ~18
-private static readonly HttpClient _httpClient = new HttpClient
-{
-    Timeout = TimeSpan.FromSeconds(15) // Change from 10 to 15
-};
-```
-
-### Disable Online Search
-```csharp
-// In MainWindow.xaml.cs, CmbBirthPlace_TextChanged method
-// Comment out online search, use only local:
-var filteredPlaces = _birthPlaceService.SearchPlaces(searchText);
-cmbBirthPlace.ItemsSource = filteredPlaces;
-```
+- [ ] Online search with internet
+- [ ] Offline search without internet
+- [ ] Invalid city names return empty
+- [ ] Auto-fill coordinates after selection
+- [ ] XML updates after online search
+- [ ] No duplicates in results
+- [ ] Graceful handling of API timeout
+- [ ] Tamil character search works
 
 ## Best Practices
 
-1. ✅ **Always handle exceptions** - Network can fail anytime
-2. ✅ **Use async/await** - Don't block UI thread
-3. ✅ **Respect API limits** - Add delays between requests
-4. ✅ **Cache results** - Reduce redundant API calls
-5. ✅ **Validate input** - URL-encode search text
-6. ✅ **Show feedback** - Display loading indicators
-7. ✅ **Test offline** - Ensure fallback works
-8. ✅ **Attribute sources** - Credit OpenStreetMap
+1. Always handle exceptions - network can fail anytime
+2. Use async/await to keep UI responsive
+3. Respect API rate limits
+4. Cache results to reduce API calls
+5. Validate and URL-encode search input
+6. Show loading indicators during search
+7. Test both online and offline scenarios
+8. Credit API sources (e.g., OpenStreetMap)
 
-## Support Links
+## External Resources
 
 - OpenStreetMap Nominatim: https://nominatim.org/
 - Usage Policy: https://operations.osmfoundation.org/policies/nominatim/
 - Google Maps API: https://developers.google.com/maps/documentation/geocoding
 - Mapbox API: https://docs.mapbox.com/api/search/geocoding/
-
----
-
-**Need Help?** Check the full documentation in `OnlineOfflineBirthPlacePicker.md`

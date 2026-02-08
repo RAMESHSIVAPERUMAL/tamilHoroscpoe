@@ -3,13 +3,15 @@ using TamilHoroscope.Core.Models;
 namespace TamilHoroscope.Core.Calculators;
 
 /// <summary>
-/// Calculator for planetary strength (simplified Shadbala)
-/// Based on key factors: Positional, Directional, Motional, Natural, Temporal, and Aspectual strength
+/// Calculator for planetary strength (Shadbala) per Brihat Parashara Hora Shastra.
+/// All internal calculations are in Virupas (Shashtiamsas).
+/// Final results are stored in Rupas (1 Rupa = 60 Virupas).
 /// </summary>
 public class PlanetStrengthCalculator
 {
-    // Natural strength values (Naisargika Bala) in Rupas - based on luminosity
-    private static readonly Dictionary<string, double> NaturalStrengths = new()
+    // Naisargika Bala (Natural Strength) in Virupas - BPHS fixed values
+    // Sun is brightest, Saturn is dimmest. Separated by 1/7 of 60 Virupas.
+    private static readonly Dictionary<string, double> NaisargikaBalaVirupas = new()
     {
         { "Sun", 60.0 },
         { "Moon", 51.43 },
@@ -17,35 +19,29 @@ public class PlanetStrengthCalculator
         { "Jupiter", 34.29 },
         { "Mercury", 25.71 },
         { "Mars", 17.14 },
-        { "Saturn", 8.57 },
-        { "Rahu", 8.57 },
-        { "Ketu", 8.57 }
+        { "Saturn", 8.57 }
     };
 
-    // Required minimum strength for benefic results (in Rupas)
-    // Updated for complete Shadbala calculation
+    // Required minimum total Shadbala for benefic results (in Rupas) - BPHS Chapter 27
     private static readonly Dictionary<string, double> RequiredStrengths = new()
     {
-        { "Sun", 390.0 },
-        { "Moon", 360.0 },
-        { "Mars", 300.0 },
-        { "Mercury", 420.0 },
-        { "Jupiter", 390.0 },
-        { "Venus", 330.0 },
-        { "Saturn", 300.0 },
-        { "Rahu", 300.0 },
-        { "Ketu", 300.0 }
+        { "Sun", 6.5 },
+        { "Moon", 6.0 },
+        { "Mars", 5.0 },
+        { "Mercury", 7.0 },
+        { "Jupiter", 6.5 },
+        { "Venus", 5.5 },
+        { "Saturn", 5.0 }
     };
 
     /// <summary>
-    /// Calculate strength for all planets in the horoscope
-    /// Rahu and Ketu are excluded as they don't have Shadbala in traditional astrology
+    /// Calculate Shadbala for all planets (excluding Rahu and Ketu).
+    /// Returns results in Rupas with individual components.
     /// </summary>
     public List<PlanetStrengthData> CalculatePlanetaryStrengths(HoroscopeData horoscope)
     {
         var strengths = new List<PlanetStrengthData>();
 
-        // Exclude Rahu and Ketu - they don't have Shadbala in traditional astrology
         foreach (var planet in horoscope.Planets.Where(p => p.Name != "Rahu" && p.Name != "Ketu"))
         {
             var strength = new PlanetStrengthData
@@ -55,26 +51,45 @@ public class PlanetStrengthCalculator
                 RequiredStrength = RequiredStrengths.GetValueOrDefault(planet.Name, 5.0)
             };
 
-            // Calculate individual strength components
-            strength.PositionalStrength = CalculatePositionalStrength(planet, horoscope);
-            strength.DirectionalStrength = CalculateDirectionalStrength(planet);
-            strength.MotionalStrength = CalculateMotionalStrength(planet);
-            strength.NaturalStrength = NaturalStrengths.GetValueOrDefault(planet.Name, 30.0);
-            strength.TemporalStrength = CalculateTemporalStrength(planet, horoscope);
-            strength.AspectualStrength = CalculateAspectualStrength(planet, horoscope);
+            // Pre-calculate Moon's Paksha Bala (needed for Chesta Bala)
+            if (planet.Name == "Moon")
+            {
+                double moonLong = horoscope.Panchang.MoonLongitude;
+                double sunLong = horoscope.Panchang.SunLongitude;
+                _currentPakshaBalaForMoon = CalculatePakshaBala("Moon", moonLong, sunLong);
+            }
 
-            // Total strength is the sum of all components
-            strength.TotalStrength = 
+            // Calculate each component in Virupas, convert to Rupas for storage
+            double sthanaBalaV = CalculateSthanaBala(planet, horoscope);
+            double digBalaV = CalculateDigBala(planet);
+            double kalaBalaV = CalculateKalaBala(planet, horoscope);
+            double chestaBalaV = CalculateChestaBala(planet);
+            double naisargikaBalaV = NaisargikaBalaVirupas.GetValueOrDefault(planet.Name, 25.0);
+            double drikBalaV = CalculateDrikBala(planet, horoscope);
+
+            // Store in Rupas (divide by 60)
+            strength.PositionalStrength = sthanaBalaV / 60.0;
+            strength.DirectionalStrength = digBalaV / 60.0;
+            strength.TemporalStrength = kalaBalaV / 60.0;
+            strength.MotionalStrength = chestaBalaV / 60.0;
+            strength.NaturalStrength = naisargikaBalaV / 60.0;
+            strength.AspectualStrength = drikBalaV / 60.0;
+
+            strength.TotalStrength =
                 strength.PositionalStrength +
                 strength.DirectionalStrength +
+                strength.TemporalStrength +
                 strength.MotionalStrength +
                 strength.NaturalStrength +
-                strength.TemporalStrength +
                 strength.AspectualStrength;
 
-            // Calculate percentage (maximum possible with accurate Parasara method)
-            // Positional: 290, Directional: 60, Motional: 60, Natural: 60, Temporal: ~112, Aspectual: 60 = ~642 max
-            strength.StrengthPercentage = (strength.TotalStrength / 642.0) * 100.0;
+            // Strength ratio = Total / Required. Ratio >= 1.0 means sufficient.
+            double ratio = strength.RequiredStrength > 0
+                ? strength.TotalStrength / strength.RequiredStrength
+                : 1.0;
+
+            // Scale: ratio 0 -> 0%, ratio 1 -> 50%, ratio 2 -> 100%
+            strength.StrengthPercentage = Math.Max(0, Math.Min(100, ratio * 50.0));
 
             strengths.Add(strength);
         }
@@ -82,450 +97,696 @@ public class PlanetStrengthCalculator
         return strengths;
     }
 
-    /// <summary>
-    /// Calculate positional strength (Sthana Bala) with all 5 traditional sub-components
-    /// 1. Uchcha Bala (Exaltation Strength)
-    /// 2. Saptavargaja Bala (Seven Divisional Strength)
-    /// 3. Ojhayugma Bala (Odd/Even Sign Strength)
-    /// 4. Kendra Bala (Angular House Strength)
-    /// 5. Drekkana Bala (Decanate Strength)
-    /// </summary>
-    private double CalculatePositionalStrength(PlanetData planet, HoroscopeData horoscope)
+    // ----------------------------------------------------------------
+    // 1. STHANA BALA (Positional Strength) - all in Virupas
+    // ----------------------------------------------------------------
+
+    private double CalculateSthanaBala(PlanetData planet, HoroscopeData horoscope)
     {
-        double totalSthanaBala = 0.0;
-        
-        // 1. Uchcha Bala (Exaltation/Debilitation Strength) - Maximum 60 Rupas
-        totalSthanaBala += CalculateUchchaBala(planet);
-        
-        // 2. Saptavargaja Bala (Seven Divisional Strength) - Maximum 20 × 7 = 140 Rupas
-        totalSthanaBala += CalculateSaptavargajaBala(planet);
-        
-        // 3. Ojhayugma Bala (Odd/Even Sign Strength) - Maximum 15 Rupas
-        totalSthanaBala += CalculateOjhayugmaBala(planet);
-        
-        // 4. Kendra Bala (Angular House Strength) - Maximum 60 Rupas
-        totalSthanaBala += CalculateKendraBala(planet);
-        
-        // 5. Drekkana Bala (Decanate Strength) - Maximum 15 Rupas
-        totalSthanaBala += CalculateDrekkanaBala(planet);
-        
-        return totalSthanaBala;
+        double total = 0.0;
+        total += CalculateUchchaBala(planet);          // max 60
+        total += CalculateSaptavargajaBala(planet);    // max ~337 (sum of 7 divisions)
+        total += CalculateOjhayugmaBala(planet);       // max 30 (Rasi 15 + Navamsa 15)
+        total += CalculateKendraBala(planet);           // max 60
+        total += CalculateDrekkanaBala(planet);         // max 15
+        return total;
     }
-    
+
     /// <summary>
-    /// Calculate Uchcha Bala (Exaltation Strength)
-    /// Based on exact degrees from exaltation/debilitation points
-    /// Maximum: 60 Rupas
+    /// Uchcha Bala - max 60 Virupas.
+    /// = (arc from debilitation point / 3).
+    /// At exaltation point -> 60V, at debilitation -> 0V.
     /// </summary>
     private double CalculateUchchaBala(PlanetData planet)
     {
-        // Get exact exaltation degrees for each planet
-        var (exaltationSign, exaltationDegree) = GetExaltationPoint(planet.Name);
-        var (debilitationSign, debilitationDegree) = GetDebilitationPoint(planet.Name);
-        
-        // Calculate absolute longitude of debilitation point
-        double debilitationLongitude = (debilitationSign - 1) * 30.0 + debilitationDegree;
-        
-        // Normalize planet longitude (0-360)
-        double planetLongitude = planet.Longitude;
-        while (planetLongitude < 0) planetLongitude += 360.0;
-        while (planetLongitude >= 360.0) planetLongitude -= 360.0;
-        
-        // Calculate distance from debilitation point
-        double distanceFromDebilitation = planetLongitude - debilitationLongitude;
-        
-        // Normalize to 0-360 range
-        while (distanceFromDebilitation < 0) distanceFromDebilitation += 360.0;
-        while (distanceFromDebilitation >= 360.0) distanceFromDebilitation -= 360.0;
-        
-        // If distance > 180, take the shorter arc
-        if (distanceFromDebilitation > 180.0)
-        {
-            distanceFromDebilitation = 360.0 - distanceFromDebilitation;
-        }
-        
-        // Calculate Uchcha Bala: (distance from debilitation / 180) * 60 Rupas
-        double uchchaBala = (distanceFromDebilitation / 180.0) * 60.0;
-        
-        return uchchaBala;
+        var (debSign, debDeg) = GetDebilitationPoint(planet.Name);
+        double debLong = (debSign - 1) * 30.0 + debDeg;
+
+        double pLong = NormalizeDeg(planet.Longitude);
+        double dist = NormalizeDeg(pLong - debLong);
+        if (dist > 180.0) dist = 360.0 - dist;
+
+        // dist / 3 gives Virupas, max = 180/3 = 60
+        return dist / 3.0;
     }
-    
+
     /// <summary>
-    /// Calculate Saptavargaja Bala (Seven Divisional Strength) - Parasara method
-    /// Based on planet's dignity in 7 divisional charts (D-1, D-2, D-3, D-7, D-9, D-12, D-30)
-    /// Maximum: 20 Rupas per division × 7 = 140 Rupas
-    /// Uses accurate Parashara divisional calculation formulas
+    /// Saptavargaja Bala - dignity in 7 divisional charts.
+    /// BPHS assigns points per dignity level:
+    ///   Moolatrikona=45, Own=30, Great Friend=22.5, Friend=15, Neutral=7.5, Enemy=3.75, Great Enemy=1.875
+    /// The 7 divisions are: D-1, D-2, D-3, D-7, D-9, D-12, D-30.
     /// </summary>
     private double CalculateSaptavargajaBala(PlanetData planet)
     {
-        double totalBala = 0.0;
-        
-        // D-1 (Rasi) - Main birth chart
-        totalBala += GetDivisionalStrength(planet.Name, planet.Rasi, 1);
-        
-        // D-2 (Hora) - Parasara Hora calculation
-        int horaSign = CalculateHoraSign(planet.Longitude);
-        totalBala += GetDivisionalStrength(planet.Name, horaSign, 2);
-        
-        // D-3 (Drekkana) - Parasara Drekkana calculation
-        int drekkanaSign = CalculateDrekkanaSign(planet.Longitude);
-        totalBala += GetDivisionalStrength(planet.Name, drekkanaSign, 3);
-        
-        // D-7 (Saptamsa) - Parasara Saptamsa calculation
-        int saptamsaSign = CalculateSaptamsaSign(planet.Longitude);
-        totalBala += GetDivisionalStrength(planet.Name, saptamsaSign, 7);
-        
-        // D-9 (Navamsa) - Parasara Navamsa calculation
-        int navamsaSign = CalculateNavamsaSign(planet.Longitude);
-        totalBala += GetDivisionalStrength(planet.Name, navamsaSign, 9);
-        
-        // D-12 (Dwadasamsa) - Parasara Dwadasamsa calculation
-        int dwadasamsaSign = CalculateDwadasamsaSign(planet.Longitude);
-        totalBala += GetDivisionalStrength(planet.Name, dwadasamsaSign, 12);
-        
-        // D-30 (Trimshamsa) - Parasara Trimshamsa calculation
-        int trimshamsaSign = CalculateTrimshamsaSign(planet.Longitude);
-        totalBala += GetDivisionalStrength(planet.Name, trimshamsaSign, 30);
-        
-        return totalBala;
+        double total = 0.0;
+
+        // D-1 (Rasi)
+        total += GetDignityVirupas(planet.Name, planet.Rasi);
+
+        // D-2 (Hora)
+        total += GetDignityVirupas(planet.Name, CalculateHoraSign(planet.Longitude));
+
+        // D-3 (Drekkana)
+        total += GetDignityVirupas(planet.Name, CalculateDrekkanaSign(planet.Longitude));
+
+        // D-7 (Saptamsa)
+        total += GetDignityVirupas(planet.Name, CalculateSaptamsaSign(planet.Longitude));
+
+        // D-9 (Navamsa)
+        total += GetDignityVirupas(planet.Name, CalculateNavamsaSign(planet.Longitude));
+
+        // D-12 (Dwadasamsa)
+        total += GetDignityVirupas(planet.Name, CalculateDwadasamsaSign(planet.Longitude));
+
+        // D-30 (Trimshamsa)
+        total += GetDignityVirupas(planet.Name, CalculateTrimshamsaSign(planet.Longitude));
+
+        return total;
     }
-    
+
     /// <summary>
-    /// Calculate Hora (D-2) sign - Parasara method
-    /// Odd signs: First 15° = Sun (Leo), Last 15° = Moon (Cancer)
-    /// Even signs: First 15° = Moon (Cancer), Last 15° = Sun (Leo)
+    /// Get Saptavargaja dignity Virupas for a planet in a given sign.
     /// </summary>
-    private int CalculateHoraSign(double longitude)
+    private double GetDignityVirupas(string planetName, int sign)
     {
-        while (longitude < 0) longitude += 360.0;
-        while (longitude >= 360.0) longitude -= 360.0;
-        
-        int sign = (int)(longitude / 30.0) + 1;
-        double positionInSign = longitude % 30.0;
-        
-        bool isOddSign = sign % 2 == 1;
-        bool isFirstHalf = positionInSign < 15.0;
-        
-        if (isOddSign)
-        {
-            return isFirstHalf ? 5 : 4; // Leo : Cancer
-        }
-        else
-        {
-            return isFirstHalf ? 4 : 5; // Cancer : Leo
-        }
-    }
-    
-    /// <summary>
-    /// Calculate Drekkana (D-3) sign - Parasara method
-    /// Each sign divided into 3 parts of 10° each
-    /// Starts from own sign, then 5th, then 9th from it
-    /// </summary>
-    private int CalculateDrekkanaSign(double longitude)
-    {
-        while (longitude < 0) longitude += 360.0;
-        while (longitude >= 360.0) longitude -= 360.0;
-        
-        int sign = (int)(longitude / 30.0) + 1;
-        double positionInSign = longitude % 30.0;
-        
-        int drekkanaNumber = (int)(positionInSign / 10.0); // 0, 1, or 2
-        
-        // Drekkanas start from own sign, 5th from it, 9th from it
-        int drekkanaSign = ((sign - 1) + (drekkanaNumber * 4)) % 12 + 1;
-        
-        return drekkanaSign;
-    }
-    
-    /// <summary>
-    /// Calculate Saptamsa (D-7) sign - Parasara method
-    /// Each sign divided into 7 parts
-    /// Odd signs: Start from own sign
-    /// Even signs: Start from 7th sign
-    /// </summary>
-    private int CalculateSaptamsaSign(double longitude)
-    {
-        while (longitude < 0) longitude += 360.0;
-        while (longitude >= 360.0) longitude -= 360.0;
-        
-        int sign = (int)(longitude / 30.0) + 1;
-        double positionInSign = longitude % 30.0;
-        
-        int saptamsaNumber = (int)(positionInSign / (30.0 / 7.0)); // 0-6
-        
-        bool isOddSign = sign % 2 == 1;
-        int startSign = isOddSign ? sign : ((sign + 6) % 12);
-        if (startSign == 0) startSign = 12;
-        
-        int saptamsaSign = ((startSign - 1) + saptamsaNumber) % 12 + 1;
-        
-        return saptamsaSign;
-    }
-    
-    /// <summary>
-    /// Calculate Navamsa (D-9) sign - Parasara method
-    /// Each sign divided into 9 parts of 3°20' each
-    /// Fire signs (Aries, Leo, Sag): Start from Aries
-    /// Earth signs (Taurus, Virgo, Cap): Start from Capricorn
-    /// Air signs (Gemini, Libra, Aqua): Start from Libra
-    /// Water signs (Cancer, Scorpio, Pisces): Start from Cancer
-    /// </summary>
-    private int CalculateNavamsaSign(double longitude)
-    {
-        while (longitude < 0) longitude += 360.0;
-        while (longitude >= 360.0) longitude -= 360.0;
-        
-        int sign = (int)(longitude / 30.0) + 1;
-        double positionInSign = longitude % 30.0;
-        
-        int navamsaNumber = (int)(positionInSign / (30.0 / 9.0)); // 0-8
-        
-        // Determine element and starting sign
-        int element = (sign - 1) % 3; // 0=Fire/Water, 1=Earth, 2=Air (adjusted)
-        int startSign;
-        
-        if (sign == 1 || sign == 5 || sign == 9) // Fire signs
-            startSign = 1; // Aries
-        else if (sign == 2 || sign == 6 || sign == 10) // Earth signs
-            startSign = 10; // Capricorn
-        else if (sign == 3 || sign == 7 || sign == 11) // Air signs
-            startSign = 7; // Libra
-        else // Water signs (4, 8, 12)
-            startSign = 4; // Cancer
-        
-        int navamsaSign = ((startSign - 1) + navamsaNumber) % 12 + 1;
-        
-        return navamsaSign;
-    }
-    
-    /// <summary>
-    /// Calculate Dwadasamsa (D-12) sign - Parasara method
-    /// Each sign divided into 12 parts of 2°30' each
-    /// Starts from own sign
-    /// </summary>
-    private int CalculateDwadasamsaSign(double longitude)
-    {
-        while (longitude < 0) longitude += 360.0;
-        while (longitude >= 360.0) longitude -= 360.0;
-        
-        int sign = (int)(longitude / 30.0) + 1;
-        double positionInSign = longitude % 30.0;
-        
-        int dwadasamsaNumber = (int)(positionInSign / 2.5); // 0-11
-        
-        int dwadasamsaSign = ((sign - 1) + dwadasamsaNumber) % 12 + 1;
-        
-        return dwadasamsaSign;
-    }
-    
-    /// <summary>
-    /// Calculate Trimshamsa (D-30) sign - Parasara method
-    /// Special unequal division for malefics
-    /// Odd signs: Mars(5°), Saturn(5°), Jupiter(8°), Mercury(7°), Venus(5°)
-    /// Even signs: Venus(5°), Mercury(7°), Jupiter(8°), Saturn(5°), Mars(5°)
-    /// </summary>
-    private int CalculateTrimshamsaSign(double longitude)
-    {
-        while (longitude < 0) longitude += 360.0;
-        while (longitude >= 360.0) longitude -= 360.0;
-        
-        int sign = (int)(longitude / 30.0) + 1;
-        double positionInSign = longitude % 30.0;
-        
-        bool isOddSign = sign % 2 == 1;
-        
-        // Trimshamsa divisions (unequal)
-        if (isOddSign)
-        {
-            // Odd signs: Mars, Saturn, Jupiter, Mercury, Venus
-            if (positionInSign < 5.0)
-                return 1; // Mars - Aries
-            else if (positionInSign < 10.0)
-                return 10; // Saturn - Capricorn
-            else if (positionInSign < 18.0)
-                return 9; // Jupiter - Sagittarius
-            else if (positionInSign < 25.0)
-                return 6; // Mercury - Virgo
-            else
-                return 7; // Venus - Libra
-        }
-        else
-        {
-            // Even signs: Venus, Mercury, Jupiter, Saturn, Mars
-            if (positionInSign < 5.0)
-                return 7; // Venus - Libra
-            else if (positionInSign < 12.0)
-                return 6; // Mercury - Virgo
-            else if (positionInSign < 20.0)
-                return 9; // Jupiter - Sagittarius
-            else if (positionInSign < 25.0)
-                return 10; // Saturn - Capricorn
-            else
-                return 1; // Mars - Aries
-        }
-    }
-    
-    /// <summary>
-    /// Get strength value for a planet in a divisional sign
-    /// </summary>
-    private double GetDivisionalStrength(string planetName, int sign, int division)
-    {
-        // Check dignity in the divisional sign
-        var (exaltationSign, _) = GetExaltationPoint(planetName);
-        var (debilitationSign, _) = GetDebilitationPoint(planetName);
-        
-        // Get own signs
+        var (exSign, _) = GetExaltationPoint(planetName);
+        var (debSign, _) = GetDebilitationPoint(planetName);
         var ownSigns = GetOwnSigns(planetName);
-        
-        // Get friend/enemy relationships (simplified)
+        int moolTriSign = GetMoolatrikonaSign(planetName);
         var signLord = GetSignLord(sign);
-        var relationship = GetPlanetRelationship(planetName, signLord);
-        
-        // Assign strength based on dignity
-        if (sign == exaltationSign)
-            return 20.0; // Exalted
-        else if (ownSigns.Contains(sign))
-            return 15.0; // Own sign
-        else if (relationship == "Friend")
-            return 10.0; // Friend's sign
-        else if (relationship == "Neutral")
-            return 7.5; // Neutral sign
-        else if (relationship == "Enemy")
-            return 3.75; // Enemy's sign
-        else if (sign == debilitationSign)
-            return 0.0; // Debilitated
-        else
-            return 7.5; // Default neutral
+
+        if (sign == debSign) return 1.875;                   // Debilitated
+        if (sign == exSign) return 45.0;                     // Exalted (treated as Moolatrikona-level)
+        if (moolTriSign == sign) return 45.0;                // Moolatrikona
+        if (ownSigns.Contains(sign)) return 30.0;            // Own sign
+
+        var rel = GetPlanetRelationship(planetName, signLord);
+        return rel switch
+        {
+            "Own" => 30.0,
+            "GreatFriend" => 22.5,
+            "Friend" => 15.0,
+            "Neutral" => 7.5,
+            "Enemy" => 3.75,
+            "GreatEnemy" => 1.875,
+            _ => 7.5
+        };
     }
-    
+
     /// <summary>
-    /// Calculate Ojhayugma Bala (Odd/Even Sign Strength)
-    /// Masculine planets strong in odd signs, Feminine planets strong in even signs
-    /// Maximum: 15 Rupas
+    /// Ojhayugma Bala - Rasi component (15V) + Navamsa component (15V) = max 30V.
+    /// Moon/Venus: strong in even signs. Others: strong in odd signs.
     /// </summary>
     private double CalculateOjhayugmaBala(PlanetData planet)
     {
-        // Masculine planets: Sun, Mars, Jupiter
-        // Feminine planets: Moon, Venus, Saturn
-        // Mercury: Neutral (strong in both)
-        
-        bool isMasculine = planet.Name is "Sun" or "Mars" or "Jupiter";
-        bool isFeminine = planet.Name is "Moon" or "Venus" or "Saturn";
-        bool isNeutral = planet.Name == "Mercury";
-        
-        // Odd signs: 1, 3, 5, 7, 9, 11 (Aries, Gemini, Leo, Libra, Sagittarius, Aquarius)
-        bool isOddSign = planet.Rasi % 2 == 1;
-        
-        if (isNeutral)
-            return 15.0; // Mercury gets full strength in any sign
-        else if ((isMasculine && isOddSign) || (isFeminine && !isOddSign))
-            return 15.0; // Full strength
-        else
-            return 0.0; // No strength
+        double bala = 0.0;
+        bool isFeminine = planet.Name is "Moon" or "Venus";
+
+        // Rasi component
+        bool rasiIsOdd = planet.Rasi % 2 == 1;
+        if (isFeminine && !rasiIsOdd) bala += 15.0;
+        else if (!isFeminine && rasiIsOdd) bala += 15.0;
+
+        // Navamsa component
+        int navSign = CalculateNavamsaSign(planet.Longitude);
+        bool navIsOdd = navSign % 2 == 1;
+        if (isFeminine && !navIsOdd) bala += 15.0;
+        else if (!isFeminine && navIsOdd) bala += 15.0;
+
+        return bala;
     }
-    
+
     /// <summary>
-    /// Calculate Kendra Bala (Angular House Strength)
-    /// Strength based on placement in Kendra (1, 4, 7, 10) or Trikona (1, 5, 9) houses
-    /// Maximum: 60 Rupas
+    /// Kendra Bala - 60/30/15 Virupas for Kendra/Panaphara/Apoklima houses.
     /// </summary>
     private double CalculateKendraBala(PlanetData planet)
     {
-        int house = planet.House;
-        
-        // Kendra houses (Angular): 1, 4, 7, 10 - Full strength (60 Rupas)
-        if (house == 1 || house == 4 || house == 7 || house == 10)
-            return 60.0;
-        
-        // Panaphara houses (Succedent): 2, 5, 8, 11 - Half strength (30 Rupas)
-        else if (house == 2 || house == 5 || house == 8 || house == 11)
-            return 30.0;
-        
-        // Apoklima houses (Cadent): 3, 6, 9, 12 - Quarter strength (15 Rupas)
-        else
-            return 15.0;
+        int h = planet.House;
+        if (h == 1 || h == 4 || h == 7 || h == 10) return 60.0;
+        if (h == 2 || h == 5 || h == 8 || h == 11) return 30.0;
+        return 15.0;
     }
-    
+
     /// <summary>
-    /// Calculate Drekkana Bala (Decanate Strength)
-    /// Based on the decanate (10° division) of the sign
-    /// Maximum: 15 Rupas
+    /// Drekkana Bala - 15 Virupas.
+    /// Male planets (Su/Ma/Ju) strong in 1st decanate.
+    /// Neutral (Me) strong in 2nd decanate.
+    /// Female planets (Mo/Ve/Sa) strong in 3rd decanate.
+    /// Gets 15V if in matching decanate, 0 otherwise.
     /// </summary>
     private double CalculateDrekkanaBala(PlanetData planet)
     {
-        // Get position within the sign (0-30)
-        double positionInSign = planet.Longitude % 30.0;
-        
-        // Determine which decanate (0-10, 10-20, 20-30)
-        int decanate = (int)(positionInSign / 10.0) + 1; // 1, 2, or 3
-        
-        // Masculine planets strong in 1st decanate
-        // Feminine planets strong in 3rd decanate
-        // Mercury (neutral) gets equal strength
-        
-        bool isMasculine = planet.Name is "Sun" or "Mars" or "Jupiter";
-        bool isFeminine = planet.Name is "Moon" or "Venus" or "Saturn";
+        double posInSign = NormalizeDeg(planet.Longitude) % 30.0;
+        int decanate = (int)(posInSign / 10.0) + 1; // 1, 2, or 3
+
+        bool isMale = planet.Name is "Sun" or "Mars" or "Jupiter";
+        bool isFemale = planet.Name is "Moon" or "Venus" or "Saturn";
         bool isNeutral = planet.Name == "Mercury";
-        
-        if (isNeutral)
-            return 15.0;
-        else if (isMasculine && decanate == 1)
-            return 15.0;
-        else if (isFeminine && decanate == 3)
-            return 15.0;
-        else if (decanate == 2) // Middle decanate
-            return 7.5;
-        else
-            return 5.0; // Weak position
+
+        if (isMale && decanate == 1) return 15.0;
+        if (isNeutral && decanate == 2) return 15.0;
+        if (isFemale && decanate == 3) return 15.0;
+        return 0.0;
     }
-    
+
+    // ----------------------------------------------------------------
+    // 2. DIG BALA (Directional Strength) - max 60 Virupas
+    // ----------------------------------------------------------------
+
     /// <summary>
-    /// Get own signs for a planet
+    /// Dig Bala per BPHS - linear interpolation.
+    /// Strongest at ideal house (60V), weakest at opposite house (0V).
+    /// Ideal houses: Ju/Me -> 1, Su/Ma -> 10, Sa -> 7, Mo/Ve -> 4.
+    /// Formula: DigBala = 60 - (distance x 10) where distance is in houses (0..6).
     /// </summary>
-    private int[] GetOwnSigns(string planetName)
+    private double CalculateDigBala(PlanetData planet)
+    {
+        int house = planet.House;
+        int idealHouse = planet.Name switch
+        {
+            "Jupiter" or "Mercury" => 1,
+            "Sun" or "Mars" => 10,
+            "Saturn" => 7,
+            "Moon" or "Venus" => 4,
+            _ => 1
+        };
+
+        // Forward distance from ideal house to actual house (0..11)
+        int fwd = ((house - idealHouse) % 12 + 12) % 12;
+        // Convert to 0..6 range (take shorter arc)
+        if (fwd > 6) fwd = 12 - fwd;
+
+        // Linear: 60V at ideal (fwd=0), 0V at opposite (fwd=6)
+        double digBala = 60.0 - (fwd * 10.0);
+        return digBala;
+    }
+
+    // ----------------------------------------------------------------
+    // 3. KALA BALA (Temporal Strength) - all in Virupas
+    // ----------------------------------------------------------------
+
+    private double CalculateKalaBala(PlanetData planet, HoroscopeData horoscope)
+    {
+        var dt = horoscope.BirthDetails?.DateTime ?? DateTime.Now;
+        double moonLong = horoscope.Panchang.MoonLongitude;
+        double sunLong = horoscope.Panchang.SunLongitude;
+
+        double total = 0.0;
+        total += CalculateNathonnathaBala(planet.Name, dt);                 // max 60V
+
+        // Paksha Bala: per BPHS, Moon's Paksha Bala goes to Chesta Bala instead
+        if (planet.Name != "Moon")
+            total += CalculatePakshaBala(planet.Name, moonLong, sunLong);   // max 60V
+
+        total += CalculateTribhagaBala(planet.Name, dt);                    // max 60V
+        total += CalculateAbdaBala(planet.Name, dt);                        // max 15V
+        total += CalculateMasaBala(planet.Name, sunLong);                   // max 30V
+        total += CalculateVaraBala(planet.Name, dt);                        // max 45V
+        total += CalculateHoraBala(planet.Name, dt);                        // max 60V
+
+        // Ayana Bala: per BPHS, Sun's Ayana Bala goes to Chesta Bala instead
+        if (planet.Name != "Sun")
+            total += CalculateAyanaBala(planet.Name, planet.Longitude);     // max 60V
+
+        total += CalculateYuddhaBala(planet, horoscope);                    // variable
+        return total;
+    }
+
+    /// <summary>
+    /// Nathonnatha Bala - max 60 Virupas.
+    /// Diurnal planets (Su/Ju/Ve) strong at noon, nocturnal (Mo/Ma/Sa) at midnight.
+    /// Mercury always 60V.
+    /// </summary>
+    private double CalculateNathonnathaBala(string planetName, DateTime dt)
+    {
+        if (planetName == "Mercury") return 60.0; // Always strong
+
+        double hour = dt.Hour + dt.Minute / 60.0 + dt.Second / 3600.0;
+
+        // Diurnal planets: Sun, Jupiter, Venus - strong at noon (hour=12)
+        // Nocturnal planets: Moon, Mars, Saturn - strong at midnight (hour=0/24)
+        bool isDiurnal = planetName is "Sun" or "Jupiter" or "Venus";
+
+        double distFromRef;
+        if (isDiurnal)
+        {
+            // Distance from noon
+            distFromRef = Math.Abs(hour - 12.0);
+        }
+        else
+        {
+            // Distance from midnight
+            distFromRef = hour <= 12.0 ? hour : 24.0 - hour;
+        }
+
+        // At reference point -> 60V, at 12 hours away -> 0V
+        double bala = ((12.0 - distFromRef) / 12.0) * 60.0;
+        return Math.Max(0, bala);
+    }
+
+    /// <summary>
+    /// Paksha Bala - max 60 Virupas.
+    /// Benefics (Ju/Ve/Mo/Me) strong in Shukla Paksha (waxing).
+    /// Malefics (Su/Ma/Sa) strong in Krishna Paksha (waning).
+    /// </summary>
+    private double CalculatePakshaBala(string planetName, double moonLong, double sunLong)
+    {
+        double elongation = NormalizeDeg(moonLong - sunLong);
+        bool isBenefic = planetName is "Moon" or "Mercury" or "Jupiter" or "Venus";
+
+        double bala;
+        if (isBenefic)
+        {
+            // Strongest at Full Moon (180 deg), weakest at New Moon (0 deg)
+            bala = (elongation <= 180.0)
+                ? (elongation / 180.0) * 60.0
+                : ((360.0 - elongation) / 180.0) * 60.0;
+        }
+        else
+        {
+            // Strongest at New Moon, weakest at Full Moon
+            bala = (elongation <= 180.0)
+                ? ((180.0 - elongation) / 180.0) * 60.0
+                : ((elongation - 180.0) / 180.0) * 60.0;
+        }
+
+        return Math.Max(0, Math.Min(60.0, bala));
+    }
+
+    /// <summary>
+    /// Tribhaga Bala - 60 Virupas if planet rules current third of day/night.
+    /// Day thirds: Mercury, Sun, Saturn. Night thirds: Moon, Venus, Mars.
+    /// Jupiter always gets 60V.
+    /// </summary>
+    private double CalculateTribhagaBala(string planetName, DateTime dt)
+    {
+        if (planetName == "Jupiter") return 60.0; // Always strong
+
+        double hour = dt.Hour + dt.Minute / 60.0;
+
+        // Approximate: day 6AM-6PM, night 6PM-6AM
+        // Day: 1st third (6-10) = Mercury, 2nd (10-14) = Sun, 3rd (14-18) = Saturn
+        // Night: 1st third (18-22) = Moon, 2nd (22-2) = Venus, 3rd (2-6) = Mars
+        string ruler;
+        if (hour >= 6 && hour < 10) ruler = "Mercury";
+        else if (hour >= 10 && hour < 14) ruler = "Sun";
+        else if (hour >= 14 && hour < 18) ruler = "Saturn";
+        else if (hour >= 18 && hour < 22) ruler = "Moon";
+        else if (hour >= 22 || hour < 2) ruler = "Venus";
+        else ruler = "Mars"; // 2-6
+
+        return ruler == planetName ? 60.0 : 0.0;
+    }
+
+    /// <summary>
+    /// Abda Bala (Year Lord) - 15 Virupas to the lord of the year.
+    /// </summary>
+    private double CalculateAbdaBala(string planetName, DateTime dt)
+    {
+        var yearLords = new[] { "Sun", "Venus", "Mercury", "Moon", "Saturn", "Jupiter", "Mars" };
+        int idx = dt.Year % 7;
+        return yearLords[idx] == planetName ? 15.0 : 0.0;
+    }
+
+    /// <summary>
+    /// Masa Bala (Month Lord) - 30 Virupas to the lord of the lunar month.
+    /// Approximated by sign lord of Sun's position.
+    /// </summary>
+    private double CalculateMasaBala(string planetName, double sunLongitude)
+    {
+        int sunSign = (int)(NormalizeDeg(sunLongitude) / 30.0) + 1;
+        if (sunSign > 12) sunSign = 12;
+        return GetSignLord(sunSign) == planetName ? 30.0 : 0.0;
+    }
+
+    /// <summary>
+    /// Vara Bala (Weekday Lord) - 45 Virupas to the lord of the weekday.
+    /// </summary>
+    private double CalculateVaraBala(string planetName, DateTime dt)
+    {
+        return GetPlanetForWeekday(dt.DayOfWeek) == planetName ? 45.0 : 0.0;
+    }
+
+    /// <summary>
+    /// Hora Bala (Hora Lord) - 60 Virupas to the lord of the planetary hour.
+    /// Uses the Chaldean order descending:
+    /// Saturn, Jupiter, Mars, Sun, Venus, Mercury, Moon (repeat).
+    /// First hora of the day belongs to the weekday lord.
+    /// </summary>
+    private double CalculateHoraBala(string planetName, DateTime dt)
+    {
+        // Chaldean descending order
+        var chaldeanOrder = new[] { "Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon" };
+
+        // Approximate sunrise at 6:00 AM
+        double hoursSinceSunrise = dt.Hour - 6.0 + dt.Minute / 60.0;
+        if (hoursSinceSunrise < 0) hoursSinceSunrise += 24.0;
+
+        string dayLord = GetPlanetForWeekday(dt.DayOfWeek);
+        int dayLordIdx = Array.IndexOf(chaldeanOrder, dayLord);
+
+        int horaNumber = (int)hoursSinceSunrise; // 0-based hora count
+        int horaLordIdx = ((dayLordIdx + horaNumber) % 7 + 7) % 7;
+        return chaldeanOrder[horaLordIdx] == planetName ? 60.0 : 0.0;
+    }
+
+    /// <summary>
+    /// Ayana Bala - max 60 Virupas per BPHS.
+    /// Based on planet's own declination (approximated from its longitude).
+    /// Per B.V. Raman's standard formula (BPHS Ch.27 v.22):
+    ///   AyanaBala = (declination + 23.45) / 46.9 * 60
+    /// All planets gain more strength with northern declination.
+    /// This is the most widely used interpretation in standard Shadbala software.
+    /// </summary>
+    private double CalculateAyanaBala(string planetName, double planetLongitude)
+    {
+        // Approximate the planet's declination from its sidereal longitude
+        // declination ~ 23.45 * sin(longitude) for ecliptic bodies near 0 latitude
+        double declination = 23.45 * Math.Sin(NormalizeDeg(planetLongitude) * Math.PI / 180.0);
+
+        // B.V. Raman formula: (declination + 24) / 48 * 60
+        // Using 23.45 for obliquity of ecliptic:
+        // At max north declination (+23.45): 60V
+        // At equator (0 declination): 30V
+        // At max south declination (-23.45): 0V
+        double bala = ((declination + 23.45) / 46.9) * 60.0;
+
+        return Math.Max(0, Math.Min(60.0, bala));
+    }
+
+    /// <summary>
+    /// Yuddha Bala - planetary war when two Tara grahas are within 1 degree.
+    /// Winner (northernmost declination) gains, loser loses.
+    /// </summary>
+    private double CalculateYuddhaBala(PlanetData planet, HoroscopeData horoscope)
+    {
+        if (planet.Name is "Sun" or "Moon") return 0.0;
+
+        double bala = 0.0;
+        var eligible = horoscope.Planets
+            .Where(p => p.Name != "Sun" && p.Name != "Moon" &&
+                        p.Name != "Rahu" && p.Name != "Ketu" &&
+                        p.Name != planet.Name);
+
+        foreach (var other in eligible)
+        {
+            double dist = Math.Abs(planet.Longitude - other.Longitude);
+            if (dist > 180.0) dist = 360.0 - dist;
+
+            if (dist <= 1.0)
+            {
+                // Compare by latitude (declination proxy) - northernmost wins
+                if (planet.Latitude > other.Latitude)
+                    bala += 30.0;   // Winner bonus
+                else if (planet.Latitude < other.Latitude)
+                    bala -= 30.0;   // Loser penalty
+            }
+        }
+        return bala;
+    }
+
+    // ----------------------------------------------------------------
+    // 4. CHESTA BALA (Motional Strength) - max 60 Virupas
+    // ----------------------------------------------------------------
+
+    /// <summary>
+    /// Chesta Bala per BPHS.
+    /// Sun: Chesta Bala = Ayana Bala (declination-based, max 60V).
+    /// Moon: Chesta Bala = Paksha Bala (elongation-based, max 60V).
+    /// Others: Based on speed relative to mean. Retrograde = 60V.
+    /// </summary>
+    private double CalculateChestaBala(PlanetData planet)
+    {
+        // Sun's Chesta Bala = its Ayana Bala per BPHS
+        if (planet.Name == "Sun")
+            return CalculateAyanaBala(planet.Name, planet.Longitude);
+
+        // Moon's Chesta Bala = its Paksha Bala per BPHS
+        // We need Sun longitude for this; store it temporarily
+        if (planet.Name == "Moon")
+            return _currentPakshaBalaForMoon;
+
+        if (planet.IsRetrograde)
+            return 60.0;
+
+        double normalSpeed = GetNormalSpeed(planet.Name);
+        double currentSpeed = Math.Abs(planet.Speed);
+
+        if (normalSpeed <= 0) return 30.0;
+
+        // Speed ratio determines strength: at mean speed -> 30V, at 2x -> 60V, at 0 -> 0V
+        double ratio = currentSpeed / normalSpeed;
+        double bala = ratio * 30.0;
+        return Math.Max(0, Math.Min(60.0, bala));
+    }
+
+    // Temporary storage for Moon's Paksha Bala to use as Chesta Bala
+    private double _currentPakshaBalaForMoon;
+
+    private double GetNormalSpeed(string planetName)
     {
         return planetName switch
         {
-            "Sun" => new[] { 5 },          // Leo
-            "Moon" => new[] { 4 },         // Cancer
-            "Mars" => new[] { 1, 8 },      // Aries, Scorpio
-            "Mercury" => new[] { 3, 6 },   // Gemini, Virgo
-            "Jupiter" => new[] { 9, 12 },  // Sagittarius, Pisces
-            "Venus" => new[] { 2, 7 },     // Taurus, Libra
-            "Saturn" => new[] { 10, 11 },  // Capricorn, Aquarius
-            _ => Array.Empty<int>()
+            "Mercury" => 1.383,
+            "Venus" => 1.202,
+            "Mars" => 0.524,
+            "Jupiter" => 0.083,
+            "Saturn" => 0.033,
+            _ => 0.5
         };
     }
-    
+
+    // ----------------------------------------------------------------
+    // 5. DRIK BALA (Aspectual Strength) - in Virupas, can be negative
+    // ----------------------------------------------------------------
+
     /// <summary>
-    /// Get lord of a sign
+    /// Drik Bala per BPHS.
+    /// Each aspecting planet contributes based on its aspect strength,
+    /// positive for benefics, negative for malefics.
+    /// Uses Parasara's Graha Drishti (planetary aspect) values.
     /// </summary>
-    private string GetSignLord(int sign)
+    private double CalculateDrikBala(PlanetData planet, HoroscopeData horoscope)
     {
-        return sign switch
+        double bala = 0.0;
+
+        foreach (var other in horoscope.Planets)
         {
-            1 => "Mars",      // Aries
-            2 => "Venus",     // Taurus
-            3 => "Mercury",   // Gemini
-            4 => "Moon",      // Cancer
-            5 => "Sun",       // Leo
-            6 => "Mercury",   // Virgo
-            7 => "Venus",     // Libra
-            8 => "Mars",      // Scorpio
-            9 => "Jupiter",   // Sagittarius
-            10 => "Saturn",   // Capricorn
-            11 => "Saturn",   // Aquarius
-            12 => "Jupiter",  // Pisces
-            _ => "Sun"
-        };
+            if (other.Name == planet.Name) continue;
+            if (other.Name is "Rahu" or "Ketu") continue;
+
+            // Directional house difference (from aspecting to aspected)
+            int diff = ((planet.House - other.House) % 12 + 12) % 12;
+            if (diff == 0) diff = 12; // Same house -> treat as 12th from
+
+            double aspectValue = GetParasaraAspectValue(other.Name, diff);
+            if (aspectValue <= 0) continue;
+
+            // Benefics add, malefics subtract
+            bool isBenefic = other.Name is "Jupiter" or "Venus" or "Moon" or "Mercury";
+            double contribution = aspectValue * 15.0; // Full aspect = 15V contribution
+
+            bala += isBenefic ? contribution : -contribution;
+        }
+
+        return bala; // Can be negative - this is correct per BPHS
     }
-    
+
     /// <summary>
-    /// Get relationship between two planets (simplified)
+    /// Parasara Graha Drishti (aspect) value.
+    /// Returns aspect strength as fraction (0 to 1).
+    /// All planets: 3rd/10th = 1/4, 4th/8th = 3/4, 5th/9th = 1/2, 7th = full.
+    /// Special aspects: Mars 4th/8th=full, Jupiter 5th/9th=full, Saturn 3rd/10th=full.
     /// </summary>
-    private string GetPlanetRelationship(string planet1, string planet2)
+    private double GetParasaraAspectValue(string planetName, int houseDiff)
     {
-        // Simplified friendship table
+        // Base Parasara aspect values (for all planets)
+        double baseAspect = houseDiff switch
+        {
+            3 or 10 => 0.25,  // Quarter aspect
+            4 or 8 => 0.75,   // Three-quarter aspect
+            5 or 9 => 0.50,   // Half aspect
+            7 => 1.0,         // Full aspect (all planets)
+            _ => 0.0
+        };
+
+        // Special (full) aspects override
+        if (planetName == "Mars" && (houseDiff == 4 || houseDiff == 8))
+            return 1.0;
+        if (planetName == "Jupiter" && (houseDiff == 5 || houseDiff == 9))
+            return 1.0;
+        if (planetName == "Saturn" && (houseDiff == 3 || houseDiff == 10))
+            return 1.0;
+
+        return baseAspect;
+    }
+
+    // ----------------------------------------------------------------
+    // DIVISIONAL CHART CALCULATIONS
+    // ----------------------------------------------------------------
+
+    private int CalculateHoraSign(double longitude)
+    {
+        longitude = NormalizeDeg(longitude);
+        int sign = (int)(longitude / 30.0) + 1;
+        double pos = longitude % 30.0;
+        bool isOdd = sign % 2 == 1;
+        bool isFirst = pos < 15.0;
+
+        if (isOdd)
+            return isFirst ? 5 : 4; // Leo : Cancer
+        else
+            return isFirst ? 4 : 5; // Cancer : Leo
+    }
+
+    private int CalculateDrekkanaSign(double longitude)
+    {
+        longitude = NormalizeDeg(longitude);
+        int sign = (int)(longitude / 30.0) + 1;
+        int drek = (int)((longitude % 30.0) / 10.0); // 0, 1, 2
+        return ((sign - 1) + drek * 4) % 12 + 1;
+    }
+
+    private int CalculateSaptamsaSign(double longitude)
+    {
+        longitude = NormalizeDeg(longitude);
+        int sign = (int)(longitude / 30.0) + 1;
+        int part = (int)((longitude % 30.0) / (30.0 / 7.0)); // 0..6
+        bool isOdd = sign % 2 == 1;
+        int start;
+        if (isOdd)
+        {
+            start = sign;
+        }
+        else
+        {
+            start = (sign + 6) % 12;
+            if (start == 0) start = 12;
+        }
+        return ((start - 1) + part) % 12 + 1;
+    }
+
+    private int CalculateNavamsaSign(double longitude)
+    {
+        longitude = NormalizeDeg(longitude);
+        int sign = (int)(longitude / 30.0) + 1;
+        int nav = (int)((longitude % 30.0) / (30.0 / 9.0)); // 0..8
+
+        int startSign = sign switch
+        {
+            1 or 5 or 9 => 1,     // Fire -> Aries
+            2 or 6 or 10 => 10,   // Earth -> Capricorn
+            3 or 7 or 11 => 7,    // Air -> Libra
+            _ => 4                  // Water -> Cancer
+        };
+
+        return ((startSign - 1) + nav) % 12 + 1;
+    }
+
+    private int CalculateDwadasamsaSign(double longitude)
+    {
+        longitude = NormalizeDeg(longitude);
+        int sign = (int)(longitude / 30.0) + 1;
+        int part = (int)((longitude % 30.0) / 2.5); // 0..11
+        return ((sign - 1) + part) % 12 + 1;
+    }
+
+    private int CalculateTrimshamsaSign(double longitude)
+    {
+        longitude = NormalizeDeg(longitude);
+        int sign = (int)(longitude / 30.0) + 1;
+        double pos = longitude % 30.0;
+        bool isOdd = sign % 2 == 1;
+
+        if (isOdd)
+        {
+            if (pos < 5.0) return 1;       // Mars -> Aries
+            if (pos < 10.0) return 10;     // Saturn -> Capricorn
+            if (pos < 18.0) return 9;      // Jupiter -> Sagittarius
+            if (pos < 25.0) return 6;      // Mercury -> Virgo
+            return 7;                       // Venus -> Libra
+        }
+        else
+        {
+            if (pos < 5.0) return 7;       // Venus -> Libra
+            if (pos < 12.0) return 6;      // Mercury -> Virgo
+            if (pos < 20.0) return 9;      // Jupiter -> Sagittarius
+            if (pos < 25.0) return 10;     // Saturn -> Capricorn
+            return 1;                       // Mars -> Aries
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // REFERENCE DATA
+    // ----------------------------------------------------------------
+
+    private int[] GetOwnSigns(string planetName) => planetName switch
+    {
+        "Sun" => new[] { 5 },
+        "Moon" => new[] { 4 },
+        "Mars" => new[] { 1, 8 },
+        "Mercury" => new[] { 3, 6 },
+        "Jupiter" => new[] { 9, 12 },
+        "Venus" => new[] { 2, 7 },
+        "Saturn" => new[] { 10, 11 },
+        _ => Array.Empty<int>()
+    };
+
+    /// <summary>
+    /// Moolatrikona sign for each planet (single sign).
+    /// </summary>
+    private int GetMoolatrikonaSign(string planetName) => planetName switch
+    {
+        "Sun" => 5,       // Leo
+        "Moon" => 2,      // Taurus (first 3 deg is exaltation, rest is Moolatrikona per some)
+        "Mars" => 1,      // Aries
+        "Mercury" => 6,   // Virgo
+        "Jupiter" => 9,   // Sagittarius
+        "Venus" => 7,     // Libra
+        "Saturn" => 11,   // Aquarius
+        _ => 0
+    };
+
+    private string GetSignLord(int sign) => sign switch
+    {
+        1 => "Mars", 2 => "Venus", 3 => "Mercury", 4 => "Moon",
+        5 => "Sun", 6 => "Mercury", 7 => "Venus", 8 => "Mars",
+        9 => "Jupiter", 10 => "Saturn", 11 => "Saturn", 12 => "Jupiter",
+        _ => "Sun"
+    };
+
+    private (int sign, double degree) GetExaltationPoint(string p) => p switch
+    {
+        "Sun" => (1, 10.0),
+        "Moon" => (2, 3.0),
+        "Mars" => (10, 28.0),
+        "Mercury" => (6, 15.0),
+        "Jupiter" => (4, 5.0),
+        "Venus" => (12, 27.0),
+        "Saturn" => (7, 20.0),
+        _ => (1, 0.0)
+    };
+
+    private (int sign, double degree) GetDebilitationPoint(string p) => p switch
+    {
+        "Sun" => (7, 10.0),
+        "Moon" => (8, 3.0),
+        "Mars" => (4, 28.0),
+        "Mercury" => (12, 15.0),
+        "Jupiter" => (10, 5.0),
+        "Venus" => (6, 27.0),
+        "Saturn" => (1, 20.0),
+        _ => (7, 0.0)
+    };
+
+    /// <summary>
+    /// Naisargika (permanent) planetary relationships per BPHS.
+    /// Returns: Own, Friend, Neutral, Enemy.
+    /// </summary>
+    private string GetPlanetRelationship(string planet, string signLord)
+    {
+        if (planet == signLord) return "Own";
+
         var friends = new Dictionary<string, string[]>
         {
             { "Sun", new[] { "Moon", "Mars", "Jupiter" } },
@@ -536,677 +797,42 @@ public class PlanetStrengthCalculator
             { "Venus", new[] { "Mercury", "Saturn" } },
             { "Saturn", new[] { "Mercury", "Venus" } }
         };
-        
+
         var enemies = new Dictionary<string, string[]>
         {
             { "Sun", new[] { "Venus", "Saturn" } },
-            { "Moon", new[] { "None" } },
+            { "Moon", Array.Empty<string>() },
             { "Mars", new[] { "Mercury" } },
             { "Mercury", new[] { "Moon" } },
             { "Jupiter", new[] { "Mercury", "Venus" } },
             { "Venus", new[] { "Sun", "Moon" } },
             { "Saturn", new[] { "Sun", "Moon", "Mars" } }
         };
-        
-        if (planet1 == planet2)
-            return "Own";
-        else if (friends.ContainsKey(planet1) && friends[planet1].Contains(planet2))
-            return "Friend";
-        else if (enemies.ContainsKey(planet1) && enemies[planet1].Contains(planet2))
-            return "Enemy";
-        else
-            return "Neutral";
-    }
-    
-    /// <summary>
-    /// Get exact exaltation point (sign and degree) for a planet
-    /// </summary>
-    private (int sign, double degree) GetExaltationPoint(string planetName)
-    {
-        return planetName switch
-        {
-            "Sun" => (1, 10.0),      // 10° Aries
-            "Moon" => (2, 3.0),      // 3° Taurus
-            "Mars" => (10, 28.0),    // 28° Capricorn
-            "Mercury" => (6, 15.0),  // 15° Virgo
-            "Jupiter" => (4, 5.0),   // 5° Cancer
-            "Venus" => (12, 27.0),   // 27° Pisces
-            "Saturn" => (7, 20.0),   // 20° Libra
-            _ => (1, 0.0)
-        };
-    }
-    
-    /// <summary>
-    /// Get exact debilitation point (sign and degree) for a planet
-    /// </summary>
-    private (int sign, double degree) GetDebilitationPoint(string planetName)
-    {
-        return planetName switch
-        {
-            "Sun" => (7, 10.0),      // 10° Libra (opposite of exaltation)
-            "Moon" => (8, 3.0),      // 3° Scorpio
-            "Mars" => (4, 28.0),     // 28° Cancer
-            "Mercury" => (12, 15.0), // 15° Pisces
-            "Jupiter" => (10, 5.0),  // 5° Capricorn
-            "Venus" => (6, 27.0),    // 27° Virgo
-            "Saturn" => (1, 20.0),   // 20° Aries
-            _ => (7, 0.0)
-        };
-    }
 
-    /// <summary>
-    /// Calculate directional strength (Dig Bala) - Parasara method
-    /// Based on house placement and proportional distance from ideal direction
-    /// Maximum: 60 Rupas
-    /// Formula: 60 × (1 - angular_distance / 180°)
-    /// </summary>
-    private double CalculateDirectionalStrength(PlanetData planet)
-    {
-        // Each planet is strong in specific houses (directions):
-        // Jupiter & Mercury: 1st house (East - Ascendant)
-        // Sun & Mars: 10th house (South - Midheaven)
-        // Saturn: 7th house (West - Descendant)
-        // Moon & Venus: 4th house (North - IC/Nadir)
-        
-        int house = planet.House;
-        
-        // Get ideal house for this planet
-        int idealHouse = planet.Name switch
-        {
-            "Jupiter" or "Mercury" => 1,
-            "Sun" or "Mars" => 10,
-            "Saturn" => 7,
-            "Moon" or "Venus" => 4,
-            _ => 1
-        };
-        
-        // Calculate angular distance from ideal house
-        int distance = Math.Abs(house - idealHouse);
-        
-        // Take the shorter arc (through 12 houses)
-        if (distance > 6)
-            distance = 12 - distance;
-        
-        // Parasara formula: Proportional strength based on angular distance
-        // Maximum 60 Rupas at ideal house, decreasing linearly to 0 at opposite house
-        double digBala = 60.0 * (1.0 - (distance / 6.0));
-        
-        return Math.Max(0, digBala);
-    }
+        bool isFriend = friends.ContainsKey(planet) && friends[planet].Contains(signLord);
+        bool isEnemy = enemies.ContainsKey(planet) && enemies[planet].Contains(signLord);
 
-    /// <summary>
-    /// Calculate motional strength (Chesta Bala) - Parasara method
-    /// Based on planet's speed, direction, and retrograde status
-    /// Maximum: 60 Rupas
-    /// Formula varies by planet type and motion state
-    /// </summary>
-    private double CalculateMotionalStrength(PlanetData planet)
-    {
-        // Sun and Moon don't have Chesta Bala (always direct, constant relative speed)
-        if (planet.Name == "Sun" || planet.Name == "Moon")
-        {
-            return 30.0; // Fixed value per Parasara
-        }
-
-        double chestaBala = 0.0;
-
-        // Retrograde motion gives maximum strength per Parasara
-        if (planet.IsRetrograde)
-        {
-            chestaBala = 60.0; // Maximum strength when retrograde
-        }
-        else
-        {
-            // Direct motion: Strength based on speed relative to mean motion
-            // Faster than average = stronger (planet is eager/active)
-            // Slower than average = weaker (planet is lazy/passive)
-            
-            double normalSpeed = GetNormalSpeed(planet.Name);
-            double currentSpeed = Math.Abs(planet.Speed);
-            
-            if (normalSpeed > 0)
-            {
-                // Parasara formula: Proportional to speed ratio
-                // Max 60 when moving at 2x normal speed
-                double speedRatio = currentSpeed / normalSpeed;
-                chestaBala = Math.Min(60.0, speedRatio * 30.0);
-            }
-            else
-            {
-                chestaBala = 30.0; // Default middle value
-            }
-        }
-
-        return chestaBala;
-    }
-    
-    /// <summary>
-    /// Get normal average speed for a planet (degrees per day) - Parasara values
-    /// </summary>
-    private double GetNormalSpeed(string planetName)
-    {
-        return planetName switch
-        {
-            "Moon" => 13.176, // Fast moving
-            "Mercury" => 1.383, // Variable due to proximity to Sun
-            "Venus" => 1.602, // Similar to Mercury
-            "Sun" => 0.986, // Mean solar motion
-            "Mars" => 0.524, // Medium speed
-            "Jupiter" => 0.083, // Slow
-            "Saturn" => 0.033, // Very slow
-            _ => 0.5
-        };
-    }
-
-    /// <summary>
-    /// Calculate temporal strength (Kala Bala) using accurate Parasara methodology
-    /// Total maximum: ~112 Rupas (not 450 as previously calculated)
-    /// Components: Nathonnatha (30), Paksha (30), Tribhaga (20), Varsha/Masa/Vara/Hora (15+10+8+8=41), Ayana (20), Yuddha (variable)
-    /// </summary>
-    private double CalculateTemporalStrength(PlanetData planet, HoroscopeData horoscope)
-    {
-        double kalaBala = 0.0;
-        
-        var birthDateTime = horoscope.BirthDetails?.DateTime ?? DateTime.Now;
-        var moonLongitude = horoscope.Panchang.MoonLongitude;
-        var sunLongitude = horoscope.Panchang.SunLongitude;
-        
-        // 1. Nathonnatha Bala (Day/Night strength based on distance from Noon/Midnight) - Max 30 Rupas
-        kalaBala += CalculateNathonnathaBalaAccurate(planet.Name, birthDateTime, sunLongitude);
-        
-        // 2. Paksha Bala (Lunar phase/Tithi strength) - Max 30 Rupas
-        kalaBala += CalculatePakshaBalaAccurate(planet.Name, moonLongitude, sunLongitude);
-        
-        // 3. Tribhaga Bala (Day/Night third division) - Max 20 Rupas
-        kalaBala += CalculateTribhagaBalaAccurate(planet.Name, birthDateTime, sunLongitude);
-        
-        // 4. Varsha Bala (Year Lord) - Max 15 Rupas
-        kalaBala += CalculateVarshaBala(planet.Name, birthDateTime);
-        
-        // 5. Masa Bala (Month Lord) - Max 10 Rupas
-        kalaBala += CalculateMasaBalaAccurate(planet.Name, sunLongitude);
-        
-        // 6. Vara Bala (Weekday Lord) - Max 8 Rupas
-        kalaBala += CalculateVaraBalaAccurate(planet.Name, birthDateTime);
-        
-        // 7. Hora Bala (Hour Lord) - Max 8 Rupas
-        kalaBala += CalculateHoraBalaAccurate(planet.Name, birthDateTime, sunLongitude);
-        
-        // 8. Ayana Bala (Declination strength) - Max 20 Rupas
-        kalaBala += CalculateAyanaBalaAccurate(planet.Name, sunLongitude, planet.Latitude);
-        
-        // 9. Yuddha Bala (Planetary war - when planets within 1°) - Variable
-        kalaBala += CalculateYuddhaBala(planet, horoscope);
-        
-        return kalaBala;
-    }
-    
-    /// <summary>
-    /// Calculate Nathonnatha Bala (Day/Night strength) - Accurate Parasara method
-    /// Based on distance from Noon (for benefics) or Midnight (for malefics)
-    /// Maximum: 30 Rupas
-    /// </summary>
-    private double CalculateNathonnathaBalaAccurate(string planetName, DateTime dateTime, double sunLongitude)
-    {
-        // Determine if planet is benefic or malefic
-        bool isBenefic = planetName is "Moon" or "Mercury" or "Jupiter" or "Venus";
-        
-        // Calculate local hour (0-24)
-        double localHour = dateTime.Hour + dateTime.Minute / 60.0 + dateTime.Second / 3600.0;
-        
-        // Calculate distance from noon (12:00) or midnight (0:00/24:00)
-        double distanceFromReference;
-        
-        if (isBenefic)
-        {
-            // Benefics strong at noon
-            distanceFromReference = Math.Abs(localHour - 12.0);
-        }
-        else
-        {
-            // Malefics strong at midnight
-            distanceFromReference = Math.Min(localHour, 24.0 - localHour);
-        }
-        
-        // Maximum distance is 12 hours
-        // Strength = (12 - distance) / 12 * 30 Rupas
-        double strength = ((12.0 - distanceFromReference) / 12.0) * 30.0;
-        
-        return Math.Max(0, Math.Min(30.0, strength));
-    }
-    
-    /// <summary>
-    /// Calculate Paksha Bala (Lunar fortnight strength) - Accurate Parasara method
-    /// Based on Moon-Sun elongation and planet nature
-    /// Maximum: 30 Rupas
-    /// </summary>
-    private double CalculatePakshaBalaAccurate(string planetName, double moonLongitude, double sunLongitude)
-    {
-        // Calculate Moon-Sun elongation (Tithi angle)
-        double elongation = moonLongitude - sunLongitude;
-        while (elongation < 0) elongation += 360.0;
-        while (elongation >= 360.0) elongation -= 360.0;
-        
-        // Benefics: Moon, Mercury, Jupiter, Venus
-        bool isBenefic = planetName is "Moon" or "Mercury" or "Jupiter" or "Venus";
-        
-        // For benefics: Strength increases from New Moon (0°) to Full Moon (180°)
-        // For malefics: Strength increases from Full Moon (180°) to New Moon (360°/0°)
-        
-        double strength;
-        if (isBenefic)
-        {
-            // Benefics: Linear from 0 at New Moon to 30 at Full Moon
-            if (elongation <= 180.0)
-            {
-                strength = (elongation / 180.0) * 30.0;
-            }
-            else
-            {
-                strength = ((360.0 - elongation) / 180.0) * 30.0;
-            }
-        }
-        else
-        {
-            // Malefics: Linear from 30 at New Moon to 0 at Full Moon
-            if (elongation <= 180.0)
-            {
-                strength = ((180.0 - elongation) / 180.0) * 30.0;
-            }
-            else
-            {
-                strength = ((elongation - 180.0) / 180.0) * 30.0;
-            }
-        }
-        
-        return Math.Max(0, Math.Min(30.0, strength));
-    }
-    
-    /// <summary>
-    /// Calculate Tribhaga Bala (Day/Night third division) - Accurate Parasara method
-    /// Divide day and night into 3 parts each, assign specific planets to each part
-    /// Maximum: 20 Rupas
-    /// </summary>
-    private double CalculateTribhagaBalaAccurate(string planetName, DateTime dateTime, double sunLongitude)
-    {
-        // Simplified: Using 6 AM as sunrise, 6 PM as sunset
-        // In full implementation, would calculate actual sunrise/sunset times
-        double hour = dateTime.Hour + dateTime.Minute / 60.0;
-        
-        // Determine which Tribhaga period (1-6)
-        int tribhagaPeriod;
-        
-        if (hour >= 6 && hour < 10)
-            tribhagaPeriod = 1; // Morning first part - Mercury
-        else if (hour >= 10 && hour < 14)
-            tribhagaPeriod = 2; // Morning second part - Sun
-        else if (hour >= 14 && hour < 18)
-            tribhagaPeriod = 3; // Morning third part - Saturn
-        else if (hour >= 18 && hour < 22)
-            tribhagaPeriod = 4; // Night first part - Moon
-        else if (hour >= 22 || hour < 2)
-            tribhagaPeriod = 5; // Night second part - Venus
-        else // hour >= 2 && hour < 6
-            tribhagaPeriod = 6; // Night third part - Mars
-        
-        // Assign ruling planet for each period
-        var rulingPlanet = tribhagaPeriod switch
-        {
-            1 => "Mercury",
-            2 => "Sun",
-            3 => "Saturn",
-            4 => "Moon",
-            5 => "Venus",
-            6 => "Mars",
-            _ => "Jupiter" // Default
-        };
-        
-        // If planet matches the ruling planet of current Tribhaga, give 20 Rupas
-        return rulingPlanet == planetName ? 20.0 : 0.0;
-    }
-    
-    /// <summary>
-    /// Calculate Varsha Bala (Year Lord strength) - Accurate method
-    /// Maximum: 15 Rupas
-    /// </summary>
-    private double CalculateVarshaBala(string planetName, DateTime dateTime)
-    {
-        // Simplified: Use year mod 7 cycle
-        // In full implementation, would use Samvatsara cycle
-        int yearIndex = dateTime.Year % 7;
-        
-        var yearLords = new[] { "Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon" };
-        var yearLord = yearLords[yearIndex];
-        
-        return yearLord == planetName ? 15.0 : 0.0;
-    }
-    
-    /// <summary>
-    /// Calculate Masa Bala (Month Lord strength) - Accurate Parasara method
-    /// Based on which sign the Sun is transiting
-    /// Maximum: 10 Rupas
-    /// </summary>
-    private double CalculateMasaBalaAccurate(string planetName, double sunLongitude)
-    {
-        // Get current solar month (sign Sun is in)
-        int sunSign = (int)(sunLongitude / 30.0) + 1;
-        if (sunSign > 12) sunSign = 12;
-        
-        // Lord of the sign where Sun is transiting
-        var monthLord = GetSignLord(sunSign);
-        
-        return monthLord == planetName ? 10.0 : 0.0;
-    }
-    
-    /// <summary>
-    /// Calculate Vara Bala (Weekday Lord strength) - Accurate Parasara method
-    /// Maximum: 8 Rupas
-    /// </summary>
-    private double CalculateVaraBalaAccurate(string planetName, DateTime dateTime)
-    {
-        var dayOfWeek = dateTime.DayOfWeek;
-        var weekdayLord = GetPlanetForWeekday(dayOfWeek);
-        
-        return weekdayLord == planetName ? 8.0 : 0.0;
-    }
-    
-    /// <summary>
-    /// Calculate Hora Bala (Hour Lord strength) - Accurate Parasara method
-    /// Based on planetary hour system starting from sunrise
-    /// Maximum: 8 Rupas
-    /// </summary>
-    private double CalculateHoraBalaAccurate(string planetName, DateTime dateTime, double sunLongitude)
-    {
-        // Simplified: Assuming 6 AM sunrise
-        // In full implementation, calculate actual sunrise time based on location and date
-        
-        double hoursSinceSunrise = dateTime.Hour - 6.0 + dateTime.Minute / 60.0;
-        if (hoursSinceSunrise < 0) hoursSinceSunrise += 24.0;
-        
-        // Planetary hour sequence starting from day lord
-        var horaSequence = new[] { "Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon" };
-        
-        // Get day lord
-        var dayLord = GetPlanetForWeekday(dateTime.DayOfWeek);
-        int dayLordIndex = Array.IndexOf(horaSequence, dayLord);
-        
-        // Calculate current hora lord
-        int horasSinceSunrise = (int)hoursSinceSunrise;
-        int horaLordIndex = (dayLordIndex + horasSinceSunrise) % 7;
-        var horaLord = horaSequence[horaLordIndex];
-        
-        return horaLord == planetName ? 8.0 : 0.0;
-    }
-    
-    /// <summary>
-    /// Calculate Ayana Bala (Declination strength) - Accurate Parasara method
-    /// Based on Sun's declination (Kranti) and planet's nature
-    /// Maximum: 20 Rupas
-    /// </summary>
-    private double CalculateAyanaBalaAccurate(string planetName, double sunLongitude, double planetLatitude)
-    {
-        // Calculate Sun's declination (Kranti)
-        // Approximate formula: declination ? 23.45° × sin(sunLongitude - 80°)
-        double sunDeclination = 23.45 * Math.Sin((sunLongitude - 80.0) * Math.PI / 180.0);
-        
-        // Determine if Sun is in Uttarayana (North) or Dakshinayana (South)
-        // Uttarayana: Capricorn to Gemini (270° to 90°) - declination increasing
-        // Dakshinayana: Cancer to Sagittarius (90° to 270°) - declination decreasing
-        
-        bool isUttarayana = sunLongitude >= 270.0 || sunLongitude < 90.0;
-        
-        // Benefics strong during Uttarayana, Malefics during Dakshinayana
-        bool isBenefic = planetName is "Moon" or "Mercury" or "Jupiter" or "Venus";
-        
-        // Calculate strength based on declination magnitude
-        double declinationStrength = Math.Abs(sunDeclination) / 23.45; // 0 to 1
-        
-        double ayanaBala;
-        if (isUttarayana)
-        {
-            // Uttarayana period
-            ayanaBala = isBenefic ? declinationStrength * 20.0 : (1.0 - declinationStrength) * 20.0;
-        }
-        else
-        {
-            // Dakshinayana period
-            ayanaBala = isBenefic ? (1.0 - declinationStrength) * 20.0 : declinationStrength * 20.0;
-        }
-        
-        return Math.Max(0, Math.Min(20.0, ayanaBala));
-    }
-    
-    /// <summary>
-    /// Calculate Yuddha Bala (Planetary War strength)
-    /// When two planets are within 1° of each other, they are in war
-    /// The planet with higher longitude wins and gets additional strength
-    /// </summary>
-    private double CalculateYuddhaBala(PlanetData planet, HoroscopeData horoscope)
-    {
-        // Yuddha only applies to non-luminaries (not Sun/Moon)
-        if (planet.Name == "Sun" || planet.Name == "Moon")
-            return 0.0;
-        
-        double yuddhaBala = 0.0;
-        
-        // Check for planets within 1° (excluding Sun, Moon, Rahu, Ketu)
-        var eligiblePlanets = horoscope.Planets
-            .Where(p => p.Name != "Sun" && p.Name != "Moon" && p.Name != "Rahu" && p.Name != "Ketu" && p.Name != planet.Name)
-            .ToList();
-        
-        foreach (var otherPlanet in eligiblePlanets)
-        {
-            double angularDistance = Math.Abs(planet.Longitude - otherPlanet.Longitude);
-            
-            // Normalize to 0-180 range
-            if (angularDistance > 180.0)
-                angularDistance = 360.0 - angularDistance;
-            
-            // Check if within 1°
-            if (angularDistance <= 1.0)
-            {
-                // Planetary war! Determine winner based on longitude
-                // The planet ahead (higher longitude in same sign) wins
-                
-                // Get planet sizes (apparent diameter)
-                double planetSize = GetPlanetApparentSize(planet.Name);
-                double otherSize = GetPlanetApparentSize(otherPlanet.Name);
-                
-                // Winner gets strength bonus, loser loses strength
-                if (planetSize > otherSize)
-                {
-                    // This planet wins - gains strength
-                    yuddhaBala += 10.0;
-                }
-                else if (planetSize < otherSize)
-                {
-                    // This planet loses - loses strength
-                    yuddhaBala -= 10.0;
-                }
-                // If equal size, no change
-            }
-        }
-        
-        return yuddhaBala;
-    }
-    
-    /// <summary>
-    /// Get apparent size/diameter of planet (for Yuddha Bala)
-    /// Larger planets win in planetary war
-    /// </summary>
-    private double GetPlanetApparentSize(string planetName)
-    {
-        // Relative apparent sizes (arbitrary units)
-        return planetName switch
-        {
-            "Jupiter" => 5.0,  // Largest
-            "Venus" => 4.0,
-            "Mars" => 3.0,
-            "Mercury" => 2.0,
-            "Saturn" => 1.5,   // Smallest (far away)
-            _ => 1.0
-        };
-    }
-    
-    /// <summary>
-    /// Get planet lord for a weekday
-    /// </summary>
-    private string GetPlanetForWeekday(DayOfWeek dayOfWeek)
-    {
-        return dayOfWeek switch
-        {
-            DayOfWeek.Sunday => "Sun",
-            DayOfWeek.Monday => "Moon",
-            DayOfWeek.Tuesday => "Mars",
-            DayOfWeek.Wednesday => "Mercury",
-            DayOfWeek.Thursday => "Jupiter",
-            DayOfWeek.Friday => "Venus",
-            DayOfWeek.Saturday => "Saturn",
-            _ => "Sun"
-        };
-    }
-
-    /// <summary>
-    /// Calculate aspectual strength (Drik Bala) - Parasara method
-    /// Based on aspects received from other planets
-    /// Includes special aspects: Jupiter (5th, 7th, 9th), Saturn (3rd, 7th, 10th), Mars (4th, 7th, 8th)
-    /// Maximum: 60 Rupas, Can be negative if heavily afflicted
-    /// </summary>
-    private double CalculateAspectualStrength(PlanetData planet, HoroscopeData horoscope)
-    {
-        double drikBala = 0.0; // Start from 0, aspects add or subtract
-        
-        foreach (var otherPlanet in horoscope.Planets)
-        {
-            if (otherPlanet.Name == planet.Name) continue;
-            if (otherPlanet.Name == "Rahu" || otherPlanet.Name == "Ketu") continue; // Nodes don't aspect in Parasara
-            
-            // Check if otherPlanet aspects this planet
-            if (DoesAspect(otherPlanet, planet))
-            {
-                // Calculate aspect strength based on orb (exactness)
-                double aspectStrength = GetAspectStrength(otherPlanet, planet);
-                
-                // Determine if benefic or malefic
-                bool isBenefic = otherPlanet.Name is "Jupiter" or "Venus" or "Mercury" or "Moon";
-                
-                // Natural benefics add strength, malefics subtract
-                if (isBenefic)
-                {
-                    drikBala += aspectStrength * 10.0; // Benefic aspect adds strength
-                }
-                else
-                {
-                    drikBala -= aspectStrength * 5.0; // Malefic aspect reduces strength
-                }
-            }
-        }
-        
-        // Normalize to 0-60 range per Parasara
-        // Base strength is 30 (neutral), aspects modify it
-        double finalDrikBala = 30.0 + drikBala;
-        
-        return Math.Max(0, Math.Min(60.0, finalDrikBala));
-    }
-    
-    /// <summary>
-    /// Check if a planet aspects another - Parasara method with special aspects
-    /// </summary>
-    private bool DoesAspect(PlanetData aspectingPlanet, PlanetData aspectedPlanet)
-    {
-        int houseDifference = Math.Abs(aspectingPlanet.House - aspectedPlanet.House);
-        if (houseDifference > 6) houseDifference = 12 - houseDifference;
-        
-        // All planets aspect 7th house (opposition)
-        if (houseDifference == 6) // 7th house
-            return true;
-        
-        // Special aspects per Parasara
-        switch (aspectingPlanet.Name)
-        {
-            case "Jupiter":
-                // Jupiter aspects 5th, 7th, 9th houses
-                return houseDifference == 4 || houseDifference == 6 || houseDifference == 8;
-                
-            case "Saturn":
-                // Saturn aspects 3rd, 7th, 10th houses
-                return houseDifference == 2 || houseDifference == 6 || houseDifference == 9;
-                
-            case "Mars":
-                // Mars aspects 4th, 7th, 8th houses
-                return houseDifference == 3 || houseDifference == 6 || houseDifference == 7;
-                
-            default:
-                // Other planets only aspect 7th house
-                return houseDifference == 6;
-        }
-    }
-    
-    /// <summary>
-    /// Calculate aspect strength based on orb (exactness) - Parasara method
-    /// Closer to exact = stronger aspect
-    /// </summary>
-    private double GetAspectStrength(PlanetData aspectingPlanet, PlanetData aspectedPlanet)
-    {
-        // Calculate angular distance
-        double angularDistance = Math.Abs(aspectingPlanet.Longitude - aspectedPlanet.Longitude);
-        if (angularDistance > 180.0) angularDistance = 360.0 - angularDistance;
-        
-        // Find nearest aspect angle (180° for 7th, etc.)
-        double nearestAspectAngle = 180.0; // Default 7th house aspect
-        
-        // Adjust for special aspects
-        if (aspectingPlanet.Name == "Jupiter")
-        {
-            // Check 120° (5th), 180° (7th), 240° (9th)
-            double[] angles = { 120.0, 180.0, 240.0 };
-            nearestAspectAngle = angles.OrderBy(a => Math.Abs(angularDistance - a)).First();
-        }
-        else if (aspectingPlanet.Name == "Saturn")
-        {
-            // Check 60° (3rd), 180° (7th), 270° (10th)
-            double[] angles = { 60.0, 180.0, 270.0 };
-            nearestAspectAngle = angles.OrderBy(a => Math.Abs(angularDistance - a)).First();
-        }
-        else if (aspectingPlanet.Name == "Mars")
-        {
-            // Check 90° (4th), 180° (7th), 210° (8th)
-            double[] angles = { 90.0, 180.0, 210.0 };
-            nearestAspectAngle = angles.OrderBy(a => Math.Abs(angularDistance - a)).First();
-        }
-        
-        // Calculate orb (deviation from exact aspect)
-        double orb = Math.Abs(angularDistance - nearestAspectAngle);
-        if (orb > 180.0) orb = 360.0 - orb;
-        
-        // Aspect is stronger when orb is smaller
-        // Full strength within 5° orb, decreasing to 0 at 15° orb
-        double maxOrb = 15.0; // Parasara allows up to 15° orb
-        if (orb > maxOrb) return 0.0;
-        
-        double strength = (maxOrb - orb) / maxOrb; // 1.0 at exact, 0.0 at max orb
-        
-        return strength;
-    }
-
-    /// <summary>
-    /// Get sign relationship for a planet in a sign - Used for reference
-    /// </summary>
-    private string GetSignRelationship(string planetName, int rasi)
-    {
-        var exaltation = planetName switch
-        {
-            "Sun" => 1, "Moon" => 2, "Mars" => 10, "Mercury" => 6,
-            "Jupiter" => 4, "Venus" => 12, "Saturn" => 7, _ => 0
-        };
-        if (rasi == exaltation) return "Exaltation";
-
-        var debilitation = exaltation <= 6 ? exaltation + 6 : exaltation - 6;
-        if (rasi == debilitation) return "Debilitation";
-
-        var ownSigns = GetOwnSigns(planetName);
-        if (ownSigns.Contains(rasi)) return "OwnSign";
-
+        if (isFriend) return "Friend";
+        if (isEnemy) return "Enemy";
         return "Neutral";
+    }
+
+    private string GetPlanetForWeekday(DayOfWeek day) => day switch
+    {
+        DayOfWeek.Sunday => "Sun",
+        DayOfWeek.Monday => "Moon",
+        DayOfWeek.Tuesday => "Mars",
+        DayOfWeek.Wednesday => "Mercury",
+        DayOfWeek.Thursday => "Jupiter",
+        DayOfWeek.Friday => "Venus",
+        DayOfWeek.Saturday => "Saturn",
+        _ => "Sun"
+    };
+
+    private static double NormalizeDeg(double deg)
+    {
+        deg %= 360.0;
+        if (deg < 0) deg += 360.0;
+        return deg;
     }
 }
