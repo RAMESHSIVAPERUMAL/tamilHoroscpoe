@@ -107,9 +107,8 @@ public class HistoryModel : PageModel
 
         try
         {
-            // Get the generation record
-            var generations = await _horoscopeService.GetGenerationHistoryAsync(user.Id, 1, 1000);
-            var generation = generations.FirstOrDefault(g => g.GenerationId == generationId);
+            // Get the generation record by ID
+            var generation = await _horoscopeService.GetGenerationByIdAsync(user.Id, generationId);
 
             if (generation == null)
             {

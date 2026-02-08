@@ -150,6 +150,13 @@ public class HoroscopeService : IHoroscopeService
             .ToListAsync();
     }
 
+    public async Task<HoroscopeGeneration?> GetGenerationByIdAsync(int userId, int generationId)
+    {
+        return await _context.HoroscopeGenerations
+            .Where(h => h.UserId == userId && h.GenerationId == generationId)
+            .FirstOrDefaultAsync();
+    }
+
     public async Task<int> GetGenerationCountAsync(int userId)
     {
         return await _context.HoroscopeGenerations

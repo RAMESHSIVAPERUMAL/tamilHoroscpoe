@@ -30,6 +30,11 @@ public interface IHoroscopeService
     Task<List<HoroscopeGeneration>> GetGenerationHistoryAsync(int userId, int pageNumber = 1, int pageSize = 20);
 
     /// <summary>
+    /// Gets a specific horoscope generation by ID for a user
+    /// </summary>
+    Task<HoroscopeGeneration?> GetGenerationByIdAsync(int userId, int generationId);
+
+    /// <summary>
     /// Gets the total number of horoscope generations for a user
     /// </summary>
     Task<int> GetGenerationCountAsync(int userId);
