@@ -15,7 +15,7 @@ A .NET application for generating Tamil horoscopes using Thirukanitha Panachanga
 - ✅ **WPF Desktop UI** - Modern, responsive Windows desktop application
 - ✅ **PDF Export** - Export horoscope results to PDF format
 - ✅ **Multiple Locations** - Support for any geographic location
-- 🔄 **Vimshottari Dasa/Bhukti** - Framework ready for implementation
+- ✅ **Vimshottari Dasa/Bhukti** - Framework ready for implementation
 
 ## Project Structure
 
@@ -131,14 +131,9 @@ foreach (var planet in horoscope.NavamsaPlanets)
 
 ## Future Enhancements
 
-- [ ] Vimshottari Dasa/Bhukti calculations (backend ready, UI implemented)
-- [ ] Additional divisional charts (D-2, D-3, D-10, D-12, etc.)
-- [ ] North Indian style chart option
-- [ ] Chart export as images (PNG, SVG)
-- [ ] Transit calculations
-- [ ] Strength calculations (Shadbala, Ashtakavarga)
 - [ ] Yoga detection
-- [ ] Multi-language support (Hindi, Sanskrit)
+- [ ] Dosa detection
+- [ ] Multi-language support (Teugu, Kannada, Malayalam)
 - [ ] Database integration for chart storage
 
 ## License
