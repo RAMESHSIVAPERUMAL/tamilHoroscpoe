@@ -31,8 +31,9 @@ public class LowBalanceWarningViewComponent : ViewComponent
             return Content(string.Empty);
         }
 
-        var userIdClaim = ((ClaimsIdentity)User.Identity!).FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+        // Get userId from session
+        var userIdStr = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out var userId))
         {
             return Content(string.Empty);
         }

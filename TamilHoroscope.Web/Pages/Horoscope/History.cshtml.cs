@@ -130,11 +130,13 @@ public class HistoryModel : PageModel
 
             // Store the horoscope data in TempData to display on Generate page
             TempData["RegeneratedHoroscope"] = System.Text.Json.JsonSerializer.Serialize(horoscope);
+            TempData["RegeneratedPersonName"] = "Historical Record"; // Default name for historical records
             TempData["RegeneratedBirthDate"] = generation.BirthDateTime.ToString("yyyy-MM-dd");
             TempData["RegeneratedBirthTime"] = generation.BirthDateTime.ToString("HH:mm");
             TempData["RegeneratedPlaceName"] = generation.PlaceName;
             TempData["RegeneratedLatitude"] = generation.Latitude.ToString();
             TempData["RegeneratedLongitude"] = generation.Longitude.ToString();
+            TempData["RegeneratedTimeZoneOffset"] = "5.5"; // Default IST
             TempData["RegeneratedIsTrialUser"] = isTrialUser;
 
             // Redirect to Generate page to display the horoscope

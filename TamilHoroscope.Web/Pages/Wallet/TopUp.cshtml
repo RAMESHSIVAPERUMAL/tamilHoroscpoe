@@ -1,13 +1,13 @@
 @page
 @using Microsoft.AspNetCore.Authorization
-@using System.Security.Claims
 @attribute [Authorize]
 @inject TamilHoroscope.Web.Services.Interfaces.IWalletService WalletService
 @inject TamilHoroscope.Web.Services.Interfaces.IConfigService ConfigService
 @model TamilHoroscope.Web.Pages.Wallet.TopUpModel
 @{
     ViewData["Title"] = "Top Up Wallet";
-    var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    var userIdStr = HttpContext.Session.GetString("UserId");
+    var userId = int.Parse(userIdStr!);
     var balance = await WalletService.GetBalanceAsync(userId);
     var minPurchase = await ConfigService.GetMinimumWalletPurchaseAsync();
 }

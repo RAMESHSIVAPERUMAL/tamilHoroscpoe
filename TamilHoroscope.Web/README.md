@@ -1,359 +1,220 @@
 # Tamil Horoscope Web Application
 
-A complete ASP.NET Core 8.0 Razor Pages web application for generating and managing Vedic astrology horoscopes with subscription and wallet-based billing system.
+> **ASP.NET Core 8.0 Razor Pages** | Vedic Astrology Horoscope Generator with Subscription System
 
-## Features
+A complete web application for generating and managing Tamil/Vedic astrology horoscopes with wallet-based billing, trial periods, and visual South Indian style charts.
 
-### ✅ Implemented
+---
 
-#### Database Layer
-- **5 Core Tables**: Users, Wallets, Transactions, HoroscopeGenerations, SystemConfig
-- **Complete SQL Scripts**: Table creation, indexes, and seed data in `/Database/Scripts/`
-- **Optimized Indexes**: For login queries, transaction history, and daily horoscope checks
-- **Seed Configuration**: Default values for pricing, trial periods, and limits
+## ?? Quick Start
 
-#### Data Models & EF Core
-- **Entity Models**: Complete data models with validation and relationships
-- **DbContext Configuration**: ApplicationDbContext with Identity integration
-- **Entity Configurations**: Fluent API configurations for all entities
-- **ASP.NET Core Identity**: Custom User entity extending IdentityUser<int>
+```bash
+# 1. Create database
+sqlcmd -S localhost -Q "CREATE DATABASE TamilHoroscopeDB"
 
-#### Service Layer (Business Logic)
-- **IConfigService**: System configuration management with typed value retrieval
-- **IWalletService**: Wallet operations (add funds, deduct, check balance, transaction history)
-- **ISubscriptionService**: Trial period management and balance warning logic
-- **IHoroscopeService**: **CRITICAL** - Horoscope generation with daily deduction logic:
-  - ✅ Check if horoscope already generated today (single daily charge)
-  - ✅ Trial user handling (limited features, no charge)
-  - ✅ Paid user handling (full features, wallet deduction)
-  - ✅ Feature restrictions based on subscription status
-  - ✅ Rate limiting (max horoscopes per day)
+# 2. Run SQL scripts
+cd Database/Scripts
+sqlcmd -S localhost -d TamilHoroscopeDB -i 01_CreateTables.sql
+sqlcmd -S localhost -d TamilHoroscopeDB -i 02_CreateIndexes.sql
+sqlcmd -S localhost -d TamilHoroscopeDB -i 03_SeedData.sql
 
-#### User Authentication & Registration
-- **Register Page**: Email OR mobile number registration (India format +91)
-- **Login Page**: Login with email or mobile number
-- **Logout Handler**: Secure logout functionality
-- **Trial Period**: Automatic 30-day trial on registration
-- **Wallet Creation**: Automatic wallet creation for new users
-- **Password Validation**: Secure password requirements (8+ chars, uppercase, lowercase, digit)
+# 3. Update connection string in appsettings.json
 
-#### UI/UX Components
-- **Modern Layout**: Bootstrap 5 with responsive navigation
-- **Low Balance Warning**: ViewComponent that displays prominent warning when ≤10 days remaining
-- **Icon Integration**: Bootstrap Icons for visual appeal
-- **Landing Page**: Feature showcase with trial vs. paid comparison
-- **Navigation**: Context-aware menu (different for logged-in users)
+# 4. Build and run
+cd TamilHoroscope.Web
+dotnet restore
+dotnet build
+dotnet run
+```
 
-#### Configuration
-- **Program.cs**: Complete service registration and middleware configuration
-- **appsettings.json**: Connection string and application settings
-- **Identity Setup**: Password policies, lockout settings, and cookie configuration
+**Access**: https://localhost:5001
 
-### 🔄 To Be Completed
+---
 
-#### Missing Razor Pages (High Priority)
+## ? Features
 
-1. **Wallet Pages** (`/Pages/Wallet/`)
-   - `TopUp.cshtml/.cs` - Wallet recharge page with payment gateway placeholder
-   - `History.cshtml/.cs` - Transaction history with pagination
+### Core Functionality
+- ? **User Authentication** - Email or mobile number login
+- ? **30-Day Trial Period** - Free limited features
+- ? **Wallet System** - Top-up, automatic deductions, transaction history
+- ? **Horoscope Generation** - Complete Vedic astrology calculations
+- ? **Visual Charts** - South Indian style Rasi & Navamsa charts
+- ? **Tamil Language Support** - All astrological terms in Tamil
+- ? **Auto-Complete Cities** - 100+ pre-loaded cities worldwide
+- ? **History** - View previously generated horoscopes
 
-2. **Horoscope Pages** (`/Pages/Horoscope/`)
-   - `Generate.cshtml/.cs` - **MOST IMPORTANT** - Main horoscope generation form
-     - Birth date/time pickers
-     - Location input (latitude/longitude)
-     - Integration with IHoroscopeService
-     - Display horoscope results with Tamil language support
-     - Filter Dasa display for trial users (hide Bhukti sub-periods)
-   - `History.cshtml/.cs` - Previously generated horoscopes list
+### Trial vs Paid
 
-3. **Profile Page** (`/Pages/Account/`)
-   - `Profile.cshtml/.cs` - User profile management and trial status display
+| Feature | Trial (30 days) | Paid (?5/day) |
+|---------|----------------|---------------|
+| Rasi Chart | ? | ? |
+| Planetary Positions | ? | ? |
+| Vimshottari Dasa | Main only | With Bhukti |
+| Navamsa Chart | ? | ? |
+| Planetary Strength | ? | ? |
 
-4. **Admin Pages** (`/Pages/Admin/`) - Optional but recommended
-   - `Config.cshtml/.cs` - SystemConfig management interface
-   - Authorization policies for admin access
+---
 
-#### Testing Requirements
+## ?? Project Structure
 
-1. **User Flow Testing**
-   - Register with email only
-   - Register with mobile only
-   - Register with both email and mobile
-   - Login with email
-   - Login with mobile number
+```
+TamilHoroscope.Web/
+??? Data/
+?   ??? Entities/              # User, Wallet, Transaction, etc.
+?   ??? ApplicationDbContext.cs
+??? Services/
+?   ??? Interfaces/            # Service contracts
+?   ??? Implementations/       # Business logic
+??? Pages/
+?   ??? Account/               # Login, Register, Logout, Profile
+?   ??? Wallet/                # TopUp, History
+?   ??? Horoscope/             # Generate, History
+?   ??? Shared/                # _Layout.cshtml
+??? ViewComponents/            # LowBalanceWarningViewComponent
+??? wwwroot/                   # CSS, JS, images
+```
 
-2. **Trial Period Testing**
-   - Generate horoscope during trial (verify limited features)
-   - Check that no wallet deduction occurs during trial
-   - Verify Dasa periods show only main periods (no Bhukti) for trial users
+---
 
-3. **Wallet & Billing Testing**
-   - Top-up wallet
-   - Generate first horoscope of the day (verify deduction)
-   - Generate second horoscope same day (verify no additional charge)
-   - Test with insufficient balance
-   - Verify low balance warning displays correctly
+## ?? Tech Stack
 
-4. **Full Feature Access Testing**
-   - After wallet top-up, verify Navamsa chart is displayed
-   - Verify full Dasa periods with Bhukti sub-periods are shown
-   - Verify planetary strength table/chart is displayed
+- **Framework**: ASP.NET Core 8.0 (Razor Pages)
+- **ORM**: Entity Framework Core 8.0
+- **Database**: MS SQL Server 2016+
+- **Authentication**: ASP.NET Core Identity
+- **UI**: Bootstrap 5, Bootstrap Icons
+- **Calculations**: TamilHoroscope.Core (Swiss Ephemeris)
 
-## Setup Instructions
+---
+
+## ?? Documentation
+
+### Primary Documentation
+- **[DOCUMENTATION.md](DOCUMENTATION.md)** - Complete technical documentation (AI-friendly)
+
+### Feature-Specific Docs
+- **[FIXES_SUMMARY.md](FIXES_SUMMARY.md)** - Recent bug fixes and implementations
+- **[HISTORY_VIEW_FIX.md](HISTORY_VIEW_FIX.md)** - "View Again" functionality
+- **[RASI_CHART_IMPLEMENTATION.md](RASI_CHART_IMPLEMENTATION.md)** - Visual chart rendering
+- **[BALANCE_FUNCTIONALITY_IMPLEMENTATION.md](BALANCE_FUNCTIONALITY_IMPLEMENTATION.md)** - Wallet system
+
+---
+
+## ?? Key Business Logic
+
+### Daily Deduction System
+
+```
+User generates horoscope:
+?? Already generated today? ? Return cached (no charge)
+?? In trial period?
+?  ?? Yes ? Limited features, no charge
+?  ?? No ? Check balance, deduct ?5, full features
+?? Record in HoroscopeGenerations table
+```
+
+**File**: `Services/Implementations/HoroscopeService.cs`
+
+---
+
+## ??? Development
 
 ### Prerequisites
 - .NET 8.0 SDK
 - SQL Server 2016+ or SQL Server Express
-- Visual Studio 2022, VS Code, or Rider
+- Visual Studio 2022 / VS Code / Rider
 
-### Database Setup
+### Database Schema
 
-1. **Create Database**
-   ```sql
-   CREATE DATABASE [TamilHoroscopeDB];
-   GO
-   ```
+**5 Core Tables**:
+1. `Users` - ASP.NET Identity users with trial end date
+2. `Wallets` - User wallet balances
+3. `Transactions` - Credit/debit history
+4. `HoroscopeGenerations` - Generated horoscopes tracking
+5. `SystemConfig` - App configuration (pricing, limits)
 
-2. **Run SQL Scripts** (in order)
-   ```bash
-   # Navigate to Database/Scripts folder
-   cd Database/Scripts
-   
-   # Execute scripts in order
-   sqlcmd -S localhost -d TamilHoroscopeDB -i 01_CreateTables.sql
-   sqlcmd -S localhost -d TamilHoroscopeDB -i 02_CreateIndexes.sql
-   sqlcmd -S localhost -d TamilHoroscopeDB -i 03_SeedData.sql
-   ```
+**See**: [DOCUMENTATION.md#database-schema](DOCUMENTATION.md#database-schema) for details
 
-3. **Update Connection String**
-   - Edit `TamilHoroscope.Web/appsettings.json`
-   - Update `ConnectionStrings:DefaultConnection` with your SQL Server details
+### Configuration
 
-### Build & Run
+Edit `appsettings.json`:
 
-```bash
-# Navigate to web project
-cd TamilHoroscope.Web
-
-# Restore packages
-dotnet restore
-
-# Build project
-dotnet build
-
-# Run application
-dotnet run
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Database=TamilHoroscopeDB;Trusted_Connection=true;TrustServerCertificate=true"
+  }
+}
 ```
 
-Application will be available at:
-- HTTPS: https://localhost:5001
-- HTTP: http://localhost:5000
-
-## Project Structure
-
-```
-TamilHoroscope.Web/
-├── Data/
-│   ├── Entities/              # Entity models
-│   ├── Configurations/        # EF Core configurations
-│   └── ApplicationDbContext.cs
-├── Services/
-│   ├── Interfaces/            # Service interfaces
-│   └── Implementations/       # Service implementations
-├── Pages/
-│   ├── Account/               # Authentication pages
-│   ├── Wallet/                # Wallet management (TO DO)
-│   ├── Horoscope/             # Horoscope features (TO DO)
-│   ├── Admin/                 # Admin pages (TO DO)
-│   └── Shared/
-│       └── _Layout.cshtml     # Main layout with navigation
-├── ViewComponents/            # Reusable UI components
-├── Views/
-│   └── Shared/
-│       └── Components/        # ViewComponent views
-├── wwwroot/                   # Static files (CSS, JS, images)
-├── Program.cs                 # Application startup
-└── appsettings.json          # Configuration
-
-Database/
-└── Scripts/
-    ├── 01_CreateTables.sql
-    ├── 02_CreateIndexes.sql
-    ├── 03_SeedData.sql
-    └── README.md
-```
-
-## Key Business Logic
-
-### Daily Deduction Logic (Implemented in HoroscopeService)
-
-```
-When user generates horoscope:
-1. Check if horoscope already generated TODAY (by GenerationDate)
-   → If YES: Return cached horoscope (no charge)
-   → If NO: Continue to step 2
-
-2. Check if user is in trial period
-   → If IN TRIAL: 
-     * Generate limited horoscope (no Navamsa, no strength, Dasa without Bhukti in UI)
-     * Mark WasTrialPeriod = true
-     * AmountDeducted = 0
-   → If TRIAL EXPIRED:
-     * Check wallet balance >= PerDayCost
-     * If sufficient: Deduct amount, generate full horoscope
-     * If insufficient: Show error, redirect to top-up
-
-3. Record generation in HoroscopeGenerations table
-4. Return horoscope data
-```
-
-### Trial vs. Paid Features
-
-| Feature | Trial Period | Paid Subscription |
-|---------|-------------|-------------------|
-| Duration | 30 days | Until wallet depleted |
-| Birth Details | ✅ | ✅ |
-| Rasi Chart | ✅ | ✅ |
-| Dasa Periods | Main periods only | Full with Bhukti sub-periods |
-| Navamsa Chart | ❌ | ✅ |
-| Planetary Strength | ❌ | ✅ |
-| Daily Cost | Free | ₹5/day (configurable) |
-
-## Configuration (SystemConfig Table)
-
-| Key | Default | Description |
-|-----|---------|-------------|
-| MinimumWalletPurchase | 100.00 | Minimum wallet top-up amount (₹) |
-| PerDayCost | 5.00 | Daily horoscope generation cost (₹) |
-| TrialPeriodDays | 30 | Trial period duration (days) |
-| LowBalanceWarningDays | 10 | Show warning when ≤ this many days |
-| MaxHoroscopesPerDay | 10 | Rate limit per user |
-| DasaYears | 120 | Years to calculate for Vimshottari Dasa |
-
-All values can be modified through the database or admin interface.
-
-## Integration with TamilHoroscope.Core
-
-The web application uses the existing `TamilHoroscope.Core` library for horoscope calculations:
-
-```csharp
-var calculator = new PanchangCalculator();
-var horoscope = calculator.CalculateHoroscope(
-    birthDetails,
-    includeDasa: true,           // Include Dasa periods
-    includeNavamsa: !isTrialUser, // Only for paid users
-    dasaYears: 120,              // From config
-    includeStrength: !isTrialUser // Only for paid users
-);
-```
-
-## Security Features
-
-- ✅ ASP.NET Core Identity with secure password hashing
-- ✅ HTTPS enforcement
-- ✅ CSRF protection (built-in with Razor Pages)
-- ✅ SQL injection prevention (EF Core parameterized queries)
-- ✅ Account lockout after failed login attempts
-- ✅ Secure cookie-based authentication
-
-## API for Tamil Language Support
-
-All astrological terms have Tamil names available:
-```csharp
-// From TamilHoroscope.Core
-horoscope.TamilLagnaRasiName     // Lagna in Tamil
-planet.TamilName                  // Planet name in Tamil
-planet.TamilRasiName             // Rasi in Tamil
-planet.TamilNakshatraName        // Nakshatra in Tamil
-```
-
-## Next Steps for Developer
-
-### High Priority (Must Complete)
-
-1. **Create Horoscope/Generate.cshtml page** - This is the core functionality
-   - Use DateTime pickers for birth date/time
-   - Location input fields (latitude/longitude)
-   - Call `IHoroscopeService.GenerateHoroscopeAsync()`
-   - Display results with Tamil language support
-   - **CRITICAL**: Filter Dasa display for trial users:
-     ```csharp
-     @if (!isTrialUser)
-     {
-         // Show Bhukti sub-periods
-     }
-     ```
-
-2. **Create Wallet/TopUp.cshtml page**
-   - Amount input (minimum ₹100)
-   - Payment gateway placeholder (mock for now)
-   - Call `IWalletService.AddFundsAsync()`
-
-3. **Create Wallet/History.cshtml page**
-   - Display transaction list with pagination
-   - Call `IWalletService.GetTransactionHistoryAsync()`
-
-4. **Create Horoscope/History.cshtml page**
-   - List previously generated horoscopes
-   - Call `IHoroscopeService.GetGenerationHistoryAsync()`
-   - Allow viewing past horoscopes
-
-### Medium Priority
-
-5. **Create Account/Profile.cshtml page**
-   - Display user information
-   - Show trial status and days remaining
-   - Show wallet balance and days remaining
-   - Allow password change
-
-6. **Testing**
-   - Test all user flows
-   - Verify daily deduction logic
-   - Test low balance warning
-   - Verify feature restrictions
-
-### Low Priority (Nice to Have)
-
-7. **Admin Pages**
-   - Config management interface
-   - User management
-   - Transaction reports
-
-8. **Enhancements**
-   - Email verification
-   - Mobile verification (SMS)
-   - Payment gateway integration
-   - PDF export of horoscopes
-   - Multi-language UI (Tamil/English toggle)
-
-## Troubleshooting
-
-### Database Connection Issues
-- Verify SQL Server is running
-- Check connection string in appsettings.json
-- Ensure database exists and scripts have been run
-- Check firewall settings (port 1433)
-
-### Build Errors
-- Run `dotnet restore` to restore NuGet packages
-- Check .NET 8.0 SDK is installed: `dotnet --version`
-- Clean and rebuild: `dotnet clean && dotnet build`
-
-### Runtime Errors
-- Check application logs in console output
-- Verify all service dependencies are registered in Program.cs
-- Ensure database connection is successful
-
-## Support
-
-For issues or questions:
-- Check Database/Scripts/README.md for database setup
-- Review service implementations in Services/Implementations/
-- Examine HoroscopeService.cs for billing logic details
+System config in `SystemConfig` table:
+- `PerDayCost`: 5.00 (?5 per day)
+- `TrialPeriodDays`: 30
+- `MinimumWalletPurchase`: 100.00
+- `LowBalanceWarningDays`: 10
+- `MaxHoroscopesPerDay`: 10
 
 ---
 
-**Version:** 1.0  
-**Last Updated:** 2026-02-08  
-**Framework:** ASP.NET Core 8.0  
-**Database:** MS SQL Server 2016+
+## ?? Testing
+
+### Test User Flow
+
+1. **Register** - Email/mobile, auto-creates wallet, 30-day trial
+2. **Generate Horoscope** (Trial) - Limited features, no charge
+3. **Top-Up Wallet** - Add ?100+ (mock payment)
+4. **Generate Horoscope** (Paid) - Full features, ?5 deducted
+5. **View History** - See previous horoscopes
+6. **View Again** - Re-display historical horoscope (free)
+
+---
+
+## ?? Troubleshooting
+
+### Build Issues
+```bash
+dotnet clean
+dotnet restore
+dotnet build
+```
+
+### Database Issues
+- Check SQL Server running: `sqlcmd -S localhost -E`
+- Verify connection string in appsettings.json
+- Re-run SQL scripts if tables missing
+
+### Authentication Issues
+- Clear browser cookies
+- Check password requirements (8+ chars, uppercase, lowercase, digit)
+- Verify Identity tables exist
+
+**See**: [DOCUMENTATION.md#troubleshooting-guide](DOCUMENTATION.md#troubleshooting-guide)
+
+---
+
+## ?? Recent Updates
+
+### January 2024
+- ? Fixed logout from Generate page
+- ? Added PersonName field (required)
+- ? Implemented auto-complete for 100+ cities
+- ? Fixed "View Again" from history
+- ? Added South Indian style Rasi & Navamsa charts
+- ? Wallet and balance management complete
+
+**See**: [FIXES_SUMMARY.md](FIXES_SUMMARY.md) for detailed changelog
+
+---
+
+## ?? Support
+
+- **Documentation**: See [DOCUMENTATION.md](DOCUMENTATION.md)
+- **Issues**: Check troubleshooting guide
+- **Database**: Review `Database/Scripts/README.md`
+
+---
+
+**Version**: 1.0  
+**Framework**: ASP.NET Core 8.0  
+**License**: Proprietary  
+**Last Updated**: 2024

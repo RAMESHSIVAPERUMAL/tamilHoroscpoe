@@ -30,6 +30,19 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     }
 });
 
+// Add cookie-based authentication
+builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.LogoutPath = "/Account/Logout";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+        options.SlidingExpiration = true;
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite = SameSiteMode.Strict;
+    });
+
 // Register custom authentication service
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
@@ -94,6 +107,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseSession();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapRazorPages();
 

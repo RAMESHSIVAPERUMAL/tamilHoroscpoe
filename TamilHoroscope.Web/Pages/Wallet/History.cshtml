@@ -1,12 +1,12 @@
 @page
 @using Microsoft.AspNetCore.Authorization
-@using System.Security.Claims
 @attribute [Authorize]
 @inject TamilHoroscope.Web.Services.Interfaces.IWalletService WalletService
 @model TamilHoroscope.Web.Pages.Wallet.HistoryModel
 @{
     ViewData["Title"] = "Transaction History";
-    var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    var userIdStr = HttpContext.Session.GetString("UserId");
+    var userId = int.Parse(userIdStr!);
     var balance = await WalletService.GetBalanceAsync(userId);
 }
 

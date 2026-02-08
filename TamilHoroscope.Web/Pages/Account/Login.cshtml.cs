@@ -1,17 +1,19 @@
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using TamilHoroscope.Web.Services.Implementations;
 
 namespace TamilHoroscope.Web.Pages.Account;
 
 public class LoginModel : PageModel
 {
-    private readonly IAuthenticationService _authService;
+    private readonly Services.Implementations.IAuthenticationService _authService;
     private readonly ILogger<LoginModel> _logger;
 
     public LoginModel(
-        IAuthenticationService authService,
+        Services.Implementations.IAuthenticationService authService,
         ILogger<LoginModel> logger)
     {
         _authService = authService;
@@ -71,7 +73,27 @@ public class LoginModel : PageModel
                 return Page();
             }
 
-            // Store user ID in session
+            // Create claims for the user
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new Claim(ClaimTypes.Name, user.FullName),
+                new Claim(ClaimTypes.Email, user.Email ?? string.Empty)
+            };
+
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var authProperties = new AuthenticationProperties
+            {
+                IsPersistent = Input.RememberMe,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(30)
+            };
+
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity),
+                authProperties);
+
+            // Also store in session for quick access
             HttpContext.Session.SetString("UserId", user.UserId.ToString());
             HttpContext.Session.SetString("UserEmail", user.Email ?? string.Empty);
             HttpContext.Session.SetString("UserFullName", user.FullName);

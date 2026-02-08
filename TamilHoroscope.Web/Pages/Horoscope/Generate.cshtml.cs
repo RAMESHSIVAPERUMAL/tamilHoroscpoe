@@ -26,6 +26,12 @@ public class GenerateModel : PageModel
     }
 
     [BindProperty]
+    [Required(ErrorMessage = "Person name is required")]
+    [StringLength(100, ErrorMessage = "Name cannot exceed 100 characters")]
+    [Display(Name = "Person Name")]
+    public string PersonName { get; set; } = string.Empty;
+
+    [BindProperty]
     [Required(ErrorMessage = "Birth date is required")]
     [Display(Name = "Birth Date")]
     public DateTime BirthDate { get; set; } = DateTime.Today.AddYears(-25);
@@ -60,9 +66,83 @@ public class GenerateModel : PageModel
     public bool IsTrialUser { get; set; }
     public string? ErrorMessage { get; set; }
 
-    public void OnGet()
+    public async Task<IActionResult> OnGetAsync(bool regenerated = false)
     {
-        // Just display the form
+        // Check if we're displaying a regenerated horoscope from history
+        if (regenerated && TempData.ContainsKey("RegeneratedHoroscope"))
+        {
+            try
+            {
+                // Deserialize the horoscope data from TempData
+                var horoscopeJson = TempData["RegeneratedHoroscope"]?.ToString();
+                if (!string.IsNullOrEmpty(horoscopeJson))
+                {
+                    Horoscope = System.Text.Json.JsonSerializer.Deserialize<HoroscopeData>(horoscopeJson);
+                }
+
+                // Restore PersonName
+                PersonName = TempData["RegeneratedPersonName"]?.ToString() ?? "Historical Record";
+
+                // Restore form fields
+                if (TempData.ContainsKey("RegeneratedBirthDate"))
+                {
+                    if (DateTime.TryParse(TempData["RegeneratedBirthDate"]?.ToString(), out var birthDate))
+                    {
+                        BirthDate = birthDate;
+                    }
+                }
+
+                if (TempData.ContainsKey("RegeneratedBirthTime"))
+                {
+                    if (TimeSpan.TryParse(TempData["RegeneratedBirthTime"]?.ToString(), out var birthTime))
+                    {
+                        BirthTime = birthTime;
+                    }
+                }
+
+                PlaceName = TempData["RegeneratedPlaceName"]?.ToString();
+                
+                if (TempData.ContainsKey("RegeneratedLatitude") && 
+                    double.TryParse(TempData["RegeneratedLatitude"]?.ToString(), out var lat))
+                {
+                    Latitude = lat;
+                }
+
+                if (TempData.ContainsKey("RegeneratedLongitude") && 
+                    double.TryParse(TempData["RegeneratedLongitude"]?.ToString(), out var lon))
+                {
+                    Longitude = lon;
+                }
+
+                if (TempData.ContainsKey("RegeneratedTimeZoneOffset") && 
+                    double.TryParse(TempData["RegeneratedTimeZoneOffset"]?.ToString(), out var tz))
+                {
+                    TimeZoneOffset = tz;
+                }
+
+                if (TempData.ContainsKey("RegeneratedIsTrialUser") && 
+                    bool.TryParse(TempData["RegeneratedIsTrialUser"]?.ToString(), out var isTrial))
+                {
+                    IsTrialUser = isTrial;
+                }
+
+                // Get user ID to check trial status (if not already set)
+                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out var userId))
+                {
+                    IsTrialUser = await _subscriptionService.IsUserInTrialAsync(userId);
+                }
+
+                _logger.LogInformation("Displaying regenerated horoscope from history");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading regenerated horoscope from TempData");
+                ErrorMessage = "Error loading horoscope. Please try again.";
+            }
+        }
+
+        return Page();
     }
 
     public async Task<IActionResult> OnPostAsync()

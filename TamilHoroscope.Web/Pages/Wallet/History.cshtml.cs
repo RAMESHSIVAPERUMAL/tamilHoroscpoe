@@ -27,8 +27,8 @@ public class HistoryModel : PageModel
 
     public async Task OnGetAsync(int page = 1)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+        var userIdStr = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out var userId))
         {
             return;
         }

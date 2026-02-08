@@ -42,8 +42,8 @@ public class TopUpModel : PageModel
 
     public async Task<IActionResult> OnPostAsync()
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+        var userIdStr = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out var userId))
         {
             return RedirectToPage("/Account/Login");
         }
