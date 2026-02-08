@@ -1,0 +1,103 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="jumbotron bg-light p-5 rounded">
+    <div class="container text-center">
+        <h1 class="display-4"><i class="bi bi-stars text-primary"></i> Tamil Horoscope</h1>
+        <p class="lead">Get accurate Vedic astrology horoscopes in Tamil and English</p>
+        <hr class="my-4">
+        <p>Generate personalized horoscopes with birth chart, planetary positions, Dasa periods, and more!</p>
+        @if (User.Identity?.IsAuthenticated ?? false)
+        {
+            <a class="btn btn-primary btn-lg" asp-page="/Horoscope/Generate" role="button">
+                <i class="bi bi-stars"></i> Generate Horoscope
+            </a>
+        }
+        else
+        {
+            <a class="btn btn-primary btn-lg" asp-page="/Account/Register" role="button">
+                <i class="bi bi-person-plus"></i> Register Now - Free 30-Day Trial!
+            </a>
+            <a class="btn btn-outline-primary btn-lg" asp-page="/Account/Login" role="button">
+                <i class="bi bi-box-arrow-in-right"></i> Login
+            </a>
+        }
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="bi bi-calendar3 display-4 text-primary"></i>
+                <h5 class="card-title mt-3">Birth Chart Analysis</h5>
+                <p class="card-text">Complete Rasi chart with planetary positions, houses, and aspects</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="bi bi-clock-history display-4 text-primary"></i>
+                <h5 class="card-title mt-3">Vimshottari Dasa</h5>
+                <p class="card-text">Detailed planetary periods (Dasa & Bhukti) for life events prediction</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="bi bi-graph-up display-4 text-primary"></i>
+                <h5 class="card-title mt-3">Planetary Strength</h5>
+                <p class="card-text">Shadbala calculations showing planet strength and influences</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-gift"></i> Trial Period Features</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check-circle text-success"></i> Birth details display</li>
+                    <li><i class="bi bi-check-circle text-success"></i> Rasi (birth) chart</li>
+                    <li><i class="bi bi-check-circle text-success"></i> Basic Dasa periods</li>
+                    <li><i class="bi bi-check-circle text-success"></i> 30 days free access</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-star-fill"></i> Paid Subscription Features</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check-circle text-primary"></i> All trial features</li>
+                    <li><i class="bi bi-check-circle text-primary"></i> Navamsa (D-9) chart</li>
+                    <li><i class="bi bi-check-circle text-primary"></i> Complete Dasa with Bhukti sub-periods</li>
+                    <li><i class="bi bi-check-circle text-primary"></i> Planetary strength analysis</li>
+                    <li><i class="bi bi-check-circle text-primary"></i> Only ₹5 per day</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-info mt-5">
+    <h5><i class="bi bi-info-circle"></i> How It Works</h5>
+    <ol class="mb-0">
+        <li><strong>Register:</strong> Create your free account (email or mobile number)</li>
+        <li><strong>Try Free:</strong> Get 30 days trial with basic features</li>
+        <li><strong>Top Up Wallet:</strong> Add funds to your wallet (minimum ₹100)</li>
+        <li><strong>Generate:</strong> Create horoscopes - charged only once per day</li>
+    </ol>
+</div>
