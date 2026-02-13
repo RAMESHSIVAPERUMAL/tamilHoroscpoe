@@ -74,6 +74,17 @@ public class WalletService : IWalletService
         };
 
         _context.Transactions.Add(transaction);
+
+        // ✅ CRITICAL: Deactivate trial immediately when user adds funds
+        // Trial should end as soon as user commits to paid service by topping up
+        var user = await _context.Users.FindAsync(userId);
+        if (user != null && user.IsTrialActive)
+        {
+            user.IsTrialActive = false;
+            _logger.LogInformation("Trial period deactivated for user {UserId} after wallet top-up of ₹{Amount}",
+                userId, amount);
+        }
+
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Added ₹{Amount} to wallet for user {UserId}. New balance: ₹{Balance}",

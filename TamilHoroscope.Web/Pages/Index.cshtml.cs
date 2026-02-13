@@ -1,20 +1,20 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using TamilHoroscope.Web.Services.Implementations;
 using TamilHoroscope.Web.Services.Interfaces;
+using AuthService = TamilHoroscope.Web.Services.Interfaces.IAuthenticationService;
 
 namespace TamilHoroscope.Web.Pages;
 
 public class IndexModel : PageModel
 {
     private readonly ILogger<IndexModel> _logger;
-    private readonly IAuthenticationService _authService;
+    private readonly AuthService _authService;
     private readonly IWalletService _walletService;
     private readonly ISubscriptionService _subscriptionService;
 
     public IndexModel(
         ILogger<IndexModel> logger,
-        IAuthenticationService authService,
+        AuthService authService,
         IWalletService walletService,
         ISubscriptionService subscriptionService)
     {
@@ -49,7 +49,10 @@ public class IndexModel : PageModel
                 return;
             }
 
-            // Load user data
+            // ? CHECK AND UPDATE TRIAL STATUS BASED ON WALLET BALANCE
+            await _subscriptionService.CheckAndUpdateTrialStatusAsync(userId);
+
+            // Load user data (refresh after potential trial update)
             var user = await _authService.GetUserByIdAsync(userId);
             if (user == null || !user.IsActive)
             {
@@ -64,9 +67,9 @@ public class IndexModel : PageModel
             TrialEndDate = user.TrialEndDate;
 
             // Calculate days remaining in trial
-            if (IsTrialActive && user.TrialEndDate > DateTime.UtcNow)
+            if (IsTrialActive && user.TrialEndDate.HasValue && user.TrialEndDate.Value > DateTime.UtcNow)
             {
-                DaysRemainingInTrial = (int)(user.TrialEndDate - DateTime.UtcNow).TotalDays;
+                DaysRemainingInTrial = (int)(user.TrialEndDate.Value - DateTime.UtcNow).TotalDays;
             }
             else
             {
@@ -111,7 +114,8 @@ public class IndexModel : PageModel
                 ShouldShowLowBalanceWarning = false;
             }
 
-            _logger.LogInformation("Dashboard loaded for user {UserId}", userId);
+            _logger.LogInformation("Dashboard loaded for user {UserId}. Trial: {IsTrialActive}, Balance: ?{Balance}", 
+                userId, IsTrialActive, WalletBalance);
         }
         catch (Exception ex)
         {

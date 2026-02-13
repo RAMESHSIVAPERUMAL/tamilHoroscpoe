@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BirthPlaces>
+  <!-- Tamil Nadu Cities -->
+  <Place>
+    <Name>Chennai</Name>
+    <Latitude>13.0827</Latitude>
+    <Longitude>80.2707</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <Country>India</Country>
+    <State>Tamil Nadu</State>
+  </Place>
+  <Place>
+    <Name>Coimbatore</Name>
+    <Latitude>11.0168</Latitude>
+    <Longitude>76.9558</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <Country>India</Country>
+    <State>Tamil Nadu</State>
+  </Place>
+  <Place>
+    <Name>Madurai</Name>
+    <Latitude>9.9252</Latitude>
+    <Longitude>78.1198</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <Country>India</Country>
+    <State>Tamil Nadu</State>
+  </Place>
+  <Place>
+    <Name>Trichy</Name>
+    <Latitude>10.7905</Latitude>
+    <Longitude>78.7047</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <Country>India</Country>
+    <State>Tamil Nadu</State>
+  </Place>
+  <Place>
+    <Name>Salem</Name>
+    <Latitude>11.6643</Latitude>
+    <Longitude>78.1460</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <Country>India</Country>
+    <State>Tamil Nadu</State>
+  </Place>
+  <Place>
+    <Name>Tirunelveli</Name>
+    <Latitude>8.7139</Latitude>
+    <Longitude>77.7567</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <Country>India</Country>
+    <State>Tamil Nadu</State>
+  </Place>
+  
+  <!-- Major Indian Cities -->
+  <Place>
+    <Name>Mumbai</Name>
+    <Latitude>19.0760</Latitude>
+    <Longitude>72.8777</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <Country>India</Country>
+    <State>Maharashtra</State>
+  </Place>
+  <Place>
+    <Name>Delhi</Name>
+    <Latitude>28.7041</Latitude>
+    <Longitude>77.1025</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <Country>India</Country>
+    <State>Delhi</State>
+  </Place>
+  <Place>
+    <Name>Bangalore</Name>
+    <Latitude>12.9716</Latitude>
+    <Longitude>77.5946</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <Country>India</Country>
+    <State>Karnataka</State>
+  </Place>
+  <Place>
+    <Name>Hyderabad</Name>
+    <Latitude>17.3850</Latitude>
+    <Longitude>78.4867</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <Country>India</Country>
+    <State>Telangana</State>
+  </Place>
+  <Place>
+    <Name>Kolkata</Name>
+    <Latitude>22.5726</Latitude>
+    <Longitude>88.3639</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <Country>India</Country>
+    <State>West Bengal</State>
+  </Place>
+  <Place>
+    <Name>Pune</Name>
+    <Latitude>18.5204</Latitude>
+    <Longitude>73.8567</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <Country>India</Country>
+    <State>Maharashtra</State>
+  </Place>
+  
+  <!-- Kerala Cities -->
+  <Place>
+    <Name>Kochi</Name>
+    <Latitude>9.9312</Latitude>
+    <Longitude>76.2673</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <Country>India</Country>
+    <State>Kerala</State>
+  </Place>
+  <Place>
+    <Name>Thiruvananthapuram</Name>
+    <Latitude>8.5241</Latitude>
+    <Longitude>76.9366</Longitude>
+    <TimeZone>5.5</TimeZone>
+    <Country>India</Country>
+    <State>Kerala</State>
+  </Place>
+  
+  <!-- International Cities -->
+  <Place>
+    <Name>Singapore</Name>
+    <Latitude>1.3521</Latitude>
+    <Longitude>103.8198</Longitude>
+    <TimeZone>8.0</TimeZone>
+    <Country>Singapore</Country>
+    <State></State>
+  </Place>
+  <Place>
+    <Name>Dubai</Name>
+    <Latitude>25.2048</Latitude>
+    <Longitude>55.2708</Longitude>
+    <TimeZone>4.0</TimeZone>
+    <Country>UAE</Country>
+    <State></State>
+  </Place>
+  <Place>
+    <Name>London</Name>
+    <Latitude>51.5074</Latitude>
+    <Longitude>-0.1278</Longitude>
+    <TimeZone>0.0</TimeZone>
+    <Country>UK</Country>
+    <State></State>
+  </Place>
+  <Place>
+    <Name>New York</Name>
+    <Latitude>40.7128</Latitude>
+    <Longitude>-74.0060</Longitude>
+    <TimeZone>-5.0</TimeZone>
+    <Country>USA</Country>
+    <State>New York</State>
+  </Place>
+</BirthPlaces>

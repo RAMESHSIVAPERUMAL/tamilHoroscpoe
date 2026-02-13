@@ -139,8 +139,11 @@
                             <p class="mb-0 mt-2">
                                 You are currently in the trial period with limited features.
                                 <br />
-                                Trial ends: <strong>@Model.CurrentUser?.TrialEndDate.ToLocalTime().ToString("MMMM dd, yyyy")</strong>
-                                <br />
+                                @if (Model.CurrentUser?.TrialEndDate.HasValue == true)
+                                {
+                                    <text>Trial ends: <strong>@Model.CurrentUser.TrialEndDate.Value.ToLocalTime().ToString("MMMM dd, yyyy")</strong></text>
+                                    <br />
+                                }
                                 Days remaining: <strong>@Model.TrialDaysRemaining days</strong>
                             </p>
                         </div>

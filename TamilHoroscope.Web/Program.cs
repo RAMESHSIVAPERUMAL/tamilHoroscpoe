@@ -52,6 +52,12 @@ builder.Services.AddScoped<IWalletService, WalletService>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<IHoroscopeService, HoroscopeService>();
 
+// Register BirthPlace service as singleton (cached data)
+builder.Services.AddSingleton<TamilHoroscope.Web.Services.BirthPlaceService>();
+
+// Add Controllers for API endpoints
+builder.Services.AddControllers();
+
 // Add Razor Pages
 builder.Services.AddRazorPages()
     .AddRazorRuntimeCompilation();
@@ -69,7 +75,8 @@ builder.Services.AddLogging();
 
 var app = builder.Build();
 
-// Apply pending migrations and initialize database
+// Database-First Approach: No automatic migrations
+// Database is managed via SQL scripts in DatabaseSetup folder
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -77,17 +84,21 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
 
-        // Apply any pending migrations
-        context.Database.Migrate();
-
-        // Optional: Seed data
-        // await DbInitializer.InitializeAsync(context);
-
-        app.Logger.LogInformation("Database migration completed successfully");
+        // Just verify database connection - DO NOT run migrations
+        var canConnect = context.Database.CanConnect();
+        
+        if (canConnect)
+        {
+            app.Logger.LogInformation("? Database connection successful");
+        }
+        else
+        {
+            app.Logger.LogWarning("? Cannot connect to database. Check connection string.");
+        }
     }
     catch (Exception ex)
     {
-        app.Logger.LogError(ex, "An error occurred while migrating the database");
+        app.Logger.LogError(ex, "Error connecting to database");
         throw;
     }
 }
@@ -111,5 +122,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapRazorPages();
+app.MapControllers(); // Enable API controllers
 
 app.Run();

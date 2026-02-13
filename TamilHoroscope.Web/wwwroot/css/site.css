@@ -1,5 +1,53 @@
+/* ===================================
+   TAMIL HOROSCOPE - CUSTOM COLOR THEME
+   Yellow, Maroon (Red), Green
+   =================================== */
+
+:root {
+  /* Primary Colors */
+  --th-maroon: #8B0000;           /* Dark Red/Maroon - Primary */
+  --th-maroon-light: #A52A2A;     /* Lighter Maroon */
+  --th-maroon-dark: #660000;      /* Darker Maroon */
+  
+  --th-yellow: #FFD700;           /* Gold Yellow - Accent */
+  --th-yellow-light: #FFF4CC;     /* Light Yellow - Backgrounds */
+  --th-yellow-dark: #FFA500;      /* Orange-Yellow */
+  
+  --th-green: #228B22;            /* Forest Green - Success */
+  --th-green-light: #90EE90;      /* Light Green */
+  --th-green-dark: #006400;       /* Dark Green */
+  
+  /* Semantic Colors */
+  --th-primary: var(--th-maroon);
+  --th-secondary: var(--th-yellow);
+  --th-success: var(--th-green);
+  --th-warning: var(--th-yellow-dark);
+  --th-danger: var(--th-maroon);
+  --th-info: var(--th-yellow);
+  
+  /* Text Colors */
+  --th-text-primary: #2C1810;     /* Dark Brown */
+  --th-text-secondary: #5C4033;   /* Medium Brown */
+  --th-text-light: #8B7355;       /* Light Brown */
+  --th-text-white: #FFFFFF;
+  
+  /* Background Colors */
+  --th-bg-primary: #FFF9E6;       /* Cream */
+  --th-bg-secondary: #FFFAF0;     /* Floral White */
+  --th-bg-card: #FFFFFF;
+  
+  /* Border Colors */
+  --th-border-color: #E6D5B8;
+  --th-border-accent: var(--th-maroon);
+}
+
+/* ===================================
+   GLOBAL STYLES
+   =================================== */
+
 html {
   font-size: 14px;
+  scroll-behavior: smooth;
 }
 
 @media (min-width: 768px) {
@@ -8,15 +56,666 @@ html {
   }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
-}
-
 body {
   margin-bottom: 60px;
+  background: linear-gradient(135deg, var(--th-bg-primary) 0%, var(--th-bg-secondary) 100%);
+  color: var(--th-text-primary);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ===================================
+   BOOTSTRAP OVERRIDES - PRIMARY THEME
+   =================================== */
+
+/* Primary Button - Maroon */
+.btn-primary {
+  background: linear-gradient(135deg, var(--th-maroon) 0%, var(--th-maroon-dark) 100%);
+  border-color: var(--th-maroon-dark);
+  color: var(--th-text-white);
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(139, 0, 0, 0.2);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--th-maroon-light) 0%, var(--th-maroon) 100%);
+  border-color: var(--th-maroon);
+  box-shadow: 0 4px 12px rgba(139, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-primary:active,
+.btn-primary:focus {
+  background: var(--th-maroon-dark);
+  border-color: var(--th-maroon-dark);
+  box-shadow: 0 0 0 0.25rem rgba(139, 0, 0, 0.25);
+}
+
+.btn-primary:disabled {
+  background: var(--th-maroon);
+  opacity: 0.5;
+}
+
+/* Outline Primary Button */
+.btn-outline-primary {
+  color: var(--th-maroon);
+  border-color: var(--th-maroon);
+  border-width: 2px;
+  font-weight: 600;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--th-maroon);
+  border-color: var(--th-maroon);
+  color: var(--th-text-white);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 0, 0, 0.2);
+}
+
+/* Success Button - Green */
+.btn-success {
+  background: linear-gradient(135deg, var(--th-green) 0%, var(--th-green-dark) 100%);
+  border-color: var(--th-green-dark);
+  color: var(--th-text-white);
+  font-weight: 600;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(34, 139, 34, 0.2);
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, var(--th-green-light) 0%, var(--th-green) 100%);
+  border-color: var(--th-green);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(34, 139, 34, 0.3);
+}
+
+.btn-outline-success {
+  color: var(--th-green);
+  border-color: var(--th-green);
+  border-width: 2px;
+  font-weight: 600;
+}
+
+.btn-outline-success:hover {
+  background-color: var(--th-green);
+  border-color: var(--th-green);
+  color: var(--th-text-white);
+}
+
+/* Warning Button - Yellow */
+.btn-warning {
+  background: linear-gradient(135deg, var(--th-yellow) 0%, var(--th-yellow-dark) 100%);
+  border-color: var(--th-yellow-dark);
+  color: var(--th-maroon);
+  font-weight: 700;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+}
+
+.btn-warning:hover {
+  background: var(--th-yellow-dark);
+  border-color: var(--th-yellow-dark);
+  color: var(--th-text-white);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 165, 0, 0.4);
+}
+
+.btn-outline-warning {
+  color: var(--th-yellow-dark);
+  border-color: var(--th-yellow-dark);
+  border-width: 2px;
+  font-weight: 600;
+}
+
+/* Danger Button - Maroon */
+.btn-danger {
+  background: var(--th-maroon-light);
+  border-color: var(--th-maroon);
+}
+
+/* Secondary Button - Gray with Yellow accent */
+.btn-secondary,
+.btn-outline-secondary {
+  border-width: 2px;
+}
+
+/* ===================================
+   NAVBAR CUSTOMIZATION
+   =================================== */
+
+.navbar-dark {
+  background: linear-gradient(135deg, var(--th-maroon) 0%, var(--th-maroon-dark) 100%) !important;
+  box-shadow: 0 4px 12px rgba(139, 0, 0, 0.3);
+  border-bottom: 3px solid var(--th-yellow);
+}
+
+.navbar-brand {
+  color: var(--th-yellow) !important;
+  font-weight: 700;
+  font-size: 1.5rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.navbar-brand:hover {
+  color: var(--th-yellow-light) !important;
+  transform: scale(1.05);
+}
+
+.navbar-brand i {
+  color: var(--th-yellow);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.nav-link {
+  color: var(--th-yellow-light) !important;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+  padding: 0.5rem 1rem !important;
+}
+
+.nav-link:hover {
+  color: var(--th-yellow) !important;
+  background-color: rgba(255, 215, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.nav-link i {
+  color: var(--th-yellow);
+  margin-right: 5px;
+}
+
+.dropdown-menu {
+  background-color: var(--th-bg-card);
+  border: 2px solid var(--th-yellow);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dropdown-item {
+  color: var(--th-maroon);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: var(--th-yellow-light);
+  color: var(--th-maroon-dark);
+  padding-left: 1.5rem;
+}
+
+.dropdown-item i {
+  color: var(--th-maroon);
+  margin-right: 8px;
+}
+
+/* ===================================
+   CARDS
+   =================================== */
+
+.card {
+  border: 2px solid var(--th-border-color);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: var(--th-bg-card);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+}
+
+.card-header {
+  border-bottom: 2px solid var(--th-border-color);
+  border-radius: 10px 10px 0 0 !important;
+  font-weight: 600;
+}
+
+/* Card Header Variants */
+.card-header.bg-primary {
+  background: linear-gradient(135deg, var(--th-maroon) 0%, var(--th-maroon-dark) 100%) !important;
+  color: var(--th-yellow) !important;
+  border-bottom: 3px solid var(--th-yellow);
+}
+
+.card-header.bg-success {
+  background: linear-gradient(135deg, var(--th-green) 0%, var(--th-green-dark) 100%) !important;
+  color: var(--th-text-white) !important;
+  border-bottom: 3px solid var(--th-yellow);
+}
+
+.card-header.bg-warning {
+  background: linear-gradient(135deg, var(--th-yellow) 0%, var(--th-yellow-dark) 100%) !important;
+  color: var(--th-maroon) !important;
+  font-weight: 700;
+}
+
+.card-header.bg-info {
+  background: linear-gradient(135deg, var(--th-yellow-light) 0%, var(--th-yellow) 100%) !important;
+  color: var(--th-maroon) !important;
+  border-bottom: 2px solid var(--th-maroon);
+}
+
+.card-header.bg-secondary {
+  background: linear-gradient(135deg, #6c757d 0%, #545b62 100%) !important;
+  color: var(--th-yellow-light) !important;
+}
+
+/* ===================================
+   ALERTS
+   =================================== */
+
+.alert {
+  border-radius: 10px;
+  border-width: 2px;
+  border-left-width: 6px;
+  font-weight: 500;
+}
+
+.alert-success {
+  background-color: var(--th-green-light);
+  border-color: var(--th-green);
+  color: var(--th-green-dark);
+}
+
+.alert-warning {
+  background-color: var(--th-yellow-light);
+  border-color: var(--th-yellow-dark);
+  color: var(--th-maroon);
+}
+
+.alert-danger {
+  background-color: #FFE6E6;
+  border-color: var(--th-maroon);
+  color: var(--th-maroon-dark);
+}
+
+.alert-info {
+  background-color: var(--th-yellow-light);
+  border-color: var(--th-yellow);
+  color: var(--th-maroon);
+}
+
+/* ===================================
+   BADGES
+   =================================== */
+
+.badge {
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 0.4em 0.8em;
+}
+
+.badge.bg-primary {
+  background-color: var(--th-maroon) !important;
+}
+
+.badge.bg-success {
+  background-color: var(--th-green) !important;
+}
+
+.badge.bg-warning {
+  background-color: var(--th-yellow) !important;
+  color: var(--th-maroon) !important;
+}
+
+.badge.bg-danger {
+  background-color: var(--th-maroon-light) !important;
+}
+
+.badge.bg-info {
+  background-color: var(--th-yellow-dark) !important;
+  color: var(--th-text-white) !important;
+}
+
+/* ===================================
+   TABLES
+   =================================== */
+
+.table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table thead {
+  background: linear-gradient(135deg, var(--th-maroon) 0%, var(--th-maroon-dark) 100%);
+  color: var(--th-yellow);
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: var(--th-yellow-light);
+}
+
+.table-hover tbody tr:hover {
+  background-color: var(--th-yellow-light);
+  cursor: pointer;
+}
+
+.table-bordered {
+  border: 2px solid var(--th-border-color);
+}
+
+/* ===================================
+   FORMS
+   =================================== */
+
+.form-label {
+  font-weight: 600;
+  color: var(--th-maroon);
+  margin-bottom: 0.5rem;
+}
+
+.form-control,
+.form-select {
+  border: 2px solid var(--th-border-color);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--th-maroon);
+  box-shadow: 0 0 0 0.25rem rgba(139, 0, 0, 0.15);
+  background-color: var(--th-yellow-light);
+}
+
+.form-control::placeholder {
+  color: var(--th-text-light);
+}
+
+.input-group-text {
+  background-color: var(--th-yellow);
+  border-color: var(--th-yellow-dark);
+  color: var(--th-maroon);
+  font-weight: 600;
+}
+
+/* ===================================
+   PAGINATION
+   =================================== */
+
+.pagination .page-link {
+  color: var(--th-maroon);
+  border-color: var(--th-border-color);
+  font-weight: 600;
+  border-radius: 8px;
+  margin: 0 3px;
+}
+
+.pagination .page-link:hover {
+  background-color: var(--th-yellow-light);
+  border-color: var(--th-maroon);
+  color: var(--th-maroon-dark);
+}
+
+.pagination .page-item.active .page-link {
+  background-color: var(--th-maroon);
+  border-color: var(--th-maroon);
+  color: var(--th-yellow);
+}
+
+.pagination .page-item.disabled .page-link {
+  color: var(--th-text-light);
+  background-color: var(--th-bg-secondary);
+}
+
+/* ===================================
+   FOOTER
+   =================================== */
+
+.footer {
+  background: linear-gradient(135deg, var(--th-bg-secondary) 0%, var(--th-bg-primary) 100%);
+  border-top: 3px solid var(--th-maroon);
+  padding: 2rem 0;
+}
+
+.footer a {
+  color: var(--th-maroon);
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.footer a:hover {
+  color: var(--th-maroon-dark);
+  text-decoration: underline;
+}
+
+/* ===================================
+   SPECIAL COMPONENTS
+   =================================== */
+
+/* Jumbotron */
+.jumbotron {
+  background: linear-gradient(135deg, var(--th-yellow-light) 0%, var(--th-bg-secondary) 100%);
+  border: 3px solid var(--th-maroon);
+  border-radius: 15px;
+  box-shadow: 0 8px 24px rgba(139, 0, 0, 0.15);
+}
+
+/* Display Text */
+.display-4,
+.display-6 {
+  color: var(--th-maroon);
+  font-weight: 700;
+}
+
+/* Lead Text */
+.lead {
+  color: var(--th-text-secondary);
+  font-weight: 500;
+}
+
+/* Text Colors */
+.text-primary {
+  color: var(--th-maroon) !important;
+}
+
+.text-success {
+  color: var(--th-green) !important;
+}
+
+.text-warning {
+  color: var(--th-yellow-dark) !important;
+}
+
+.text-danger {
+  color: var(--th-maroon-light) !important;
+}
+
+.text-info {
+  color: var(--th-yellow-dark) !important;
+}
+
+/* Background Colors */
+.bg-light {
+  background-color: var(--th-yellow-light) !important;
+}
+
+.bg-primary {
+  background-color: var(--th-maroon) !important;
+  color: var(--th-yellow) !important;
+}
+
+.bg-success {
+  background-color: var(--th-green) !important;
+}
+
+.bg-warning {
+  background-color: var(--th-yellow) !important;
+  color: var(--th-maroon) !important;
+}
+
+/* ===================================
+   HOROSCOPE CHART STYLES
+   =================================== */
+
+.south-indian-chart {
+  border: 3px solid var(--th-maroon);
+  background: linear-gradient(135deg, var(--th-yellow-light) 0%, #FFFAF0 100%);
+  box-shadow: 0 8px 24px rgba(139, 0, 0, 0.2);
+}
+
+.chart-box {
+  border: 2px solid var(--th-maroon);
+  background: var(--th-bg-card);
+}
+
+.chart-center {
+  background: linear-gradient(135deg, var(--th-yellow) 0%, var(--th-yellow-dark) 100%);
+  color: var(--th-maroon);
+  border: 2px solid var(--th-maroon);
+  font-weight: 700;
+}
+
+.lagna-marker {
+  background: var(--th-maroon);
+  color: var(--th-yellow);
+  font-weight: 700;
+}
+
+.planet-text {
+  color: var(--th-maroon);
+  font-weight: 600;
+}
+
+/* ===================================
+   UTILITIES
+   =================================== */
+
+/* Focus States */
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem var(--th-maroon);
+}
+
+/* Border Utilities */
+.border-primary {
+  border-color: var(--th-maroon) !important;
+}
+
+.border-success {
+  border-color: var(--th-green) !important;
+}
+
+.border-warning {
+  border-color: var(--th-yellow) !important;
+}
+
+/* Hover Effects */
+.hover-lift {
+  transition: all 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Scrollbar Customization */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--th-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--th-maroon) 0%, var(--th-maroon-dark) 100%);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--th-maroon-light);
+}
+
+/* ===================================
+   RESPONSIVE ADJUSTMENTS
+   =================================== */
+
+@media (max-width: 768px) {
+  .navbar-brand {
+    font-size: 1.2rem;
+  }
+  
+  .card {
+    margin-bottom: 1rem;
+  }
+  
+  .btn-lg {
+    font-size: 1rem;
+    padding: 0.75rem 1.5rem;
+  }
+}
+
+/* ===================================
+   ANIMATIONS
+   =================================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* ===================================
+   ACCESSIBILITY
+   =================================== */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* High Contrast Support */
+@media (prefers-contrast: high) {
+  :root {
+    --th-maroon: #660000;
+    --th-yellow: #FFDD00;
+    --th-green: #006400;
+  }
+  
+  .btn-primary,
+  .navbar-dark {
+    border-width: 3px;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

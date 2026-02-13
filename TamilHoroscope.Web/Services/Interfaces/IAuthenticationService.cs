@@ -1,6 +1,6 @@
 using TamilHoroscope.Web.Data.Entities;
 
-namespace TamilHoroscope.Web.Services.Implementations;
+namespace TamilHoroscope.Web.Services.Interfaces;
 
 /// <summary>
 /// Interface for authentication service

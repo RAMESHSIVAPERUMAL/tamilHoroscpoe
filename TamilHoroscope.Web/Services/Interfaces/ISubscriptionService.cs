@@ -34,4 +34,10 @@ public interface ISubscriptionService
     /// Deactivates trial period for a user
     /// </summary>
     Task DeactivateTrialAsync(int userId);
+
+    /// <summary>
+    /// Checks and updates trial period based on wallet balance and last fee deduction
+    /// Activates 30-day trial if balance is zero and last deduction is not today
+    /// </summary>
+    Task CheckAndUpdateTrialStatusAsync(int userId);
 }

@@ -58,18 +58,26 @@ public class User
 
     /// <summary>
     /// Date when the trial period started
+    /// NULL if trial has never been activated
     /// </summary>
-    public DateTime TrialStartDate { get; set; } = DateTime.UtcNow;
+    public DateTime? TrialStartDate { get; set; }
 
     /// <summary>
     /// Date when the trial period ends
+    /// NULL if trial has never been activated or is not active
     /// </summary>
-    public DateTime TrialEndDate { get; set; }
+    public DateTime? TrialEndDate { get; set; }
 
     /// <summary>
     /// Whether the trial period is currently active
     /// </summary>
     public bool IsTrialActive { get; set; } = true;
+
+    /// <summary>
+    /// Last date when daily horoscope fee was deducted
+    /// Used to track if today's fee has been paid
+    /// </summary>
+    public DateTime? LastDailyFeeDeductionDate { get; set; }
 
     // Navigation properties
     public virtual Wallet? Wallet { get; set; }

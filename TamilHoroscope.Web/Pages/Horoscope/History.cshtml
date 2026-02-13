@@ -26,6 +26,15 @@
 
             @if (Model.Generations == null || !Model.Generations.Any())
             {
+                @if (!string.IsNullOrEmpty(Model.SearchPersonName) || Model.SearchBirthDate.HasValue || !string.IsNullOrEmpty(Model.SearchPlaceName))
+                {
+                    <div class="alert alert-warning">
+                        <i class="bi bi-search"></i> No horoscopes found matching your search criteria.
+                        <a asp-page="/Horoscope/History" class="alert-link">Clear filters</a>
+                    </div>
+                }
+                else
+                {
                 <div class="card">
                     <div class="card-body text-center py-5">
                         <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
@@ -38,9 +47,44 @@
                         </a>
                     </div>
                 </div>
+                }
             }
             else
             {
+                <!-- Search Form -->
+                <div class="card mb-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0"><i class="bi bi-search"></i> Search Horoscopes</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="get" asp-page="/Horoscope/History">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label asp-for="SearchPersonName" class="form-label">Person Name</label>
+                                    <input asp-for="SearchPersonName" class="form-control" placeholder="Enter name..."/>
+                                </div>
+                                <div class="col-md-4">
+                                    <label asp-for="SearchBirthDate" class="form-label">Birth Date</label>
+                                    <input asp-for="SearchBirthDate" type="date" class="form-control"/>
+                                </div>
+                                <div class="col-md-4">
+                                    <label asp-for="SearchPlaceName" class="form-label">Birth Place</label>
+                                    <input asp-for="SearchPlaceName" class="form-control" placeholder="Enter place..."/>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-search"></i> Search
+                                </button>
+                                <a asp-page="/Horoscope/History" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-circle"></i> Clear Filters
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Results Summary -->
                 <div class="card mb-4">
                     <div class="card-body">
                         <div class="row">
@@ -69,13 +113,13 @@
                                             @if (generation.WasTrialPeriod)
                                             {
                                                 <span class="badge bg-light text-dark">
-                                                    <i class="bi bi-gift"></i> Trial Period
+                                                    <i class="bi bi-gift"></i> Trial Version
                                                 </span>
                                             }
                                             else
                                             {
                                                 <span class="badge bg-light text-dark">
-                                                    <i class="bi bi-wallet2"></i> Paid (₹@generation.AmountDeducted.ToString("N2"))
+                                                    <i class="bi bi-wallet2"></i> Paid Version
                                                 </span>
                                             }
                                         </div>
@@ -84,7 +128,11 @@
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-3">
-                                            <h6 class="text-muted mb-1">Birth Date & Time</h6>
+                                            <h6 class="text-muted mb-1">Person Name</h6>
+                                            <p class="mb-2">
+                                                <i class="bi bi-person-fill"></i> <strong>@(generation.PersonName ?? "Not Specified")</strong>
+                                            </p>
+                                            <h6 class="text-muted mb-1 mt-2">Birth Date & Time</h6>
                                             <p class="mb-0">
                                                 <i class="bi bi-calendar3"></i> @generation.BirthDateTime.ToString("MMM dd, yyyy")
                                                 <br />

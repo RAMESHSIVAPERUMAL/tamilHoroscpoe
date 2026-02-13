@@ -2,17 +2,17 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using TamilHoroscope.Web.Services.Implementations;
+using AuthService = TamilHoroscope.Web.Services.Interfaces.IAuthenticationService;
 
 namespace TamilHoroscope.Web.Pages.Account;
 
 public class RegisterModel : PageModel
 {
-    private readonly IAuthenticationService _authService;
+    private readonly AuthService _authService;
     private readonly ILogger<RegisterModel> _logger;
 
     public RegisterModel(
-        IAuthenticationService authService,
+        AuthService authService,
         ILogger<RegisterModel> logger)
     {
         _authService = authService;

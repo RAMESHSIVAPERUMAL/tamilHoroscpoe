@@ -63,17 +63,20 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(u => u.TrialStartDate)
             .HasColumnName("TrialStartDate")
-            .IsRequired()
-            .HasDefaultValueSql("GETUTCDATE()");
+            .IsRequired(false);  // ? Allow NULL
 
         builder.Property(u => u.TrialEndDate)
             .HasColumnName("TrialEndDate")
-            .IsRequired();
+            .IsRequired(false);  // ? Allow NULL
 
         builder.Property(u => u.IsTrialActive)
             .HasColumnName("IsTrialActive")
             .IsRequired()
             .HasDefaultValue(true);
+
+        builder.Property(u => u.LastDailyFeeDeductionDate)
+            .HasColumnName("LastDailyFeeDeductionDate")
+            .IsRequired(false);  // ? Allow NULL
 
         // Indexes
         builder.HasIndex(u => u.Email)

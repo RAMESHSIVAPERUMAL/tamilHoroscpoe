@@ -58,6 +58,11 @@ namespace TamilHoroscope.Web.Migrations
                         .HasColumnType("decimal(10,6)")
                         .HasComment("Longitude of the birth location");
 
+                    b.Property<string>("PersonName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasComment("Person name for whom the horoscope was generated");
+
                     b.Property<string>("PlaceName")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)")

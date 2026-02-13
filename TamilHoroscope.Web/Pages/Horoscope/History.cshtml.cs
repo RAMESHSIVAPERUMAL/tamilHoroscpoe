@@ -57,6 +57,18 @@ public class HistoryModel : PageModel
     public string? ErrorMessage { get; set; }
 
     /// <summary>
+    /// Search filters
+    /// </summary>
+    [BindProperty(SupportsGet = true)]
+    public string? SearchPersonName { get; set; }
+
+    [BindProperty(SupportsGet = true)]
+    public DateTime? SearchBirthDate { get; set; }
+
+    [BindProperty(SupportsGet = true)]
+    public string? SearchPlaceName { get; set; }
+
+    /// <summary>
     /// Handles GET request to display history
     /// </summary>
     public async Task<IActionResult> OnGetAsync(int page = 1)
@@ -72,9 +84,21 @@ public class HistoryModel : PageModel
         {
             CurrentPage = page > 0 ? page : 1;
 
-            // Get generation history
-            Generations = await _horoscopeService.GetGenerationHistoryAsync(userId, CurrentPage, PageSize);
-            TotalCount = await _horoscopeService.GetGenerationCountAsync(userId);
+            // Get generation history with search filters
+            Generations = await _horoscopeService.GetGenerationHistoryAsync(
+                userId, 
+                CurrentPage, 
+                PageSize,
+                SearchPersonName,
+                SearchBirthDate,
+                SearchPlaceName);
+            
+            TotalCount = await _horoscopeService.GetGenerationCountAsync(
+                userId,
+                SearchPersonName,
+                SearchBirthDate,
+                SearchPlaceName);
+            
             TotalPages = (int)Math.Ceiling((double)TotalCount / PageSize);
 
             // Ensure current page is within bounds
@@ -128,19 +152,12 @@ public class HistoryModel : PageModel
                 return RedirectToPage();
             }
 
-            // Store the horoscope data in TempData to display on Generate page
-            TempData["RegeneratedHoroscope"] = System.Text.Json.JsonSerializer.Serialize(horoscope);
-            TempData["RegeneratedPersonName"] = "Historical Record"; // Default name for historical records
-            TempData["RegeneratedBirthDate"] = generation.BirthDateTime.ToString("yyyy-MM-dd");
-            TempData["RegeneratedBirthTime"] = generation.BirthDateTime.ToString("HH:mm");
-            TempData["RegeneratedPlaceName"] = generation.PlaceName;
-            TempData["RegeneratedLatitude"] = generation.Latitude.ToString();
-            TempData["RegeneratedLongitude"] = generation.Longitude.ToString();
-            TempData["RegeneratedTimeZoneOffset"] = "5.5"; // Default IST
-            TempData["RegeneratedIsTrialUser"] = isTrialUser;
+            // Instead of TempData, just pass the generation ID in the URL
+            // The Generate page will fetch the data from database
+            _logger.LogInformation("Redirecting to Generate page with generation ID {GenerationId} for user {UserId}", generation.GenerationId, userId);
 
-            // Redirect to Generate page to display the horoscope
-            return RedirectToPage("/Horoscope/Generate", new { regenerated = true });
+            // Redirect to Generate page with generation ID
+            return RedirectToPage("/Horoscope/Generate", new { generationId = generation.GenerationId });
         }
         catch (Exception ex)
         {

@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using TamilHoroscope.Web.Data;
 using TamilHoroscope.Web.Data.Entities;
+using TamilHoroscope.Web.Services.Interfaces;
 
 namespace TamilHoroscope.Web.Services.Implementations;
 
@@ -83,7 +84,7 @@ public class AuthenticationService : IAuthenticationService
                     }
                 }
 
-                // Create new user
+                // Create new user with initial 30-day trial
                 var user = new User
                 {
                     Email = normalizedEmail,
@@ -94,9 +95,10 @@ public class AuthenticationService : IAuthenticationService
                     IsEmailVerified = false,
                     IsMobileVerified = false,
                     IsActive = true,
-                    TrialStartDate = DateTime.UtcNow,
-                    TrialEndDate = DateTime.UtcNow.AddDays(30),
-                    IsTrialActive = true
+                    TrialStartDate = DateTime.UtcNow,      // Set initial trial start
+                    TrialEndDate = DateTime.UtcNow.AddDays(30),  // 30-day trial
+                    IsTrialActive = true,                   // Trial is active
+                    LastDailyFeeDeductionDate = null        // Never paid
                 };
 
                 _context.Users.Add(user);
@@ -145,14 +147,19 @@ public class AuthenticationService : IAuthenticationService
     /// </summary>
     public async Task<(bool Success, User? User)> AuthenticateAsync(string emailOrMobile, string password)
     {
+        _logger.LogInformation("=== AUTHENTICATION ATTEMPT START ===");
+        _logger.LogInformation("Input Email/Mobile: '{EmailOrMobile}'", emailOrMobile);
+        
         if (string.IsNullOrWhiteSpace(emailOrMobile) || string.IsNullOrWhiteSpace(password))
         {
+            _logger.LogWarning("Authentication failed: Empty email/mobile or password");
             return (false, null);
         }
 
         try
         {
             var normalizedInput = emailOrMobile.Trim().ToLower();
+            _logger.LogInformation("Normalized email to: '{NormalizedEmail}'", normalizedInput);
 
             var user = await _context.Users
                 .AsNoTracking()
@@ -160,21 +167,42 @@ public class AuthenticationService : IAuthenticationService
 
             if (user == null)
             {
-                _logger.LogWarning("Authentication failed: User not found for: {EmailOrMobile}", emailOrMobile);
+                _logger.LogWarning("Authentication failed: User not found for: '{EmailOrMobile}'", emailOrMobile);
+                
+                // Debug: Show what we're searching for
+                _logger.LogDebug("Searched for Email='{Email}' OR MobileNumber='{Mobile}'", 
+                    normalizedInput, emailOrMobile.Trim());
+                
+                // Debug: Count total users
+                var totalUsers = await _context.Users.CountAsync();
+                _logger.LogDebug("Total users in database: {Count}", totalUsers);
+                
                 return (false, null);
             }
 
+            _logger.LogInformation("User found: UserId={UserId}, Email={Email}", user.UserId, user.Email);
+
+            // Hash the input password for comparison
+            var inputPasswordHash = HashPassword(password);
+            _logger.LogDebug("Input password hash: {Hash}", inputPasswordHash);
+            _logger.LogDebug("Database password hash: {Hash}", user.PasswordHash);
+            
             if (!VerifyPassword(password, user.PasswordHash))
             {
                 _logger.LogWarning("Authentication failed: Invalid password for UserId: {UserId}", user.UserId);
+                _logger.LogDebug("Password hashes do NOT match");
                 return (false, null);
             }
+
+            _logger.LogInformation("Password verified successfully for UserId: {UserId}", user.UserId);
 
             if (!user.IsActive)
             {
                 _logger.LogWarning("Authentication failed: Account inactive for UserId: {UserId}", user.UserId);
                 return (false, null);
             }
+
+            _logger.LogInformation("Account is active for UserId: {UserId}", user.UserId);
 
             // Update last login date using execution strategy
             var strategy = _context.Database.CreateExecutionStrategy();
@@ -187,6 +215,7 @@ public class AuthenticationService : IAuthenticationService
                     {
                         userToUpdate.LastLoginDate = DateTime.UtcNow;
                         await _context.SaveChangesAsync();
+                        _logger.LogDebug("Updated last login date for UserId: {UserId}", user.UserId);
                     }
                 }
                 catch (Exception ex)
@@ -196,12 +225,12 @@ public class AuthenticationService : IAuthenticationService
                 }
             });
 
-            _logger.LogInformation("Authentication successful for UserId: {UserId}", user.UserId);
+            _logger.LogInformation("=== AUTHENTICATION SUCCESSFUL for UserId: {UserId} ===", user.UserId);
             return (true, user);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error during authentication");
+            _logger.LogError(ex, "Unexpected error during authentication for: '{EmailOrMobile}'", emailOrMobile);
             return (false, null);
         }
     }

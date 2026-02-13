@@ -40,24 +40,12 @@ public class HoroscopeService : IHoroscopeService
         double latitude,
         double longitude,
         double timeZoneOffset,
-        string? placeName = null)
+        string? placeName = null,
+        string? personName = null)
     {
         try
         {
-            // Step 1: Check if user has already generated a horoscope today
-            var todaysGeneration = await GetTodaysGenerationAsync(userId);
-            if (todaysGeneration != null)
-            {
-                _logger.LogInformation("User {UserId} already generated horoscope today. Returning cached result.", userId);
-                
-                // Regenerate horoscope from saved parameters
-                var isTrialUser = await _subscriptionService.IsUserInTrialAsync(userId);
-                var cachedHoroscope = await RegenerateHoroscopeAsync(todaysGeneration, isTrialUser);
-                
-                return (cachedHoroscope, todaysGeneration, null);
-            }
-
-            // Step 2: Check rate limiting
+            // Step 1: Check rate limiting
             var todayCount = await GetTodayGenerationCountAsync(userId);
             var maxPerDay = await _configService.GetMaxHoroscopesPerDayAsync();
             if (todayCount >= maxPerDay)
@@ -65,8 +53,21 @@ public class HoroscopeService : IHoroscopeService
                 return (null, null, $"Daily limit reached. You can generate a maximum of {maxPerDay} horoscopes per day.");
             }
 
-            // Step 3: Check trial status
+            // Step 2: Get user to check last fee deduction date
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return (null, null, "User not found.");
+            }
+
+            // Step 3: Check if today's fee has been deducted
+            var today = DateTime.UtcNow.Date;
+            var hasPaidToday = user.LastDailyFeeDeductionDate?.Date == today;
+
+            // Step 4: Determine if user should be treated as trial or paid
             var isInTrial = await _subscriptionService.IsUserInTrialAsync(userId);
+            var treatAsTrial = isInTrial || !hasPaidToday; // Treat as trial if not paid today
+            
             var perDayCost = await _configService.GetPerDayCostAsync();
             var amountDeducted = 0m;
 
@@ -75,51 +76,70 @@ public class HoroscopeService : IHoroscopeService
                 // Trial period: No charge, limited features
                 _logger.LogInformation("User {UserId} is in trial period. Generating limited horoscope with no charge.", userId);
             }
-            else
+            else if (!hasPaidToday)
             {
-                // Paid subscription: Check wallet balance and deduct
+                // Not in trial but haven't paid today - deduct daily fee
                 var hasSufficientBalance = await _walletService.HasSufficientBalanceAsync(userId, perDayCost);
                 if (!hasSufficientBalance)
                 {
                     var balance = await _walletService.GetBalanceAsync(userId);
-                    return (null, null, $"Insufficient wallet balance. Current balance: ₹{balance:F2}, Required: ₹{perDayCost:F2}. Please top up your wallet.");
+                    _logger.LogWarning("User {UserId} has insufficient balance. Balance: ₹{Balance}, Required: ₹{Required}", 
+                        userId, balance, perDayCost);
+                    
+                    // Insufficient balance - treat as trial for today
+                    treatAsTrial = true;
+                    _logger.LogInformation("User {UserId} insufficient balance. Generating as trial for today.", userId);
                 }
+                else
+                {
+                    // Deduct amount
+                    await _walletService.DeductFundsAsync(userId, perDayCost, "Daily horoscope generation fee");
+                    amountDeducted = perDayCost;
 
-                // Deduct amount
-                await _walletService.DeductFundsAsync(userId, perDayCost, "Daily horoscope generation fee");
-                amountDeducted = perDayCost;
+                    // Update last fee deduction date
+                    user.LastDailyFeeDeductionDate = today;
+                    await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Deducted ₹{Amount} from user {UserId} for horoscope generation.", perDayCost, userId);
+                    treatAsTrial = false; // Paid successfully
+                    _logger.LogInformation("Deducted ₹{Amount} from user {UserId} for daily horoscope generation fee.", perDayCost, userId);
+                }
+            }
+            else
+            {
+                // Already paid today - no charge, full features
+                _logger.LogInformation("User {UserId} already paid today's fee. Generating full-featured horoscope.", userId);
+                treatAsTrial = false;
             }
 
-            // Step 4: Calculate horoscope
+            // Step 5: Calculate horoscope
             var horoscope = await CalculateHoroscopeInternalAsync(
                 birthDateTime,
                 latitude,
                 longitude,
                 timeZoneOffset,
                 placeName,
-                isInTrial);
+                treatAsTrial);
 
-            // Step 5: Record generation
+            // Step 6: Record generation
             var generation = new HoroscopeGeneration
             {
                 UserId = userId,
                 GenerationDate = DateTime.UtcNow.Date, // Store date only
+                PersonName = personName,
                 BirthDateTime = birthDateTime,
                 PlaceName = placeName,
                 Latitude = (decimal)latitude,
                 Longitude = (decimal)longitude,
                 AmountDeducted = amountDeducted,
-                WasTrialPeriod = isInTrial,
+                WasTrialPeriod = treatAsTrial,
                 CreatedDateTime = DateTime.UtcNow
             };
 
             _context.HoroscopeGenerations.Add(generation);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Horoscope generated successfully for user {UserId}. Trial: {IsTrial}, Amount: ₹{Amount}",
-                userId, isInTrial, amountDeducted);
+            _logger.LogInformation("Horoscope generated successfully for user {UserId}. TreatAsTrial: {TreatAsTrial}, Amount: ₹{Amount}",
+                userId, treatAsTrial, amountDeducted);
 
             return (horoscope, generation, null);
         }
@@ -140,10 +160,34 @@ public class HoroscopeService : IHoroscopeService
             .FirstOrDefaultAsync();
     }
 
-    public async Task<List<HoroscopeGeneration>> GetGenerationHistoryAsync(int userId, int pageNumber = 1, int pageSize = 20)
+    public async Task<List<HoroscopeGeneration>> GetGenerationHistoryAsync(
+        int userId, 
+        int pageNumber = 1, 
+        int pageSize = 20,
+        string? searchPersonName = null,
+        DateTime? searchBirthDate = null,
+        string? searchPlaceName = null)
     {
-        return await _context.HoroscopeGenerations
-            .Where(h => h.UserId == userId)
+        var query = _context.HoroscopeGenerations
+            .Where(h => h.UserId == userId);
+
+        // Apply search filters
+        if (!string.IsNullOrWhiteSpace(searchPersonName))
+        {
+            query = query.Where(h => h.PersonName != null && h.PersonName.Contains(searchPersonName));
+        }
+
+        if (searchBirthDate.HasValue)
+        {
+            query = query.Where(h => h.BirthDateTime.Date == searchBirthDate.Value.Date);
+        }
+
+        if (!string.IsNullOrWhiteSpace(searchPlaceName))
+        {
+            query = query.Where(h => h.PlaceName != null && h.PlaceName.Contains(searchPlaceName));
+        }
+
+        return await query
             .OrderByDescending(h => h.CreatedDateTime)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
@@ -157,10 +201,32 @@ public class HoroscopeService : IHoroscopeService
             .FirstOrDefaultAsync();
     }
 
-    public async Task<int> GetGenerationCountAsync(int userId)
+    public async Task<int> GetGenerationCountAsync(
+        int userId,
+        string? searchPersonName = null,
+        DateTime? searchBirthDate = null,
+        string? searchPlaceName = null)
     {
-        return await _context.HoroscopeGenerations
-            .CountAsync(h => h.UserId == userId);
+        var query = _context.HoroscopeGenerations
+            .Where(h => h.UserId == userId);
+
+        // Apply search filters
+        if (!string.IsNullOrWhiteSpace(searchPersonName))
+        {
+            query = query.Where(h => h.PersonName != null && h.PersonName.Contains(searchPersonName));
+        }
+
+        if (searchBirthDate.HasValue)
+        {
+        query = query.Where(h => h.BirthDateTime.Date == searchBirthDate.Value.Date);
+        }
+
+        if (!string.IsNullOrWhiteSpace(searchPlaceName))
+        {
+            query = query.Where(h => h.PlaceName != null && h.PlaceName.Contains(searchPlaceName));
+        }
+
+        return await query.CountAsync();
     }
 
     public async Task<int> GetTodayGenerationCountAsync(int userId)
@@ -169,6 +235,18 @@ public class HoroscopeService : IHoroscopeService
 
         return await _context.HoroscopeGenerations
             .CountAsync(h => h.UserId == userId && h.GenerationDate == today);
+    }
+
+    public async Task<bool> HasPaidTodayAsync(int userId)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+        {
+            return false;
+        }
+
+        var today = DateTime.UtcNow.Date;
+        return user.LastDailyFeeDeductionDate?.Date == today;
     }
 
     public async Task<HoroscopeData?> RegenerateHoroscopeAsync(HoroscopeGeneration generation, bool isTrialUser)

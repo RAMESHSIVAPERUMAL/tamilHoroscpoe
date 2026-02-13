@@ -21,6 +21,11 @@ public class HoroscopeGeneration
     public DateTime GenerationDate { get; set; }
 
     /// <summary>
+    /// Person name for whom the horoscope was generated
+    /// </summary>
+    public string? PersonName { get; set; }
+
+    /// <summary>
     /// Birth date and time for the horoscope
     /// </summary>
     public DateTime BirthDateTime { get; set; }

@@ -24,6 +24,11 @@ public class HoroscopeGenerationConfiguration : IEntityTypeConfiguration<Horosco
             .IsRequired()
             .HasComment("Birth date and time for the horoscope");
 
+        builder.Property(h => h.PersonName)
+            .HasMaxLength(100)
+            .IsRequired(false)
+            .HasComment("Person name for whom the horoscope was generated");
+
         builder.Property(h => h.PlaceName)
             .HasMaxLength(200)
             .IsRequired(false)

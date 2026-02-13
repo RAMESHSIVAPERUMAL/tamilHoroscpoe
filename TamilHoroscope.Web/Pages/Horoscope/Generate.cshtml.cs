@@ -66,78 +66,60 @@ public class GenerateModel : PageModel
     public bool IsTrialUser { get; set; }
     public string? ErrorMessage { get; set; }
 
-    public async Task<IActionResult> OnGetAsync(bool regenerated = false)
+    public async Task<IActionResult> OnGetAsync(int? generationId = null)
     {
+        // Check authentication using Session (consistent with History page)
+        var userIdStr = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out var userId))
+        {
+            _logger.LogWarning("User not authenticated via session, redirecting to login");
+            return RedirectToPage("/Account/Login", new { returnUrl = Request.Path + Request.QueryString });
+        }
+
         // Check if we're displaying a regenerated horoscope from history
-        if (regenerated && TempData.ContainsKey("RegeneratedHoroscope"))
+        if (generationId.HasValue)
         {
             try
             {
-                // Deserialize the horoscope data from TempData
-                var horoscopeJson = TempData["RegeneratedHoroscope"]?.ToString();
-                if (!string.IsNullOrEmpty(horoscopeJson))
+                _logger.LogInformation("Loading horoscope from generation ID {GenerationId} for user {UserId}", generationId.Value, userId);
+
+                // Get the generation record by ID
+                var generation = await _horoscopeService.GetGenerationByIdAsync(userId, generationId.Value);
+
+                if (generation == null)
                 {
-                    Horoscope = System.Text.Json.JsonSerializer.Deserialize<HoroscopeData>(horoscopeJson);
+                    ErrorMessage = "Horoscope not found.";
+                    _logger.LogWarning("Generation {GenerationId} not found for user {UserId}", generationId.Value, userId);
+                    return Page();
                 }
 
-                // Restore PersonName
-                PersonName = TempData["RegeneratedPersonName"]?.ToString() ?? "Historical Record";
+                // Check if user is currently in trial
+                IsTrialUser = await _subscriptionService.IsUserInTrialAsync(userId);
 
-                // Restore form fields
-                if (TempData.ContainsKey("RegeneratedBirthDate"))
+                // Regenerate the horoscope (no charge)
+                Horoscope = await _horoscopeService.RegenerateHoroscopeAsync(generation, IsTrialUser);
+
+                if (Horoscope == null)
                 {
-                    if (DateTime.TryParse(TempData["RegeneratedBirthDate"]?.ToString(), out var birthDate))
-                    {
-                        BirthDate = birthDate;
-                    }
+                    ErrorMessage = "Failed to regenerate horoscope. Please try again.";
+                    _logger.LogWarning("Failed to regenerate horoscope for generation {GenerationId}", generationId.Value);
+                    return Page();
                 }
 
-                if (TempData.ContainsKey("RegeneratedBirthTime"))
-                {
-                    if (TimeSpan.TryParse(TempData["RegeneratedBirthTime"]?.ToString(), out var birthTime))
-                    {
-                        BirthTime = birthTime;
-                    }
-                }
+                // Restore form fields from generation
+                PersonName = generation.PersonName ?? "Historical Record";
+                BirthDate = generation.BirthDateTime.Date;
+                BirthTime = generation.BirthDateTime.TimeOfDay;
+                PlaceName = generation.PlaceName;
+                Latitude = (double)generation.Latitude;
+                Longitude = (double)generation.Longitude;
+                TimeZoneOffset = 5.5; // Default IST
 
-                PlaceName = TempData["RegeneratedPlaceName"]?.ToString();
-                
-                if (TempData.ContainsKey("RegeneratedLatitude") && 
-                    double.TryParse(TempData["RegeneratedLatitude"]?.ToString(), out var lat))
-                {
-                    Latitude = lat;
-                }
-
-                if (TempData.ContainsKey("RegeneratedLongitude") && 
-                    double.TryParse(TempData["RegeneratedLongitude"]?.ToString(), out var lon))
-                {
-                    Longitude = lon;
-                }
-
-                if (TempData.ContainsKey("RegeneratedTimeZoneOffset") && 
-                    double.TryParse(TempData["RegeneratedTimeZoneOffset"]?.ToString(), out var tz))
-                {
-                    TimeZoneOffset = tz;
-                }
-
-                if (TempData.ContainsKey("RegeneratedIsTrialUser") && 
-                    bool.TryParse(TempData["RegeneratedIsTrialUser"]?.ToString(), out var isTrial))
-                {
-                    IsTrialUser = isTrial;
-                }
-
-                // Get user ID to check trial status (if not already set)
-                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out var userId))
-                {
-                    IsTrialUser = await _subscriptionService.IsUserInTrialAsync(userId);
-                }
-
-                _logger.LogInformation("Displaying regenerated horoscope from history");
+                _logger.LogInformation("Successfully loaded and regenerated horoscope for generation {GenerationId}, user {UserId}", generationId.Value, userId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading regenerated horoscope from TempData");
+                _logger.LogError(ex, "Error loading horoscope from generation ID {GenerationId} for user {UserId}", generationId.Value, userId);
                 ErrorMessage = "Error loading horoscope. Please try again.";
             }
         }
@@ -147,9 +129,11 @@ public class GenerateModel : PageModel
 
     public async Task<IActionResult> OnPostAsync()
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+        // Check authentication using Session (consistent with History page)
+        var userIdStr = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out var userId))
         {
+            _logger.LogWarning("User not authenticated via session during POST, redirecting to login");
             return RedirectToPage("/Account/Login");
         }
 
@@ -170,7 +154,8 @@ public class GenerateModel : PageModel
                 Latitude,
                 Longitude,
                 TimeZoneOffset,
-                PlaceName);
+                PlaceName,
+                PersonName);
 
             if (!string.IsNullOrEmpty(errorMessage))
             {

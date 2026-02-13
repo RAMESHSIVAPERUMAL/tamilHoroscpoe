@@ -4,19 +4,24 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TamilHoroscope.Web.Services.Interfaces;
+using AuthService = TamilHoroscope.Web.Services.Interfaces.IAuthenticationService;
 
 namespace TamilHoroscope.Web.Pages.Account;
 
 public class LoginModel : PageModel
 {
-    private readonly Services.Implementations.IAuthenticationService _authService;
+    private readonly AuthService _authService;
+    private readonly ISubscriptionService _subscriptionService;
     private readonly ILogger<LoginModel> _logger;
 
     public LoginModel(
-        Services.Implementations.IAuthenticationService authService,
+        AuthService authService,
+        ISubscriptionService subscriptionService,
         ILogger<LoginModel> logger)
     {
         _authService = authService;
+        _subscriptionService = subscriptionService;
         _logger = logger;
     }
 
@@ -99,6 +104,18 @@ public class LoginModel : PageModel
             HttpContext.Session.SetString("UserFullName", user.FullName);
 
             _logger.LogInformation("User {UserId} logged in successfully", user.UserId);
+
+            // ? CHECK AND UPDATE TRIAL STATUS AFTER LOGIN
+            try
+            {
+                await _subscriptionService.CheckAndUpdateTrialStatusAsync(user.UserId);
+                _logger.LogInformation("Trial status checked and updated for user {UserId}", user.UserId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking trial status for user {UserId}", user.UserId);
+                // Don't fail login if trial check fails
+            }
 
             // Validate and redirect to return URL or home page
             if (!string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl))
