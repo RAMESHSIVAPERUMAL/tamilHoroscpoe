@@ -4,7 +4,7 @@
 --              for whom the horoscope was generated
 -- =============================================
 
-USE [TamilHoroscopeDB];
+USE [TamilHoroscope];
 GO
 
 -- Check if the column already exists

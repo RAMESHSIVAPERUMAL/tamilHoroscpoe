@@ -211,7 +211,7 @@ Key Method: `GenerateHoroscopeAsync()`
 dotnet ef database update
 
 # Option 2: SQL Script
-USE [TamilHoroscopeDB];
+USE [TamilHoroscope];
 ALTER TABLE HoroscopeGenerations ADD PersonName NVARCHAR(100) NULL;
 ```
 

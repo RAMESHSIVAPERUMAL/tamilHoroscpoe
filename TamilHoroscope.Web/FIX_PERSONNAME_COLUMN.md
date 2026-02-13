@@ -15,7 +15,7 @@ dotnet ef database update
 
 ### Method 2: SQL Script
 ```sql
-USE [TamilHoroscopeDB];
+USE [TamilHoroscope];
 ALTER TABLE [HoroscopeGenerations] ADD [PersonName] NVARCHAR(100) NULL;
 ```
 

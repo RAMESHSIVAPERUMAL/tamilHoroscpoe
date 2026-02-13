@@ -10,13 +10,13 @@ A complete web application for generating and managing Tamil/Vedic astrology hor
 
 ```bash
 # 1. Create database
-sqlcmd -S localhost -Q "CREATE DATABASE TamilHoroscopeDB"
+sqlcmd -S localhost -Q "CREATE DATABASE TamilHoroscope"
 
 # 2. Run SQL scripts
 cd Database/Scripts
-sqlcmd -S localhost -d TamilHoroscopeDB -i 01_CreateTables.sql
-sqlcmd -S localhost -d TamilHoroscopeDB -i 02_CreateIndexes.sql
-sqlcmd -S localhost -d TamilHoroscopeDB -i 03_SeedData.sql
+sqlcmd -S localhost -d TamilHoroscope -i 01_CreateTables.sql
+sqlcmd -S localhost -d TamilHoroscope -i 02_CreateIndexes.sql
+sqlcmd -S localhost -d TamilHoroscope -i 03_SeedData.sql
 
 # 3. Update connection string in appsettings.json
 
@@ -89,14 +89,12 @@ TamilHoroscope.Web/
 
 ## ?? Documentation
 
-### Primary Documentation
-- **[DOCUMENTATION.md](DOCUMENTATION.md)** - Complete technical documentation (AI-friendly)
+### Essential Documentation
+- **[MASTER_DOCUMENTATION.md](MASTER_DOCUMENTATION.md)** - Complete project guide (start here!)
+- **[QUICK_START.md](QUICK_START.md)** - Quick reference and common commands
+- **[FIX_PERSONNAME_COLUMN.md](FIX_PERSONNAME_COLUMN.md)** - Current fix guide
 
-### Feature-Specific Docs
-- **[FIXES_SUMMARY.md](FIXES_SUMMARY.md)** - Recent bug fixes and implementations
-- **[HISTORY_VIEW_FIX.md](HISTORY_VIEW_FIX.md)** - "View Again" functionality
-- **[RASI_CHART_IMPLEMENTATION.md](RASI_CHART_IMPLEMENTATION.md)** - Visual chart rendering
-- **[BALANCE_FUNCTIONALITY_IMPLEMENTATION.md](BALANCE_FUNCTIONALITY_IMPLEMENTATION.md)** - Wallet system
+All documentation is written in simple English and is both human-friendly and AI-friendly.
 
 ---
 
@@ -133,7 +131,7 @@ User generates horoscope:
 4. `HoroscopeGenerations` - Generated horoscopes tracking
 5. `SystemConfig` - App configuration (pricing, limits)
 
-**See**: [DOCUMENTATION.md#database-schema](DOCUMENTATION.md#database-schema) for details
+**See**: [MASTER_DOCUMENTATION.md#database-schema](MASTER_DOCUMENTATION.md#database) for details
 
 ### Configuration
 
@@ -142,7 +140,7 @@ Edit `appsettings.json`:
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Database=TamilHoroscopeDB;Trusted_Connection=true;TrustServerCertificate=true"
+    "DefaultConnection": "Server=localhost;Database=TamilHoroscope;Trusted_Connection=true;TrustServerCertificate=true"
   }
 }
 ```
@@ -188,11 +186,16 @@ dotnet build
 - Check password requirements (8+ chars, uppercase, lowercase, digit)
 - Verify Identity tables exist
 
-**See**: [DOCUMENTATION.md#troubleshooting-guide](DOCUMENTATION.md#troubleshooting-guide)
+**See**: [MASTER_DOCUMENTATION.md#troubleshooting](MASTER_DOCUMENTATION.md#troubleshooting)
 
 ---
 
 ## ?? Recent Updates
+
+### February 2024
+- ? Fixed PersonName column missing error
+- ? Consolidated documentation (4 clean files)
+- ? Removed 32+ redundant documentation files
 
 ### January 2024
 - ? Fixed logout from Generate page
@@ -202,15 +205,16 @@ dotnet build
 - ? Added South Indian style Rasi & Navamsa charts
 - ? Wallet and balance management complete
 
-**See**: [FIXES_SUMMARY.md](FIXES_SUMMARY.md) for detailed changelog
+**See**: [MASTER_DOCUMENTATION.md](MASTER_DOCUMENTATION.md) for detailed information
 
 ---
 
 ## ?? Support
 
-- **Documentation**: See [DOCUMENTATION.md](DOCUMENTATION.md)
-- **Issues**: Check troubleshooting guide
-- **Database**: Review `Database/Scripts/README.md`
+- **Documentation**: Start with [MASTER_DOCUMENTATION.md](MASTER_DOCUMENTATION.md)
+- **Quick Reference**: See [QUICK_START.md](QUICK_START.md)
+- **Current Fix**: See [FIX_PERSONNAME_COLUMN.md](FIX_PERSONNAME_COLUMN.md)
+- **Database Setup**: Review `Database/Scripts/README.md`
 
 ---
 
