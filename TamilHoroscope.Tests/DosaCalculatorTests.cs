@@ -146,7 +146,7 @@ public class DosaCalculatorTests
         // Arrange
         var horoscope = CreateTestHoroscope();
         horoscope.Planets.First(p => p.Name == "Jupiter").House = 1;
-        horoscope.Planets.First(p => p.Name == "Moon").House = 7; // 6th from Jupiter (wraps around)
+        horoscope.Planets.First(p => p.Name == "Moon").House = 6; // 6th from Jupiter (forward count: 1->2->3->4->5->6)
 
         var calculator = new DosaCalculator();
 

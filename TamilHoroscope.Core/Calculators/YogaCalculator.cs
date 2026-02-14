@@ -43,11 +43,19 @@ public class YogaCalculator
 
         if (moon == null || jupiter == null) return;
 
-        int rasiDiff = Math.Abs(jupiter.Rasi - moon.Rasi);
-        if (rasiDiff > 6) rasiDiff = 12 - rasiDiff;
+        // Calculate which house Jupiter occupies counting from Moon's rasi
+        int houseFromMoon;
+        if (jupiter.Rasi >= moon.Rasi)
+        {
+            houseFromMoon = jupiter.Rasi - moon.Rasi + 1;
+        }
+        else
+        {
+            houseFromMoon = 12 - moon.Rasi + jupiter.Rasi + 1;
+        }
 
         // Check if Jupiter is in kendra from Moon (1st, 4th, 7th, 10th house)
-        if (rasiDiff == 0 || rasiDiff == 3 || rasiDiff == 6 || rasiDiff == 9)
+        if (houseFromMoon == 1 || houseFromMoon == 4 || houseFromMoon == 7 || houseFromMoon == 10)
         {
             var yoga = new YogaData
             {
@@ -57,7 +65,7 @@ public class YogaCalculator
                 InvolvedPlanets = new List<string> { "Jupiter", "Moon" },
                 InvolvedHouses = new List<int> { moon.House, jupiter.House },
                 IsBeneficial = true,
-                Strength = rasiDiff == 0 ? 10 : 8
+                Strength = houseFromMoon == 1 ? 10 : 8
             };
             yogas.Add(yoga);
         }

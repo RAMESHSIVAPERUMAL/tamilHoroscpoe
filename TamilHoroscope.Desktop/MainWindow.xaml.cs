@@ -229,14 +229,12 @@ public partial class MainWindow : Window
             bool includeYoga = chkDetectYogas.IsChecked == true;
             bool includeDosa = chkDetectDosas.IsChecked == true;
             
-            string language = cmbLanguage.SelectedIndex switch
+            // Get language from Tag property for more maintainable code
+            string language = "Tamil";
+            if (cmbLanguage.SelectedItem is ComboBoxItem selectedItem && selectedItem.Tag is string tag)
             {
-                0 => "Tamil",
-                1 => "Telugu",
-                2 => "Kannada",
-                3 => "Malayalam",
-                _ => "Tamil"
-            };
+                language = tag;
+            }
             
             int dasaYears = cmbDasaYears.SelectedIndex switch
             {

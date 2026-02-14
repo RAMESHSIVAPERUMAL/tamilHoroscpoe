@@ -294,10 +294,10 @@
                                       SelectedIndex="0"
                                       Margin="0,0,0,10"
                                       ToolTip="Select language for yoga and dosha names">
-                                <ComboBoxItem Content="Tamil / தமிழ்"/>
-                                <ComboBoxItem Content="Telugu / తెలుగు"/>
-                                <ComboBoxItem Content="Kannada / ಕನ್ನಡ"/>
-                                <ComboBoxItem Content="Malayalam / മലയാളം"/>
+                                <ComboBoxItem Content="Tamil / தமிழ்" Tag="Tamil"/>
+                                <ComboBoxItem Content="Telugu / తెలుగు" Tag="Telugu"/>
+                                <ComboBoxItem Content="Kannada / ಕನ್ನಡ" Tag="Kannada"/>
+                                <ComboBoxItem Content="Malayalam / മലയാളം" Tag="Malayalam"/>
                             </ComboBox>
                         </StackPanel>
                     </Expander>

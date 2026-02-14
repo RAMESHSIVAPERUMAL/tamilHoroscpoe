@@ -220,7 +220,7 @@ public class DosaCalculator
 
     /// <summary>
     /// Check for Shakat Dosha (Jupiter-Moon affliction)
-    /// Moon in 6th, 8th, or 12th from Jupiter
+    /// Moon in 6th, 8th from Jupiter (12th is not traditionally counted for Shakat)
     /// </summary>
     private void CheckShakatDosha(HoroscopeData horoscope, List<DosaData> dosas, string language)
     {
@@ -229,17 +229,25 @@ public class DosaCalculator
 
         if (moon == null || jupiter == null) return;
 
-        int houseDiff = moon.House - jupiter.House;
-        if (houseDiff < 0) houseDiff += 12;
+        // Calculate which house Moon occupies counting from Jupiter
+        int houseFromJupiter;
+        if (moon.House >= jupiter.House)
+        {
+            houseFromJupiter = moon.House - jupiter.House + 1;
+        }
+        else
+        {
+            houseFromJupiter = 12 - jupiter.House + moon.House + 1;
+        }
 
-        // Check if Moon is in 6th, 8th, or 12th from Jupiter
-        if (houseDiff == 6 || houseDiff == 8 || houseDiff == 12)
+        // Check if Moon is in 6th or 8th from Jupiter
+        if (houseFromJupiter == 6 || houseFromJupiter == 8)
         {
             var dosa = new DosaData
             {
                 Name = "Shakat Dosha",
                 LocalName = GetDosaLocalName("Shakat Dosha", language),
-                Description = $"Moon in {houseDiff}th house from Jupiter. May cause financial instability and ups and downs in life.",
+                Description = $"Moon in {houseFromJupiter}th house from Jupiter. May cause financial instability and ups and downs in life.",
                 InvolvedPlanets = new List<string> { "Moon", "Jupiter" },
                 InvolvedHouses = new List<int> { moon.House, jupiter.House },
                 Severity = 6,
@@ -305,29 +313,37 @@ public class DosaCalculator
 
     private bool IsAspecting(PlanetData planet1, PlanetData planet2)
     {
-        int houseDiff = Math.Abs(planet1.House - planet2.House);
-        if (houseDiff > 6) houseDiff = 12 - houseDiff;
+        // Calculate which house planet2 occupies counting from planet1
+        int houseFromPlanet1;
+        if (planet2.House >= planet1.House)
+        {
+            houseFromPlanet1 = planet2.House - planet1.House + 1;
+        }
+        else
+        {
+            houseFromPlanet1 = 12 - planet1.House + planet2.House + 1;
+        }
 
         // Jupiter aspects 5th, 7th, and 9th houses from itself
         if (planet1.Name == "Jupiter")
         {
-            return houseDiff == 5 || houseDiff == 7 || houseDiff == 9;
+            return houseFromPlanet1 == 5 || houseFromPlanet1 == 7 || houseFromPlanet1 == 9;
         }
 
         // Saturn aspects 3rd, 7th, and 10th houses from itself
         if (planet1.Name == "Saturn")
         {
-            return houseDiff == 3 || houseDiff == 7 || houseDiff == 10;
+            return houseFromPlanet1 == 3 || houseFromPlanet1 == 7 || houseFromPlanet1 == 10;
         }
 
         // Mars aspects 4th, 7th, and 8th houses from itself
         if (planet1.Name == "Mars")
         {
-            return houseDiff == 4 || houseDiff == 7 || houseDiff == 8;
+            return houseFromPlanet1 == 4 || houseFromPlanet1 == 7 || houseFromPlanet1 == 8;
         }
 
         // All planets have 7th house aspect
-        return houseDiff == 7;
+        return houseFromPlanet1 == 7;
     }
 
     private bool IsBetweenRahuKetu(int planetHouse, int rahuHouse, int ketuHouse)
