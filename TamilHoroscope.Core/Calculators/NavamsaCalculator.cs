@@ -63,8 +63,9 @@ public class NavamsaCalculator
     /// Calculate Navamsa chart for all planets
     /// </summary>
     /// <param name="planets">List of planet data from natal chart</param>
+    /// <param name="language">Language for localized names (Tamil, Telugu, Kannada, Malayalam)</param>
     /// <returns>List of planet data with Navamsa positions</returns>
-    public List<PlanetData> CalculateNavamsaChart(List<PlanetData> planets)
+    public List<PlanetData> CalculateNavamsaChart(List<PlanetData> planets, string language = "Tamil")
     {
         var navamsaPlanets = new List<PlanetData>();
         
@@ -76,7 +77,10 @@ public class NavamsaCalculator
             var navamsaPlanet = new PlanetData
             {
                 Name = planet.Name,
+                Language = language, // Set language for dynamic localization
+#pragma warning disable CS0618
                 TamilName = planet.TamilName,
+#pragma warning restore CS0618
                 Longitude = navamsaLongitude,
                 Latitude = planet.Latitude, // Latitude remains same
                 Rasi = GetRasiNumber(navamsaLongitude),
@@ -87,12 +91,16 @@ public class NavamsaCalculator
             // Set Rasi names
             var rasiInfo = TamilNames.Rasis[navamsaPlanet.Rasi];
             navamsaPlanet.RasiName = rasiInfo.English;
+#pragma warning disable CS0618
             navamsaPlanet.TamilRasiName = rasiInfo.Tamil;
+#pragma warning restore CS0618
             
             // Set Nakshatra names
             var nakshatraInfo = TamilNames.Nakshatras[navamsaPlanet.Nakshatra];
             navamsaPlanet.NakshatraName = nakshatraInfo.English;
+#pragma warning disable CS0618
             navamsaPlanet.TamilNakshatraName = nakshatraInfo.Tamil;
+#pragma warning restore CS0618
             
             // Note: House is not calculated for Navamsa as it's based on Navamsa Lagna
             // which would need to be calculated separately

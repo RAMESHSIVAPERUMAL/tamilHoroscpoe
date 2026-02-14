@@ -38,7 +38,9 @@ public class PlanetStrengthCalculator
     /// Calculate Shadbala for all planets (excluding Rahu and Ketu).
     /// Returns results in Rupas with individual components.
     /// </summary>
-    public List<PlanetStrengthData> CalculatePlanetaryStrengths(HoroscopeData horoscope)
+    /// <param name="horoscope">Horoscope data</param>
+    /// <param name="language">Language for localized names (Tamil, Telugu, Kannada, Malayalam)</param>
+    public List<PlanetStrengthData> CalculatePlanetaryStrengths(HoroscopeData horoscope, string language = "Tamil")
     {
         var strengths = new List<PlanetStrengthData>();
 
@@ -47,7 +49,10 @@ public class PlanetStrengthCalculator
             var strength = new PlanetStrengthData
             {
                 Name = planet.Name,
+                Language = language,
+#pragma warning disable CS0618
                 TamilName = planet.TamilName,
+#pragma warning restore CS0618
                 RequiredStrength = RequiredStrengths.GetValueOrDefault(planet.Name, 5.0)
             };
 

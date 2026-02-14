@@ -26,6 +26,9 @@ public partial class NavamsaChartControl : UserControl
             return;
         }
 
+        // Get language from horoscope planets (fallback to Tamil if not set)
+        string language = horoscope.NavamsaPlanets.Any() ? horoscope.NavamsaPlanets.First().Language : "Tamil";
+
         // Define chart dimensions (4x4 grid layout)
         double boxSize = 100; // Each box is 100x100
         
@@ -48,7 +51,7 @@ public partial class NavamsaChartControl : UserControl
         // Group Navamsa planets by their Rasi
         foreach (var planet in horoscope.NavamsaPlanets)
         {
-            rasiToPlanets[planet.Rasi].Add(GetPlanetAbbreviation(planet.Name));
+            rasiToPlanets[planet.Rasi].Add(GetPlanetAbbreviation(planet.Name, language));
         }
 
         // Define the 12 box positions in the 4x4 grid
@@ -170,10 +173,10 @@ public partial class NavamsaChartControl : UserControl
         Canvas.SetTop(centerBorder, boxSize);
         ChartCanvas.Children.Add(centerBorder);
 
-        // Add center title with Tamil text
+        // Add center title with localized text
         var centerTitle = new TextBlock
         {
-            Text = "நவாம்சம்",
+            Text = TamilHoroscope.Core.Data.TamilNames.GetSectionName("Navamsa", language),
             FontSize = 12,
             FontWeight = FontWeights.Bold,
             Foreground = new SolidColorBrush(Color.FromRgb(0x80, 0x00, 0x80)),
@@ -205,20 +208,17 @@ public partial class NavamsaChartControl : UserControl
         ChartCanvas.Children.Add(placeholder);
     }
 
-    private string GetPlanetAbbreviation(string planetName)
+    private string GetPlanetAbbreviation(string planetName, string language)
     {
-        return planetName switch
-        {
-            "Sun" => "சூரி",
-            "Moon" => "சந்",
-            "Mars" => "செவ்",
-            "Mercury" => "புத",
-            "Jupiter" => "குரு",
-            "Venus" => "சுக்",
-            "Saturn" => "சனி",
-            "Rahu" => "ராகு",
-            "Ketu" => "கேது",
-            _ => planetName.Substring(0, Math.Min(2, planetName.Length))
-        };
+        // Get localized name and take first few characters
+        var localizedName = TamilHoroscope.Core.Data.TamilNames.GetPlanetName(planetName, language);
+        
+        // For Tamil/Telugu/Kannada/Malayalam, take first 2-4 characters depending on name length
+        if (localizedName.Length <= 4)
+            return localizedName;
+        else if (localizedName.Length <= 6)
+            return localizedName.Substring(0, Math.Min(4, localizedName.Length));
+        else
+            return localizedName.Substring(0, Math.Min(3, localizedName.Length));
     }
 }

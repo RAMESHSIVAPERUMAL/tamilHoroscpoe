@@ -1,4 +1,6 @@
-﻿namespace TamilHoroscope.Core.Models;
+﻿using TamilHoroscope.Core.Data;
+
+namespace TamilHoroscope.Core.Models;
 
 /// <summary>
 /// Planet position and related data
@@ -11,9 +13,20 @@ public class PlanetData
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// Tamil name of the planet
+    /// Language for localized names (Tamil, Telugu, Kannada, Malayalam)
     /// </summary>
+    public string Language { get; set; } = "Tamil";
+
+    /// <summary>
+    /// Tamil name of the planet (deprecated - use LocalizedName)
+    /// </summary>
+    [Obsolete("Use LocalizedName property instead")]
     public string TamilName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Localized name of the planet based on Language property
+    /// </summary>
+    public string LocalizedName => TamilNames.GetPlanetName(Name, Language);
 
     /// <summary>
     /// Ecliptic longitude in degrees (0-360)
@@ -57,9 +70,15 @@ public class PlanetData
     public string RasiName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Tamil rasi name
+    /// Tamil rasi name (deprecated - use LocalizedRasiName)
     /// </summary>
+    [Obsolete("Use LocalizedRasiName property instead")]
     public string TamilRasiName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Localized rasi name based on Language property
+    /// </summary>
+    public string LocalizedRasiName => TamilNames.GetRasiName(Rasi, Language);
 
     /// <summary>
     /// Nakshatra number (1-27)
@@ -72,9 +91,15 @@ public class PlanetData
     public string NakshatraName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Tamil nakshatra name
+    /// Tamil nakshatra name (deprecated - use LocalizedNakshatraName)
     /// </summary>
+    [Obsolete("Use LocalizedNakshatraName property instead")]
     public string TamilNakshatraName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Localized nakshatra name based on Language property
+    /// </summary>
+    public string LocalizedNakshatraName => TamilNames.GetNakshatraName(Nakshatra, Language);
 
     /// <summary>
     /// House number (1-12) where the planet is located

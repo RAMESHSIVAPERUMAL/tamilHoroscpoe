@@ -113,10 +113,10 @@ public class PanchangCalculator : IPanchangCalculator
         horoscope.TamilLagnaRasiName = lagnaRasiInfo.Tamil;
         
         // Calculate planetary positions for Navagraha
-        CalculatePlanetaryPositions(horoscope, swissEph, julianDay, cusps);
+        CalculatePlanetaryPositions(horoscope, swissEph, julianDay, cusps, language);
         
         // Calculate houses with planets
-        CalculateHouses(horoscope, cusps);
+        CalculateHouses(horoscope, cusps, language);
 
         // Calculate Vimshottari Dasa if requested
         if (includeDasa)
@@ -126,7 +126,8 @@ public class PanchangCalculator : IPanchangCalculator
                 birthDetails.DateTime,
                 horoscope.Panchang.NakshatraNumber,
                 horoscope.Panchang.MoonLongitude,
-                dasaYears
+                dasaYears,
+                language
             );
         }
         
@@ -134,7 +135,7 @@ public class PanchangCalculator : IPanchangCalculator
         if (includeNavamsa)
         {
             var navamsaCalculator = new NavamsaCalculator();
-            horoscope.NavamsaPlanets = navamsaCalculator.CalculateNavamsaChart(horoscope.Planets);
+            horoscope.NavamsaPlanets = navamsaCalculator.CalculateNavamsaChart(horoscope.Planets, language);
             
             // Calculate Navamsa Lagna
             double navamsaLagnaLongitude = navamsaCalculator.CalculateNavamsaPosition(horoscope.LagnaLongitude);
@@ -148,7 +149,7 @@ public class PanchangCalculator : IPanchangCalculator
         if (includeStrength)
         {
             var strengthCalculator = new PlanetStrengthCalculator();
-            horoscope.PlanetStrengths = strengthCalculator.CalculatePlanetaryStrengths(horoscope);
+            horoscope.PlanetStrengths = strengthCalculator.CalculatePlanetaryStrengths(horoscope, language);
         }
 
         // Calculate Yogas if requested
@@ -313,7 +314,7 @@ public class PanchangCalculator : IPanchangCalculator
     /// <summary>
     /// Calculate planetary positions for all Navagraha
     /// </summary>
-    private void CalculatePlanetaryPositions(HoroscopeData horoscope, SwissEphemerisHelper swissEph, double julianDay, double[] cusps)
+    private void CalculatePlanetaryPositions(HoroscopeData horoscope, SwissEphemerisHelper swissEph, double julianDay, double[] cusps, string language = "Tamil")
     {
         // Define planets to calculate
         var planetIds = new Dictionary<string, int>
@@ -330,24 +331,24 @@ public class PanchangCalculator : IPanchangCalculator
         foreach (var planet in planetIds)
         {
             var pos = swissEph.GetPlanetPosition(julianDay, planet.Value);
-            var planetData = CreatePlanetData(planet.Key, pos, cusps, horoscope.LagnaLongitude);
+            var planetData = CreatePlanetData(planet.Key, pos, cusps, horoscope.LagnaLongitude, language);
             horoscope.Planets.Add(planetData);
         }
 
         // Add Rahu and Ketu
         var rahuPos = swissEph.GetRahuPosition(julianDay);
-        var rahuData = CreatePlanetData("Rahu", rahuPos, cusps, horoscope.LagnaLongitude);
+        var rahuData = CreatePlanetData("Rahu", rahuPos, cusps, horoscope.LagnaLongitude, language);
         horoscope.Planets.Add(rahuData);
 
         var ketuPos = swissEph.GetKetuPosition(julianDay);
-        var ketuData = CreatePlanetData("Ketu", ketuPos, cusps, horoscope.LagnaLongitude);
+        var ketuData = CreatePlanetData("Ketu", ketuPos, cusps, horoscope.LagnaLongitude, language);
         horoscope.Planets.Add(ketuData);
     }
 
     /// <summary>
     /// Create planet data from position
     /// </summary>
-    private PlanetData CreatePlanetData(string name, double[] position, double[] cusps, double lagnaLongitude)
+    private PlanetData CreatePlanetData(string name, double[] position, double[] cusps, double lagnaLongitude, string language = "Tamil")
     {
         // Swiss Ephemeris returns:
         // position[0] = longitude
@@ -377,7 +378,10 @@ public class PanchangCalculator : IPanchangCalculator
         return new PlanetData
         {
             Name = name,
+            Language = language, // Set language for dynamic localization
+#pragma warning disable CS0618 // Type or member is obsolete - keeping for backward compatibility
             TamilName = TamilNames.Planets.TryGetValue(name, out var tamilName) ? tamilName : name,
+#pragma warning restore CS0618
             Longitude = longitude,
             Latitude = latitude,
             Speed = speed,
@@ -386,10 +390,14 @@ public class PanchangCalculator : IPanchangCalculator
             SpeedInDistance = speedInDistance,
             Rasi = rasi,
             RasiName = rasiInfo.English,
+#pragma warning disable CS0618 // Type or member is obsolete - keeping for backward compatibility
             TamilRasiName = rasiInfo.Tamil,
+#pragma warning restore CS0618
             Nakshatra = nakshatra,
             NakshatraName = nakshatraInfo.English,
+#pragma warning disable CS0618 // Type or member is obsolete - keeping for backward compatibility
             TamilNakshatraName = nakshatraInfo.Tamil,
+#pragma warning restore CS0618
             House = house,
             IsRetrograde = isRetrograde
         };
@@ -398,7 +406,7 @@ public class PanchangCalculator : IPanchangCalculator
     /// <summary>
     /// Calculate houses data
     /// </summary>
-    private void CalculateHouses(HoroscopeData horoscope, double[] cusps)
+    private void CalculateHouses(HoroscopeData horoscope, double[] cusps, string language = "Tamil")
     {
         for (int i = 1; i <= 12; i++)
         {
@@ -408,6 +416,7 @@ public class PanchangCalculator : IPanchangCalculator
             
             string lord = TamilNames.RasiLords[rasi];
             string tamilLord = TamilNames.Planets.TryGetValue(lord, out var tl) ? tl : lord;
+            string localizedLord = TamilNames.GetPlanetName(lord, language);
             
             // Find planets in this house
             var planetsInHouse = horoscope.Planets
@@ -421,9 +430,14 @@ public class PanchangCalculator : IPanchangCalculator
                 Cusp = cuspLongitude,
                 Rasi = rasi,
                 RasiName = rasiInfo.English,
+                Language = language, // Set language for dynamic localization
+#pragma warning disable CS0618 // Type or member is obsolete - keeping for backward compatibility
                 TamilRasiName = rasiInfo.Tamil,
+#pragma warning restore CS0618
                 Lord = lord,
+#pragma warning disable CS0618 // Type or member is obsolete - keeping for backward compatibility
                 TamilLord = tamilLord,
+#pragma warning restore CS0618
                 Planets = planetsInHouse
             };
             

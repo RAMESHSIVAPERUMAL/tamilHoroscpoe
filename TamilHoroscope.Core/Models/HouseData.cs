@@ -1,3 +1,5 @@
+using TamilHoroscope.Core.Data;
+
 namespace TamilHoroscope.Core.Models;
 
 /// <summary>
@@ -26,9 +28,20 @@ public class HouseData
     public string RasiName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Tamil rasi name
+    /// Language for localized names (Tamil, Telugu, Kannada, Malayalam)
     /// </summary>
+    public string Language { get; set; } = "Tamil";
+
+    /// <summary>
+    /// Tamil rasi name (deprecated - use LocalizedRasiName)
+    /// </summary>
+    [Obsolete("Use LocalizedRasiName property instead")]
     public string TamilRasiName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Localized rasi name based on Language property
+    /// </summary>
+    public string LocalizedRasiName => TamilNames.GetRasiName(Rasi, Language);
 
     /// <summary>
     /// Lord of the house
@@ -36,9 +49,15 @@ public class HouseData
     public string Lord { get; set; } = string.Empty;
 
     /// <summary>
-    /// Tamil name of the lord
+    /// Tamil name of the lord (deprecated - use LocalizedLord)
     /// </summary>
+    [Obsolete("Use LocalizedLord property instead")]
     public string TamilLord { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Localized name of the lord based on Language property
+    /// </summary>
+    public string LocalizedLord => TamilNames.GetPlanetName(Lord, Language);
 
     /// <summary>
     /// Planets located in this house

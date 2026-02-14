@@ -1,3 +1,5 @@
+using TamilHoroscope.Core.Data;
+
 namespace TamilHoroscope.Core.Models;
 
 /// <summary>
@@ -11,9 +13,20 @@ public class DasaData
     public string Lord { get; set; } = string.Empty;
 
     /// <summary>
-    /// Tamil name of the Dasa lord
+    /// Language for localized names (Tamil, Telugu, Kannada, Malayalam)
     /// </summary>
+    public string Language { get; set; } = "Tamil";
+
+    /// <summary>
+    /// Tamil name of the Dasa lord (deprecated - use LocalizedLord)
+    /// </summary>
+    [Obsolete("Use LocalizedLord property instead")]
     public string TamilLord { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Localized name of the Dasa lord based on Language property
+    /// </summary>
+    public string LocalizedLord => TamilNames.GetPlanetName(Lord, Language);
 
     /// <summary>
     /// Start date of the Dasa period

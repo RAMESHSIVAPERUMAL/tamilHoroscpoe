@@ -378,4 +378,33 @@ public static class TamilNames
         }
         return Nakshatras.ContainsKey(nakshatraNumber) ? Nakshatras[nakshatraNumber].English : "";
     }
+
+    /// <summary>
+    /// Section/label names in multiple languages
+    /// </summary>
+    public static readonly Dictionary<string, Dictionary<string, string>> SectionNames = new()
+    {
+        ["RasiChart"] = new() { ["English"] = "Rasi Chart (Birth Chart)", ["Tamil"] = "ராசி கட்டம்", ["Telugu"] = "రాశి చక్రం", ["Kannada"] = "ರಾಶಿ ಚಕ್ರ", ["Malayalam"] = "രാശി ചക്രം" },
+        ["NavamsaChart"] = new() { ["English"] = "Navamsa Chart (D-9)", ["Tamil"] = "நவாம்ச கட்டம்", ["Telugu"] = "నవాంశ చక్రం", ["Kannada"] = "ನವಾಂಶ ಚಕ್ರ", ["Malayalam"] = "നവാംശ ചക്രം" },
+        ["PlanetaryStrength"] = new() { ["English"] = "Planetary Strength", ["Tamil"] = "கிரக பலம்", ["Telugu"] = "గ్రహ బలం", ["Kannada"] = "ಗ್ರಹ ಬಲ", ["Malayalam"] = "ഗ്രഹ ബലം" },
+        ["VimshottariDasa"] = new() { ["English"] = "Vimshottari Dasa Periods", ["Tamil"] = "விம்சோத்தரி தசை", ["Telugu"] = "విమ్శోత్తరి దశ", ["Kannada"] = "ವಿಂಶೋತ್ತರಿ ದಶಾ", ["Malayalam"] = "വിംശോത്തരി ദശ" },
+        ["AstrologicalYogas"] = new() { ["English"] = "Astrological Yogas", ["Tamil"] = "ஜோதிட யோகங்கள்", ["Telugu"] = "జ్యోతిష యోగాలు", ["Kannada"] = "ಜ್ಯೋತಿಷ ಯೋಗಗಳು", ["Malayalam"] = "ജ്യോതിഷ യോഗങ്ങൾ" },
+        ["AstrologicalDoshas"] = new() { ["English"] = "Astrological Doshas", ["Tamil"] = "ஜோதிட தோஷங்கள்", ["Telugu"] = "జ్యోతిష దోషాలు", ["Kannada"] = "ಜ್ಯೋತಿಷ ದೋಷಗಳು", ["Malayalam"] = "ജ്യോതിഷ ദോഷങ്ങൾ" },
+        ["Planet"] = new() { ["English"] = "Planet", ["Tamil"] = "கிரகம்", ["Telugu"] = "గ్రహం", ["Kannada"] = "ಗ್ರಹ", ["Malayalam"] = "ഗ്രഹം" },
+        ["Rasi"] = new() { ["English"] = "Rasi", ["Tamil"] = "ராசி", ["Telugu"] = "రాశి", ["Kannada"] = "ರಾಶಿ", ["Malayalam"] = "രാശി" },
+        ["Nakshatra"] = new() { ["English"] = "Nakshatra", ["Tamil"] = "நட்சத்திரம்", ["Telugu"] = "నక్షత్రం", ["Kannada"] = "ನಕ್ಷತ್ರ", ["Malayalam"] = "നക്ഷത്രം" },
+        ["Navamsa"] = new() { ["English"] = "Navamsa", ["Tamil"] = "நவாம்சம்", ["Telugu"] = "నవాంశం", ["Kannada"] = "ನವಾಂಶ", ["Malayalam"] = "നവാംശം" }
+    };
+
+    /// <summary>
+    /// Get localized section/label name
+    /// </summary>
+    public static string GetSectionName(string sectionKey, string language = "Tamil")
+    {
+        if (SectionNames.ContainsKey(sectionKey) && SectionNames[sectionKey].ContainsKey(language))
+        {
+            return SectionNames[sectionKey][language];
+        }
+        return sectionKey;
+    }
 }

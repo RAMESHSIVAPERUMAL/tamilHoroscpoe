@@ -1,3 +1,5 @@
+using TamilHoroscope.Core.Data;
+
 namespace TamilHoroscope.Core.Models;
 
 /// <summary>
@@ -12,9 +14,20 @@ public class PlanetStrengthData
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// Tamil name of the planet
+    /// Language for localized names (Tamil, Telugu, Kannada, Malayalam)
     /// </summary>
+    public string Language { get; set; } = "Tamil";
+
+    /// <summary>
+    /// Tamil name of the planet (deprecated - use LocalizedName)
+    /// </summary>
+    [Obsolete("Use LocalizedName property instead")]
     public string TamilName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Localized name of the planet based on Language property
+    /// </summary>
+    public string LocalizedName => TamilNames.GetPlanetName(Name, Language);
 
     /// <summary>
     /// Total strength in Rupas (1 Rupa = 60 Virupas)

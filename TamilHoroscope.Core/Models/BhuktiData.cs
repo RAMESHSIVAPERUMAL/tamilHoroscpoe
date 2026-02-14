@@ -1,3 +1,5 @@
+using TamilHoroscope.Core.Data;
+
 namespace TamilHoroscope.Core.Models;
 
 /// <summary>
@@ -11,9 +13,20 @@ public class BhuktiData
     public string Lord { get; set; } = string.Empty;
 
     /// <summary>
-    /// Tamil name of the Bhukti lord
+    /// Language for localized names (Tamil, Telugu, Kannada, Malayalam)
     /// </summary>
+    public string Language { get; set; } = "Tamil";
+
+    /// <summary>
+    /// Tamil name of the Bhukti lord (deprecated - use LocalizedLord)
+    /// </summary>
+    [Obsolete("Use LocalizedLord property instead")]
     public string TamilLord { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Localized name of the Bhukti lord based on Language property
+    /// </summary>
+    public string LocalizedLord => TamilNames.GetPlanetName(Lord, Language);
 
     /// <summary>
     /// Start date of the Bhukti period

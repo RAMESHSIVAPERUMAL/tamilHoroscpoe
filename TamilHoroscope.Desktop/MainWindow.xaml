@@ -428,14 +428,14 @@
                                       CanUserSortColumns="True"
                                       FontSize="11">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="கிரகம்" Binding="{Binding TamilName}" Width="100">
+                                    <DataGridTextColumn Header="கிரகம்" Binding="{Binding LocalizedName}" Width="100">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="FontWeight" Value="SemiBold"/>
                                             </Style>
                                         </DataGridTextColumn.ElementStyle>
                                     </DataGridTextColumn>
-                                    <DataGridTextColumn Header="ராசி" Binding="{Binding TamilRasiName}" Width="100"/>
+                                    <DataGridTextColumn Header="ராசி" Binding="{Binding LocalizedRasiName}" Width="100"/>
                                     <DataGridTextColumn Header="Longitude" Binding="{Binding LongitudeFormatted}" Width="100">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
@@ -452,7 +452,7 @@
                                             </Style>
                                         </DataGridTextColumn.ElementStyle>
                                     </DataGridTextColumn>
-                                    <DataGridTextColumn Header="நட்சத்திரம்" Binding="{Binding TamilNakshatraName}" Width="150"/>
+                                    <DataGridTextColumn Header="நட்சத்திரம்" Binding="{Binding LocalizedNakshatraName}" Width="150"/>
                                     <DataGridTextColumn Header="பாதம்" Binding="{Binding NakshatraPada}" Width="100">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">

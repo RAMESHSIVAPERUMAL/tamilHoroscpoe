@@ -359,23 +359,33 @@ public partial class MainWindow : Window
                             $"Karana: {horoscope.Panchang.KaranaName} ({horoscope.Panchang.TamilKaranaName})";
 
         // Display Lagna
-        txtLagna.Text = $"Rasi: {horoscope.LagnaRasiName} ({horoscope.TamilLagnaRasiName})\n" +
+        var lagnaLanguage = horoscope.Planets.Any() ? horoscope.Planets.First().Language : "Tamil";
+        var lagnaLocalizedRasiName = TamilHoroscope.Core.Data.TamilNames.GetRasiName(horoscope.LagnaRasi, lagnaLanguage);
+        txtLagna.Text = $"Rasi: {horoscope.LagnaRasiName} ({lagnaLocalizedRasiName})\n" +
                        $"Longitude: {horoscope.LagnaLongitude:F2}°";
 
         // Display Planets with Lagna as first row
         var planetsWithLagna = new List<PlanetData>();
         
+        // Get language from calculator
+        var selectedLanguage = horoscope.Planets.Any() ? horoscope.Planets.First().Language : "Tamil";
+        
         // Add Lagna as first row
         planetsWithLagna.Add(new PlanetData
         {
             Name = "Lagna",
+            Language = selectedLanguage,
+#pragma warning disable CS0618
             TamilName = "லக்னம்",
+#pragma warning restore CS0618
             Longitude = horoscope.LagnaLongitude,
             Latitude = 0.0,
             Speed = 0.0,
             Rasi = horoscope.LagnaRasi,
             RasiName = horoscope.LagnaRasiName,
+#pragma warning disable CS0618
             TamilRasiName = horoscope.TamilLagnaRasiName,
+#pragma warning restore CS0618
             Nakshatra = GetNakshatraNumber(horoscope.LagnaLongitude),
             House = 1, // Lagna is always 1st house
             IsRetrograde = false
@@ -385,7 +395,9 @@ public partial class MainWindow : Window
         var lagnaData = planetsWithLagna[0];
         var nakshatraInfo = TamilHoroscope.Core.Data.TamilNames.Nakshatras[lagnaData.Nakshatra];
         lagnaData.NakshatraName = nakshatraInfo.English;
+#pragma warning disable CS0618
         lagnaData.TamilNakshatraName = nakshatraInfo.Tamil;
+#pragma warning restore CS0618
         
         // Add all planets
         planetsWithLagna.AddRange(horoscope.Planets);
@@ -447,7 +459,7 @@ public partial class MainWindow : Window
                 
                 // Dasa Header with period
                 dasaText += $"\n{'=', 80}\n";
-                dasaText += $"{dasa.Lord} Dasa ({dasa.TamilLord} தசா){dasaMarker}\n";
+                dasaText += $"{dasa.Lord} Dasa ({dasa.LocalizedLord}){dasaMarker}\n";
                 dasaText += $"Period: {dasa.StartDate:yyyy-MM-dd} to {dasa.EndDate:yyyy-MM-dd} ({durationYears:F1} years)\n";
                 dasaText += $"{'=', 80}\n\n";
                 
@@ -466,7 +478,7 @@ public partial class MainWindow : Window
                         var bhuktiDurationDays = (bhukti.EndDate - bhukti.StartDate).Days;
                         var bhuktiDurationMonths = bhuktiDurationDays / 30.0;
                         
-                        dasaText += $"  • {bhukti.Lord,-10} ({bhukti.TamilLord,-10}): " +
+                        dasaText += $"  • {bhukti.Lord,-10} ({bhukti.LocalizedLord,-10}): " +
                                   $"{bhukti.StartDate:yyyy-MM-dd} to {bhukti.EndDate:yyyy-MM-dd} " +
                                   $"({bhuktiDurationMonths:F1} months){bhuktiMarker}\n";
                     }
@@ -488,12 +500,12 @@ public partial class MainWindow : Window
                 dasaText += "\n" + new string('=', 80) + "\n";
                 dasaText += "CURRENT STATUS SUMMARY\n";
                 dasaText += new string('=', 80) + "\n";
-                dasaText += $"Current Dasa: {currentDasa.Lord} ({currentDasa.TamilLord})\n";
+                dasaText += $"Current Dasa: {currentDasa.Lord} ({currentDasa.LocalizedLord})\n";
                 dasaText += $"Dasa Period: {currentDasa.StartDate:yyyy-MM-dd} to {currentDasa.EndDate:yyyy-MM-dd}\n";
                 
                 if (currentBhukti != null)
                 {
-                    dasaText += $"\nCurrent Bhukti: {currentBhukti.Lord} ({currentBhukti.TamilLord})\n";
+                    dasaText += $"\nCurrent Bhukti: {currentBhukti.Lord} ({currentBhukti.LocalizedLord})\n";
                     dasaText += $"Bhukti Period: {currentBhukti.StartDate:yyyy-MM-dd} to {currentBhukti.EndDate:yyyy-MM-dd}\n";
                     
                     var daysRemaining = (currentBhukti.EndDate - DateTime.Now).Days;
@@ -778,11 +790,11 @@ public partial class MainWindow : Window
         foreach (var planet in _currentHoroscope.Planets)
         {
             planetsTable.AddCell(new PdfPCell(new Phrase(planet.Name, dataCellFont)));
-            planetsTable.AddCell(new PdfPCell(new Phrase(planet.TamilName, smallFont)));
-            planetsTable.AddCell(new PdfPCell(new Phrase($"{planet.RasiName}\n{planet.TamilRasiName}", smallFont)));
+            planetsTable.AddCell(new PdfPCell(new Phrase(planet.LocalizedName, smallFont)));
+            planetsTable.AddCell(new PdfPCell(new Phrase($"{planet.RasiName}\n{planet.LocalizedRasiName}", smallFont)));
             planetsTable.AddCell(new PdfPCell(new Phrase(planet.LongitudeFormatted, smallFont)));
             planetsTable.AddCell(new PdfPCell(new Phrase(planet.DegreeFormatted, smallFont)));
-            planetsTable.AddCell(new PdfPCell(new Phrase($"{planet.NakshatraName}\n{planet.TamilNakshatraName}", smallFont)));
+            planetsTable.AddCell(new PdfPCell(new Phrase($"{planet.NakshatraName}\n{planet.LocalizedNakshatraName}", smallFont)));
             planetsTable.AddCell(new PdfPCell(new Phrase(planet.NakshatraPada.ToString(), dataCellFont)));
             planetsTable.AddCell(new PdfPCell(new Phrase(planet.House.ToString(), dataCellFont)));
             planetsTable.AddCell(new PdfPCell(new Phrase(planet.StatusDisplay, dataCellFont)) 
@@ -816,8 +828,8 @@ public partial class MainWindow : Window
             foreach (var planet in _currentHoroscope.NavamsaPlanets)
             {
                 navamsaTable.AddCell(new PdfPCell(new Phrase(planet.Name, dataCellFont)));
-                navamsaTable.AddCell(new PdfPCell(new Phrase(planet.TamilName, smallFont)));
-                navamsaTable.AddCell(new PdfPCell(new Phrase($"{planet.RasiName}\n{planet.TamilRasiName}", smallFont)));
+                navamsaTable.AddCell(new PdfPCell(new Phrase(planet.LocalizedName, smallFont)));
+                navamsaTable.AddCell(new PdfPCell(new Phrase($"{planet.RasiName}\n{planet.LocalizedRasiName}", smallFont)));
                 navamsaTable.AddCell(new PdfPCell(new Phrase(planet.LongitudeFormatted, smallFont)));
                 navamsaTable.AddCell(new PdfPCell(new Phrase(planet.DegreeFormatted, smallFont)));
                 navamsaTable.AddCell(new PdfPCell(new Phrase(planet.NakshatraName, smallFont)));
@@ -858,8 +870,8 @@ public partial class MainWindow : Window
             // Data rows
             foreach (var strength in _currentHoroscope.PlanetStrengths)
             {
-                // Planet name cell with Tamil
-                var planetCell = new PdfPCell(new Phrase($"{strength.Name}\n{strength.TamilName}", smallFont));
+                // Planet name cell with localized name
+                var planetCell = new PdfPCell(new Phrase($"{strength.Name}\n{strength.LocalizedName}", smallFont));
                 componentsTable.AddCell(planetCell);
 
                 // Strength components
@@ -914,8 +926,8 @@ public partial class MainWindow : Window
             // Data rows
             foreach (var strength in _currentHoroscope.PlanetStrengths)
             {
-                // Planet name cell with Tamil
-                var planetCell = new PdfPCell(new Phrase($"{strength.Name}\n{strength.TamilName}", smallFont));
+                // Planet name cell with localized name
+                var planetCell = new PdfPCell(new Phrase($"{strength.Name}\n{strength.LocalizedName}", smallFont));
                 strengthTable.AddCell(planetCell);
 
                 // Strength in Rupas and Virupas
@@ -993,7 +1005,7 @@ public partial class MainWindow : Window
                     FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10);
                 
                 var dasaHeader = new Paragraph(
-                    $"{dasa.Lord} Dasa ({dasa.TamilLord} தசா)" + 
+                    $"{dasa.Lord} Dasa ({dasa.LocalizedLord} தசா)" + 
                     (isCurrent ? " ← CURRENT DASA" : ""), 
                     dasaHeaderFont);
                 dasaHeader.SpacingBefore = 10;
@@ -1037,7 +1049,7 @@ public partial class MainWindow : Window
                         
                         bhuktiTable.AddCell(new PdfPCell(new Phrase(bhukti.Lord, bhuktiFont)) 
                             { BackgroundColor = bgColor, Padding = 3 });
-                        bhuktiTable.AddCell(new PdfPCell(new Phrase(bhukti.TamilLord, bhuktiFont)) 
+                        bhuktiTable.AddCell(new PdfPCell(new Phrase(bhukti.LocalizedLord, bhuktiFont)) 
                             { BackgroundColor = bgColor, Padding = 3 });
                         bhuktiTable.AddCell(new PdfPCell(new Phrase(bhukti.StartDate.ToString("yyyy-MM-dd"), bhuktiFont)) 
                             { BackgroundColor = bgColor, Padding = 3 });
@@ -1059,7 +1071,7 @@ public partial class MainWindow : Window
                 summaryHeader.SpacingBefore = 10;
                 document.Add(summaryHeader);
                 
-                document.Add(new Paragraph($"Current Dasa: {currentDasa.Lord} ({currentDasa.TamilLord})", normalFont));
+                document.Add(new Paragraph($"Current Dasa: {currentDasa.Lord} ({currentDasa.LocalizedLord})", normalFont));
                 document.Add(new Paragraph($"Dasa Period: {currentDasa.StartDate:yyyy-MM-dd} to {currentDasa.EndDate:yyyy-MM-dd}", normalFont));
                 
                 var currentBhukti = currentDasa.Bhuktis?.FirstOrDefault(b =>
@@ -1067,7 +1079,7 @@ public partial class MainWindow : Window
                     
                 if (currentBhukti != null)
                 {
-                    document.Add(new Paragraph($"Current Bhukti: {currentBhukti.Lord} ({currentBhukti.TamilLord})", normalFont));
+                    document.Add(new Paragraph($"Current Bhukti: {currentBhukti.Lord} ({currentBhukti.LocalizedLord})", normalFont));
                     document.Add(new Paragraph($"Bhukti Period: {currentBhukti.StartDate:yyyy-MM-dd} to {currentBhukti.EndDate:yyyy-MM-dd}", normalFont));
                     
                     var daysRemaining = (currentBhukti.EndDate - DateTime.Now).Days;

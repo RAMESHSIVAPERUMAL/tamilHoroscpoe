@@ -15,12 +15,14 @@ public class DasaCalculator
     /// <param name="moonNakshatra">Moon's nakshatra number (1-27)</param>
     /// <param name="moonLongitude">Moon's longitude in degrees</param>
     /// <param name="yearsToCalculate">Number of years of Dasa periods to calculate (default: 120)</param>
+    /// <param name="language">Language for localized names (Tamil, Telugu, Kannada, Malayalam)</param>
     /// <returns>List of Dasa periods with Bhukti sub-periods</returns>
     public List<DasaData> CalculateVimshottariDasa(
         DateTime birthDate,
         int moonNakshatra,
         double moonLongitude,
-        int yearsToCalculate = 120)
+        int yearsToCalculate = 120,
+        string language = "Tamil")
     {
         var dasas = new List<DasaData>();
 
@@ -50,7 +52,7 @@ public class DasaCalculator
         // First, add the balance of the starting Dasa (with balance Bhuktis)
         if (balanceYears > 0.001) // Only add if significant balance remains
         {
-            var firstDasa = CreateBalanceDasa(startingLord, currentDate, balanceYears, startingDasaDuration, fractionTraversed);
+            var firstDasa = CreateBalanceDasa(startingLord, currentDate, balanceYears, startingDasaDuration, fractionTraversed, language);
             dasas.Add(firstDasa);
             currentDate = firstDasa.EndDate;
             totalYearsGenerated += balanceYears;
@@ -64,7 +66,7 @@ public class DasaCalculator
             var lord = TamilNames.DasaSequence[currentIndex];
             var duration = TamilNames.DasaDurations[lord];
 
-            var dasa = CreateDasa(lord, currentDate, duration);
+            var dasa = CreateDasa(lord, currentDate, duration, language);
             dasas.Add(dasa);
 
             currentDate = dasa.EndDate;
@@ -80,19 +82,22 @@ public class DasaCalculator
     /// <summary>
     /// Create a balance Dasa period with only the remaining Bhukti sub-periods
     /// </summary>
-    private DasaData CreateBalanceDasa(string lord, DateTime startDate, double balanceYears, double fullDasaDuration, double fractionTraversed)
+    private DasaData CreateBalanceDasa(string lord, DateTime startDate, double balanceYears, double fullDasaDuration, double fractionTraversed, string language = "Tamil")
     {
         var dasa = new DasaData
         {
             Lord = lord,
+            Language = language,
+#pragma warning disable CS0618
             TamilLord = TamilNames.Planets[lord],
+#pragma warning restore CS0618
             StartDate = startDate,
             EndDate = startDate.AddYears((int)balanceYears).AddDays((balanceYears - (int)balanceYears) * 365.25),
             DurationYears = (int)Math.Ceiling(balanceYears)
         };
 
         // Calculate only the balance Bhuktis (not all 9)
-        dasa.Bhuktis = CalculateBalanceBhuktis(lord, startDate, balanceYears, fullDasaDuration, fractionTraversed);
+        dasa.Bhuktis = CalculateBalanceBhuktis(lord, startDate, balanceYears, fullDasaDuration, fractionTraversed, language);
 
         return dasa;
     }
@@ -100,19 +105,22 @@ public class DasaCalculator
     /// <summary>
     /// Create a Dasa period with its Bhukti sub-periods
     /// </summary>
-    private DasaData CreateDasa(string lord, DateTime startDate, double durationYears)
+    private DasaData CreateDasa(string lord, DateTime startDate, double durationYears, string language = "Tamil")
     {
         var dasa = new DasaData
         {
             Lord = lord,
+            Language = language,
+#pragma warning disable CS0618
             TamilLord = TamilNames.Planets[lord],
+#pragma warning restore CS0618
             StartDate = startDate,
             EndDate = startDate.AddYears((int)durationYears).AddDays((durationYears - (int)durationYears) * 365.25),
             DurationYears = (int)Math.Ceiling(durationYears)
         };
 
         // Calculate Bhuktis for this Dasa
-        dasa.Bhuktis = CalculateBhuktis(lord, startDate, durationYears);
+        dasa.Bhuktis = CalculateBhuktis(lord, startDate, durationYears, language);
 
         return dasa;
     }
@@ -120,7 +128,7 @@ public class DasaCalculator
     /// <summary>
     /// Calculate Bhukti (sub-periods) for a given Dasa
     /// </summary>
-    private List<BhuktiData> CalculateBhuktis(string dasaLord, DateTime dasaStartDate, double dasaDurationYears)
+    private List<BhuktiData> CalculateBhuktis(string dasaLord, DateTime dasaStartDate, double dasaDurationYears, string language = "Tamil")
     {
         var bhuktis = new List<BhuktiData>();
 
@@ -146,7 +154,10 @@ public class DasaCalculator
             var bhukti = new BhuktiData
             {
                 Lord = bhuktiLord,
+                Language = language,
+#pragma warning disable CS0618
                 TamilLord = TamilNames.Planets[bhuktiLord],
+#pragma warning restore CS0618
                 StartDate = currentDate,
                 EndDate = currentDate.AddDays(bhuktiDurationDays),
                 DurationDays = bhuktiDurationDays
@@ -163,7 +174,7 @@ public class DasaCalculator
     /// Calculate only the balance Bhuktis for a balance Dasa period
     /// This is used for the first Dasa when it's not a full period
     /// </summary>
-    private List<BhuktiData> CalculateBalanceBhuktis(string dasaLord, DateTime dasaStartDate, double balanceDasaYears, double fullDasaDuration, double fractionTraversed)
+    private List<BhuktiData> CalculateBalanceBhuktis(string dasaLord, DateTime dasaStartDate, double balanceDasaYears, double fullDasaDuration, double fractionTraversed, string language = "Tamil")
     {
         var bhuktis = new List<BhuktiData>();
 
@@ -225,7 +236,10 @@ public class DasaCalculator
             var bhukti = new BhuktiData
             {
                 Lord = bhuktiLord,
+                Language = language,
+#pragma warning disable CS0618
                 TamilLord = TamilNames.Planets[bhuktiLord],
+#pragma warning restore CS0618
                 StartDate = currentDate,
                 EndDate = currentDate.AddDays(bhuktiDurationDays),
                 DurationDays = bhuktiDurationDays
