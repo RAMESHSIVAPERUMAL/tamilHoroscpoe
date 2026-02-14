@@ -83,6 +83,7 @@ PRINT '? Table created: Transactions';
 CREATE TABLE HoroscopeGenerations (
     GenerationId INT IDENTITY(1,1) PRIMARY KEY,
     UserId INT NOT NULL,
+    PersonName NVARCHAR(100) NULL,
     GenerationDate DATE NOT NULL,
     BirthDateTime DATETIME2 NOT NULL,
     PlaceName NVARCHAR(200) NULL,
