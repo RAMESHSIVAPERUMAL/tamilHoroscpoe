@@ -266,6 +266,39 @@
                                       IsChecked="True"
                                       Margin="0,0,0,10"
                                       ToolTip="Calculate and display simplified Shadbala (planetary strength)"/>
+
+                            <!-- Yoga and Dosha Detection -->
+                            <TextBlock Text="Yoga and Dosha Detection" 
+                                       FontSize="14" 
+                                       FontWeight="SemiBold" 
+                                       Margin="0,10,0,10"/>
+
+                            <CheckBox x:Name="chkDetectYogas" 
+                                      Content="Detect Astrological Yogas / யோகம் கண்டறிதல்"
+                                      IsChecked="True"
+                                      Margin="0,0,0,10"
+                                      ToolTip="Detect beneficial planetary combinations (yogas)"/>
+
+                            <CheckBox x:Name="chkDetectDosas" 
+                                      Content="Detect Astrological Doshas / தோஷம் கண்டறிதல்"
+                                      IsChecked="True"
+                                      Margin="0,0,0,10"
+                                      ToolTip="Detect astrological afflictions (doshas)"/>
+
+                            <!-- Language Selection -->
+                            <TextBlock Text="Display Language / காண்பிக்கும் மொழி" 
+                                       Style="{StaticResource LabelStyle}"
+                                       Margin="0,10,0,5"/>
+                            <ComboBox x:Name="cmbLanguage" 
+                                      Style="{StaticResource ModernComboBoxStyle}"
+                                      SelectedIndex="0"
+                                      Margin="0,0,0,10"
+                                      ToolTip="Select language for yoga and dosha names">
+                                <ComboBoxItem Content="Tamil / தமிழ்"/>
+                                <ComboBoxItem Content="Telugu / తెలుగు"/>
+                                <ComboBoxItem Content="Kannada / ಕನ್ನಡ"/>
+                                <ComboBoxItem Content="Malayalam / മലയാളം"/>
+                            </ComboBox>
                         </StackPanel>
                     </Expander>
 
@@ -459,6 +492,170 @@
                             Visibility="Collapsed">
                         <StackPanel>
                             <Border x:Name="strengthChartContainer" Background="White"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Yoga Section -->
+                    <Border x:Name="yogaSection" 
+                            Background="White" 
+                            CornerRadius="8" 
+                            Padding="20" 
+                            Margin="0,0,0,10" 
+                            BorderBrush="#E0E0E0" 
+                            BorderThickness="1"
+                            Visibility="Collapsed">
+                        <StackPanel>
+                            <TextBlock Text="Astrological Yogas - ஜோதிட யோகங்கள்" 
+                                       Style="{StaticResource SectionHeaderStyle}"/>
+                            <ItemsControl x:Name="icYogas">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#E8F5E9" 
+                                                CornerRadius="4" 
+                                                Padding="15" 
+                                                Margin="0,0,0,10"
+                                                BorderBrush="#4CAF50" 
+                                                BorderThickness="1">
+                                            <StackPanel>
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                                    <TextBlock Text="{Binding Name}" 
+                                                               FontWeight="Bold" 
+                                                               FontSize="14"
+                                                               Foreground="#2E7D32"/>
+                                                    <TextBlock Text=" (" 
+                                                               FontSize="13"
+                                                               Foreground="#2E7D32"/>
+                                                    <TextBlock Text="{Binding LocalName}" 
+                                                               FontSize="13"
+                                                               Foreground="#2E7D32"/>
+                                                    <TextBlock Text=")" 
+                                                               FontSize="13"
+                                                               Foreground="#2E7D32"/>
+                                                    <TextBlock Text=" - Strength: " 
+                                                               FontSize="11"
+                                                               Margin="10,0,0,0"
+                                                               Foreground="#616161"/>
+                                                    <TextBlock Text="{Binding Strength}" 
+                                                               FontSize="11"
+                                                               FontWeight="Bold"
+                                                               Foreground="#616161"/>
+                                                    <TextBlock Text="/10" 
+                                                               FontSize="11"
+                                                               Foreground="#616161"/>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding Description}" 
+                                                           TextWrapping="Wrap" 
+                                                           FontSize="12"
+                                                           Foreground="#424242"
+                                                           Margin="0,5,0,0"/>
+                                                <TextBlock TextWrapping="Wrap" 
+                                                           FontSize="11"
+                                                           Foreground="#616161"
+                                                           Margin="0,5,0,0">
+                                                    <Run Text="Planets: "/>
+                                                    <Run Text="{Binding InvolvedPlanetsText}" FontWeight="SemiBold"/>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock x:Name="txtNoYogas"
+                                       Text="No significant yogas detected."
+                                       FontStyle="Italic"
+                                       Foreground="#757575"
+                                       Visibility="Collapsed"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Dosa Section -->
+                    <Border x:Name="dosaSection" 
+                            Background="White" 
+                            CornerRadius="8" 
+                            Padding="20" 
+                            Margin="0,0,0,10" 
+                            BorderBrush="#E0E0E0" 
+                            BorderThickness="1"
+                            Visibility="Collapsed">
+                        <StackPanel>
+                            <TextBlock Text="Astrological Doshas - ஜோதிட தோஷங்கள்" 
+                                       Style="{StaticResource SectionHeaderStyle}"/>
+                            <ItemsControl x:Name="icDosas">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#FFEBEE" 
+                                                CornerRadius="4" 
+                                                Padding="15" 
+                                                Margin="0,0,0,10"
+                                                BorderBrush="#F44336" 
+                                                BorderThickness="1">
+                                            <StackPanel>
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                                    <TextBlock Text="{Binding Name}" 
+                                                               FontWeight="Bold" 
+                                                               FontSize="14"
+                                                               Foreground="#C62828"/>
+                                                    <TextBlock Text=" (" 
+                                                               FontSize="13"
+                                                               Foreground="#C62828"/>
+                                                    <TextBlock Text="{Binding LocalName}" 
+                                                               FontSize="13"
+                                                               Foreground="#C62828"/>
+                                                    <TextBlock Text=")" 
+                                                               FontSize="13"
+                                                               Foreground="#C62828"/>
+                                                    <TextBlock Text=" - Severity: " 
+                                                               FontSize="11"
+                                                               Margin="10,0,0,0"
+                                                               Foreground="#616161"/>
+                                                    <TextBlock Text="{Binding Severity}" 
+                                                               FontSize="11"
+                                                               FontWeight="Bold"
+                                                               Foreground="#616161"/>
+                                                    <TextBlock Text="/10" 
+                                                               FontSize="11"
+                                                               Foreground="#616161"/>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding Description}" 
+                                                           TextWrapping="Wrap" 
+                                                           FontSize="12"
+                                                           Foreground="#424242"
+                                                           Margin="0,5,0,0"/>
+                                                <TextBlock TextWrapping="Wrap" 
+                                                           FontSize="11"
+                                                           Foreground="#616161"
+                                                           Margin="0,5,0,0">
+                                                    <Run Text="Planets: "/>
+                                                    <Run Text="{Binding InvolvedPlanetsText}" FontWeight="SemiBold"/>
+                                                </TextBlock>
+                                                <TextBlock Text="Remedies:" 
+                                                           FontWeight="SemiBold"
+                                                           FontSize="11"
+                                                           Foreground="#424242"
+                                                           Margin="0,10,0,5"/>
+                                                <ItemsControl ItemsSource="{Binding Remedies}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <TextBlock FontSize="11"
+                                                                       Foreground="#616161"
+                                                                       Margin="15,2,0,2">
+                                                                <Run Text="• "/>
+                                                                <Run Text="{Binding}"/>
+                                                            </TextBlock>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock x:Name="txtNoDosas"
+                                       Text="No doshas detected. This is a favorable chart!"
+                                       FontStyle="Italic"
+                                       Foreground="#4CAF50"
+                                       FontWeight="SemiBold"
+                                       Visibility="Collapsed"/>
                         </StackPanel>
                     </Border>
 

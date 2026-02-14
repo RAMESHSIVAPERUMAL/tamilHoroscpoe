@@ -226,6 +226,18 @@ public partial class MainWindow : Window
             bool includeDasa = chkCalculateDasa.IsChecked == true;
             bool includeNavamsa = chkCalculateNavamsa.IsChecked == true;
             bool includeStrength = chkCalculateStrength.IsChecked == true;
+            bool includeYoga = chkDetectYogas.IsChecked == true;
+            bool includeDosa = chkDetectDosas.IsChecked == true;
+            
+            string language = cmbLanguage.SelectedIndex switch
+            {
+                0 => "Tamil",
+                1 => "Telugu",
+                2 => "Kannada",
+                3 => "Malayalam",
+                _ => "Tamil"
+            };
+            
             int dasaYears = cmbDasaYears.SelectedIndex switch
             {
                 0 => 10,
@@ -235,7 +247,7 @@ public partial class MainWindow : Window
                 _ => 50
             };
 
-            _currentHoroscope = _calculator.CalculateHoroscope(birthDetails, includeDasa, includeNavamsa, dasaYears, includeStrength);
+            _currentHoroscope = _calculator.CalculateHoroscope(birthDetails, includeDasa, includeNavamsa, dasaYears, includeStrength, includeYoga, includeDosa, language);
 
             // Display results
             DisplayResults(_currentHoroscope, birthDetails);
@@ -500,6 +512,65 @@ public partial class MainWindow : Window
         else
         {
             dasaSection.Visibility = Visibility.Collapsed;
+        }
+
+        // Display Yogas section
+        if (chkDetectYogas.IsChecked == true && horoscope.Yogas != null && horoscope.Yogas.Count > 0)
+        {
+            yogaSection.Visibility = Visibility.Visible;
+            
+            // Prepare yoga data for display with InvolvedPlanetsText property
+            var yogaDisplayList = horoscope.Yogas.Select(y => new
+            {
+                y.Name,
+                y.LocalName,
+                y.Description,
+                y.Strength,
+                InvolvedPlanetsText = string.Join(", ", y.InvolvedPlanets)
+            }).ToList();
+            
+            icYogas.ItemsSource = yogaDisplayList;
+            txtNoYogas.Visibility = Visibility.Collapsed;
+        }
+        else if (chkDetectYogas.IsChecked == true)
+        {
+            yogaSection.Visibility = Visibility.Visible;
+            icYogas.ItemsSource = null;
+            txtNoYogas.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            yogaSection.Visibility = Visibility.Collapsed;
+        }
+
+        // Display Doshas section
+        if (chkDetectDosas.IsChecked == true && horoscope.Dosas != null && horoscope.Dosas.Count > 0)
+        {
+            dosaSection.Visibility = Visibility.Visible;
+            
+            // Prepare dosa data for display with InvolvedPlanetsText property
+            var dosaDisplayList = horoscope.Dosas.Select(d => new
+            {
+                d.Name,
+                d.LocalName,
+                d.Description,
+                d.Severity,
+                InvolvedPlanetsText = string.Join(", ", d.InvolvedPlanets),
+                d.Remedies
+            }).ToList();
+            
+            icDosas.ItemsSource = dosaDisplayList;
+            txtNoDosas.Visibility = Visibility.Collapsed;
+        }
+        else if (chkDetectDosas.IsChecked == true)
+        {
+            dosaSection.Visibility = Visibility.Visible;
+            icDosas.ItemsSource = null;
+            txtNoDosas.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            dosaSection.Visibility = Visibility.Collapsed;
         }
     }
 
