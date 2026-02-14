@@ -9,6 +9,9 @@ A .NET application for generating Tamil horoscopes using Thirukanitha Panachanga
 - ✅ **Navamsa (D-9) Divisional Chart** - Calculate and visualize the most important divisional chart
 - ✅ **South Indian Style Charts** - Traditional 4x4 grid layout for Rasi and Navamsa charts
 - ✅ **Chart Visualization** - Professional chart display with Tamil Unicode support
+- ✅ **Yoga Detection** - Detects 12+ astrological yogas (Gajakesari, Raja, Mahapurusha yogas, etc.)
+- ✅ **Dosa Detection** - Detects major doshas (Mangal, Kaal Sarp, Pitra, Shakat, Kemadruma)
+- ✅ **Multi-language Support** - Tamil, Telugu, Kannada, Malayalam support for planet, rasi, and nakshatra names
 - ✅ **Tamil Language Support** - All astrological elements with Tamil names
 - ✅ **Swiss Ephemeris Integration** - High-precision astronomical calculations
 - ✅ **Lahiri Ayanamsa** - Standard for Tamil/Vedic astrology
@@ -91,7 +94,7 @@ All calculations are tested against trusted sources:
 - https://www.prokerala.com/astrology/panchangam/
 
 The project includes comprehensive test coverage:
-- **79+ unit tests** covering all calculation features
+- **110+ unit tests** covering all calculation features including yoga and dosa detection
 - Navamsa divisional chart calculations
 - Edge cases and boundary conditions
 - Integration tests for combined features
@@ -102,6 +105,108 @@ dotnet test --logger "console;verbosity=detailed"
 ```
 
 ## Advanced Features
+
+### Yoga Detection
+
+The application automatically detects beneficial planetary combinations (yogas) in the birth chart:
+
+**Detected Yogas:**
+- **Gajakesari Yoga** - Jupiter in kendra from Moon (wisdom, wealth, fame)
+- **Raja Yoga** - Lords of kendras and trikonas in conjunction (power, authority)
+- **Dhana Yoga** - Wealth combinations (prosperity, financial gains)
+- **Mahapurusha Yogas** - Five great person yogas:
+  - Hamsa Yoga (Jupiter)
+  - Malavya Yoga (Venus)
+  - Sasa Yoga (Saturn)
+  - Ruchaka Yoga (Mars)
+  - Bhadra Yoga (Mercury)
+- **Moon-based Yogas** - Sunapha, Anapha, Durdhura yogas
+- **Budha Aditya Yoga** - Sun-Mercury conjunction (intelligence)
+
+**Usage:**
+```csharp
+var calculator = new PanchangCalculator();
+var horoscope = calculator.CalculateHoroscope(
+    birthDetails, 
+    includeDasa: true, 
+    includeNavamsa: true,
+    includeYoga: true,     // Enable yoga detection
+    language: "Tamil"      // Choose language
+);
+
+// Access detected yogas
+foreach (var yoga in horoscope.Yogas)
+{
+    Console.WriteLine($"{yoga.Name} ({yoga.LocalName})");
+    Console.WriteLine($"Strength: {yoga.Strength}/10");
+    Console.WriteLine($"Description: {yoga.Description}");
+}
+```
+
+### Dosa Detection
+
+The application detects major astrological afflictions (doshas):
+
+**Detected Doshas:**
+- **Mangal Dosha (Kuja Dosha)** - Mars affliction affecting marriage
+- **Kaal Sarp Dosha** - All planets between Rahu and Ketu
+- **Pitra Dosha** - Ancestral affliction
+- **Shakat Dosha** - Jupiter-Moon affliction
+- **Kemadruma Dosha** - Moon without support
+
+Each dosha includes:
+- Severity rating (1-10)
+- Detailed description of effects
+- Planets and houses involved
+- Traditional remedies and recommendations
+
+**Usage:**
+```csharp
+var horoscope = calculator.CalculateHoroscope(
+    birthDetails, 
+    includeDosa: true,     // Enable dosha detection
+    language: "Kannada"    // Multi-language support
+);
+
+// Access detected doshas
+foreach (var dosa in horoscope.Dosas)
+{
+    Console.WriteLine($"{dosa.Name} ({dosa.LocalName})");
+    Console.WriteLine($"Severity: {dosa.Severity}/10");
+    Console.WriteLine($"Description: {dosa.Description}");
+    Console.WriteLine("Remedies:");
+    foreach (var remedy in dosa.Remedies)
+    {
+        Console.WriteLine($"  - {remedy}");
+    }
+}
+```
+
+### Multi-language Support
+
+The application now supports four South Indian languages:
+
+**Supported Languages:**
+- Tamil (தமிழ்)
+- Telugu (తెలుగు)
+- Kannada (ಕನ್ನಡ)
+- Malayalam (മലയാളം)
+
+**Usage:**
+```csharp
+// Get localized names
+var tamilPlanetName = TamilNames.GetPlanetName("Mars", "Tamil");      // செவ்வாய்
+var teluguRasiName = TamilNames.GetRasiName(1, "Telugu");             // మేషం
+var kannadaNakshatra = TamilNames.GetNakshatraName(14, "Kannada");    // ಚಿತ್ರಾ
+
+// Calculate horoscope with specific language
+var horoscope = calculator.CalculateHoroscope(
+    birthDetails,
+    includeYoga: true,
+    includeDosa: true,
+    language: "Malayalam"  // Yoga and dosha names in Malayalam
+);
+```
 
 ### Navamsa (D-9) Divisional Chart
 
@@ -131,9 +236,10 @@ foreach (var planet in horoscope.NavamsaPlanets)
 
 ## Future Enhancements
 
-- [ ] Yoga detection
-- [ ] Dosa detection
-- [ ] Multi-language support (Teugu, Kannada, Malayalam)
+- [ ] Additional yogas (Neecha Bhanga, Viparita Raja, etc.)
+- [ ] More doshas (Nadi, Gana, Rashi doshas for marriage compatibility)
+- [ ] Compatibility analysis (Kundali matching)
+- [ ] Transit predictions
 - [ ] Database integration for chart storage
 
 ## License
