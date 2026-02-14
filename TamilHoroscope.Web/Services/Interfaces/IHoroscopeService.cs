@@ -18,7 +18,8 @@ public interface IHoroscopeService
         double longitude,
         double timeZoneOffset,
         string? placeName = null,
-        string? personName = null);
+        string? personName = null,
+        string language = "Tamil");
 
     /// <summary>
     /// Checks if user has already generated a horoscope today
@@ -63,5 +64,5 @@ public interface IHoroscopeService
     /// <summary>
     /// Regenerates a previous horoscope (no charge)
     /// </summary>
-    Task<HoroscopeData?> RegenerateHoroscopeAsync(HoroscopeGeneration generation, bool isTrialUser);
+    Task<HoroscopeData?> RegenerateHoroscopeAsync(HoroscopeGeneration generation, bool isTrialUser, string language = "Tamil");
 }

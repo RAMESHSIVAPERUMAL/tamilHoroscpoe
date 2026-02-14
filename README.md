@@ -106,22 +106,33 @@ dotnet test --logger "console;verbosity=detailed"
 
 ## Advanced Features
 
-### Yoga Detection
+### Yoga Detection (Parasara Method Based)
 
-The application automatically detects beneficial planetary combinations (yogas) in the birth chart:
+The application automatically detects beneficial planetary combinations (yogas) in the birth chart following classical Vedic astrology principles rooted in **Brihat Parashara Hora Shastra (BPHS)** methodology:
 
 **Detected Yogas:**
 - **Gajakesari Yoga** - Jupiter in kendra from Moon (wisdom, wealth, fame)
 - **Raja Yoga** - Lords of kendras and trikonas in conjunction (power, authority)
 - **Dhana Yoga** - Wealth combinations (prosperity, financial gains)
-- **Mahapurusha Yogas** - Five great person yogas:
-  - Hamsa Yoga (Jupiter)
-  - Malavya Yoga (Venus)
-  - Sasa Yoga (Saturn)
-  - Ruchaka Yoga (Mars)
-  - Bhadra Yoga (Mercury)
-- **Moon-based Yogas** - Sunapha, Anapha, Durdhura yogas
+- **Mahapurusha Yogas** - Five great person yogas as described in BPHS:
+  - Hamsa Yoga (Jupiter in kendra in own/exaltation sign)
+  - Malavya Yoga (Venus in kendra in own/exaltation sign)
+  - Sasa Yoga (Saturn in kendra in own/exaltation sign)
+  - Ruchaka Yoga (Mars in kendra in own/exaltation sign)
+  - Bhadra Yoga (Mercury in kendra in own/exaltation sign)
+- **Moon-based Yogas** - Sunapha, Anapha, Durdhura yogas (classical Chandra yogas)
 - **Budha Aditya Yoga** - Sun-Mercury conjunction (intelligence)
+
+**Parasara Methodology:**
+- ✓ Uses rasi-based planetary positions following traditional counting methods
+- ✓ Implements house lordship rules for Raja and Dhana yogas
+- ✓ Considers planetary dignities (own signs, exaltation) per BPHS
+- ✓ Applies kendra and trikona house principles from Parasara's teachings
+
+**Future Enhancements:**
+- Integration with Shadbala (6-fold strength) for yoga potency validation
+- Divisional chart (D-9 Navamsa) confirmation as emphasized by Parasara
+- Additional yogas from BPHS chapters on planetary combinations
 
 **Usage:**
 ```csharp
@@ -131,7 +142,7 @@ var horoscope = calculator.CalculateHoroscope(
     includeDasa: true, 
     includeNavamsa: true,
     includeYoga: true,     // Enable yoga detection
-    language: "Tamil"      // Choose language
+    language: "Tamil"      // Choose language (Tamil, Telugu, Kannada, Malayalam)
 );
 
 // Access detected yogas
@@ -143,22 +154,37 @@ foreach (var yoga in horoscope.Yogas)
 }
 ```
 
-### Dosa Detection
+### Dosa Detection (Classical Vedic Method)
 
-The application detects major astrological afflictions (doshas):
+The application detects major astrological afflictions (doshas) using traditional Vedic astrology principles with foundations in Parasara's teachings:
 
 **Detected Doshas:**
-- **Mangal Dosha (Kuja Dosha)** - Mars affliction affecting marriage
-- **Kaal Sarp Dosha** - All planets between Rahu and Ketu
-- **Pitra Dosha** - Ancestral affliction
-- **Shakat Dosha** - Jupiter-Moon affliction
-- **Kemadruma Dosha** - Moon without support
+- **Mangal Dosha (Kuja Dosha)** - Mars affliction affecting marriage (houses 1,2,4,7,8,12)
+- **Kaal Sarp Dosha** - All planets hemmed between Rahu and Ketu
+- **Pitra Dosha** - Ancestral affliction (Sun with Rahu/Ketu or Rahu in 9th)
+- **Shakat Dosha** - Jupiter-Moon affliction (Moon in 6th/8th from Jupiter)
+- **Kemadruma Dosha** - Moon without planetary support
 
 Each dosha includes:
-- Severity rating (1-10)
+- Severity rating (1-10) based on traditional principles
 - Detailed description of effects
 - Planets and houses involved
 - Traditional remedies and recommendations
+
+**Parasara Method Alignment:**
+- ✓ Uses house-based dosha calculations from classical texts
+- ✓ Implements planetary aspect rules (Graha Drishti) following Parasara's system:
+  - Jupiter aspects: 5th, 7th, 9th houses
+  - Saturn aspects: 3rd, 7th, 10th houses
+  - Mars aspects: 4th, 7th, 8th houses
+- ✓ Considers dosha cancellation rules (exaltation, own sign, benefic aspects)
+- ✓ Applies traditional severity ratings based on house positions
+
+**Future Enhancements:**
+- Strength-based severity using Shadbala calculations
+- More comprehensive cancellation rules from BPHS
+- Additional doshas from classical texts
+- Divisional chart analysis for dosha confirmation
 
 **Usage:**
 ```csharp

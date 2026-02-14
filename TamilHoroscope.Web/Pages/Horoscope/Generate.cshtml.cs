@@ -62,6 +62,11 @@ public class GenerateModel : PageModel
     [Display(Name = "Time Zone")]
     public double TimeZoneOffset { get; set; } = 5.5; // IST
 
+    [BindProperty]
+    [Required(ErrorMessage = "Language is required")]
+    [Display(Name = "Display Language")]
+    public string Language { get; set; } = "Tamil";
+
     public HoroscopeData? Horoscope { get; set; }
     public bool IsTrialUser { get; set; }
     public string? ErrorMessage { get; set; }
@@ -97,7 +102,7 @@ public class GenerateModel : PageModel
                 IsTrialUser = await _subscriptionService.IsUserInTrialAsync(userId);
 
                 // Regenerate the horoscope (no charge)
-                Horoscope = await _horoscopeService.RegenerateHoroscopeAsync(generation, IsTrialUser);
+                Horoscope = await _horoscopeService.RegenerateHoroscopeAsync(generation, IsTrialUser, Language);
 
                 if (Horoscope == null)
                 {
@@ -155,7 +160,8 @@ public class GenerateModel : PageModel
                 Longitude,
                 TimeZoneOffset,
                 PlaceName,
-                PersonName);
+                PersonName,
+                Language);
 
             if (!string.IsNullOrEmpty(errorMessage))
             {
