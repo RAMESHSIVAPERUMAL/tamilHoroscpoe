@@ -41,7 +41,8 @@ public class HoroscopeService : IHoroscopeService
         double longitude,
         double timeZoneOffset,
         string? placeName = null,
-        string? personName = null)
+        string? personName = null,
+        string language = "Tamil")
     {
         try
         {
@@ -118,7 +119,8 @@ public class HoroscopeService : IHoroscopeService
                 longitude,
                 timeZoneOffset,
                 placeName,
-                treatAsTrial);
+                treatAsTrial,
+                language);
 
             // Step 6: Record generation
             var generation = new HoroscopeGeneration
@@ -249,7 +251,7 @@ public class HoroscopeService : IHoroscopeService
         return user.LastDailyFeeDeductionDate?.Date == today;
     }
 
-    public async Task<HoroscopeData?> RegenerateHoroscopeAsync(HoroscopeGeneration generation, bool isTrialUser)
+    public async Task<HoroscopeData?> RegenerateHoroscopeAsync(HoroscopeGeneration generation, bool isTrialUser, string language = "Tamil")
     {
         try
         {
@@ -259,7 +261,8 @@ public class HoroscopeService : IHoroscopeService
                 (double)generation.Longitude,
                 5.5, // Default IST timezone
                 generation.PlaceName,
-                isTrialUser);
+                isTrialUser,
+                language);
         }
         catch (Exception ex)
         {
@@ -277,7 +280,8 @@ public class HoroscopeService : IHoroscopeService
         double longitude,
         double timeZoneOffset,
         string? placeName,
-        bool isTrialUser)
+        bool isTrialUser,
+        string language = "Tamil")
     {
         var birthDetails = new BirthDetails
         {
@@ -308,7 +312,7 @@ public class HoroscopeService : IHoroscopeService
                 includeStrength: false,
                 includeYoga: true,
                 includeDosa: true,
-                language: "Tamil");
+                language: language);
         }
         else
         {
@@ -323,7 +327,7 @@ public class HoroscopeService : IHoroscopeService
                 includeStrength: true,
                 includeYoga: true,
                 includeDosa: true,
-                language: "Tamil");
+                language: language);
         }
     }
 }
