@@ -4,7 +4,47 @@ using TamilHoroscope.Core.Models;
 namespace TamilHoroscope.Core.Calculators;
 
 /// <summary>
-/// Calculator for detecting astrological doshas in a horoscope
+/// Calculator for detecting astrological doshas (afflictions) in a horoscope
+/// 
+/// METHODOLOGY: This calculator implements classical Vedic astrology dosha detection
+/// principles based on traditional texts including references to Parasara's teachings.
+/// The doshas detected are based on:
+/// - Malefic planet placements in sensitive houses
+/// - Unfavorable planetary relationships and positions
+/// - Absence of beneficial planetary support
+/// - Shadow planet (Rahu/Ketu) afflictions
+/// 
+/// PARASARA METHOD ALIGNMENT:
+/// - ✓ Uses house-based dosha calculations as described in classical texts
+/// - ✓ Implements planetary aspect rules (Jupiter 5/7/9, Saturn 3/7/10, Mars 4/7/8)
+///   following Parasara's Graha Drishti (planetary aspects) system
+/// - ✓ Considers planetary dignities for dosha cancellation (exaltation, own sign)
+/// - ✓ Applies classical severity ratings based on house positions
+/// 
+/// CALCULATION APPROACH:
+/// - Mangal Dosha: Based on traditional rules for Mars placement affecting marriage
+/// - Kaal Sarp Dosha: All planets hemmed between Rahu and Ketu
+/// - Pitra Dosha: Affliction of Sun (father/ancestors) by shadow planets
+/// - Shakat Dosha: Unfavorable Moon-Jupiter relationship
+/// - Kemadruma Dosha: Moon without planetary support (classical definition)
+/// 
+/// DOSHA CANCELLATION: The calculator implements partial dosha cancellation logic
+/// based on traditional principles:
+/// - Planet in own sign or exaltation reduces dosha effect
+/// - Benefic aspects (especially Jupiter) can mitigate doshas
+/// - Mutual planetary relationships can cancel specific doshas
+/// 
+/// FUTURE ENHANCEMENTS:
+/// - Integration with Shadbala for strength-based severity calculation
+/// - More comprehensive cancellation rules from BPHS
+/// - Additional doshas mentioned in classical texts
+/// - Divisional chart analysis for dosha confirmation
+/// 
+/// REFERENCES:
+/// - Brihat Parashara Hora Shastra (BPHS), relevant chapters on doshas
+/// - Traditional texts on Mangal (Kuja) Dosha
+/// - Classical works on shadow planet (Rahu/Ketu) afflictions
+/// - Vedic astrology treatises on planetary aspects and relationships
 /// </summary>
 public class DosaCalculator
 {
@@ -28,6 +68,24 @@ public class DosaCalculator
     /// <summary>
     /// Check for Mangal Dosha (Mars affliction affecting marriage)
     /// Mars in 1st, 2nd, 4th, 7th, 8th, or 12th house from Lagna
+    /// 
+    /// PARASARA BASIS: Mangal (Kuja) Dosha is a well-known affliction in Vedic astrology
+    /// affecting marital harmony. While not explicitly detailed in BPHS, it is based on
+    /// Parasara's principles of Mars as a natural malefic (kroora graha) and its effect
+    /// on sensitive houses related to marriage and partnership.
+    /// 
+    /// TRADITIONAL DEFINITION: Mars placed in specific houses (1,2,4,7,8,12) creates
+    /// obstacles in marriage. The severity varies by house:
+    /// - 7th and 8th houses: Most severe (directly affect marriage and longevity)
+    /// - 1st and 12th houses: Severe (affect personality and hidden matters)
+    /// - 2nd and 4th houses: Moderate (affect family and domestic peace)
+    /// 
+    /// CANCELLATION RULES: The dosha can be cancelled or reduced when:
+    /// - Mars is in its own sign (Aries, Scorpio) or exaltation (Capricorn)
+    /// - Jupiter aspects Mars with its benefic 5th, 7th, or 9th house drishti
+    /// - Both partners have Mangal Dosha (mutual cancellation)
+    /// 
+    /// This implementation includes basic cancellation logic following traditional principles.
     /// </summary>
     private void CheckMangalDosha(HoroscopeData horoscope, List<DosaData> dosas, string language)
     {
@@ -98,6 +156,22 @@ public class DosaCalculator
 
     /// <summary>
     /// Check for Kaal Sarp Dosha (all planets between Rahu and Ketu)
+    /// 
+    /// CLASSICAL BASIS: Kaal Sarp Yoga/Dosha occurs when all seven classical planets
+    /// (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn) are positioned on one side
+    /// of the Rahu-Ketu axis, hemmed between these shadow planets.
+    /// 
+    /// EFFECTS: This configuration is considered to create:
+    /// - Obstacles and delays in life endeavors
+    /// - Mental anxiety and restlessness
+    /// - Karmic challenges requiring spiritual remedies
+    /// 
+    /// CALCULATION METHOD: Checks if all planets (excluding Rahu and Ketu themselves)
+    /// fall within the arc between Rahu and Ketu. This follows the traditional definition
+    /// used in Vedic astrology for centuries.
+    /// 
+    /// NOTE: Some texts debate whether this is always malefic or can have positive effects
+    /// in certain cases. The traditional view treats it as requiring attention and remedies.
     /// </summary>
     private void CheckKaalSarpDosha(HoroscopeData horoscope, List<DosaData> dosas, string language)
     {
@@ -311,6 +385,21 @@ public class DosaCalculator
 
     // Helper methods
 
+    /// <summary>
+    /// Checks if one planet aspects another based on Parasara's Graha Drishti system
+    /// 
+    /// PARASARA'S ASPECT SYSTEM (Graha Drishti):
+    /// - All planets have a full (100%) 7th house aspect
+    /// - Jupiter has special aspects: 5th, 7th, and 9th houses (forward count)
+    /// - Saturn has special aspects: 3rd, 7th, and 10th houses
+    /// - Mars has special aspects: 4th, 7th, and 8th houses
+    /// 
+    /// This follows the exact aspect rules described in BPHS Chapter on planetary aspects.
+    /// 
+    /// NOTE: The PlanetStrengthCalculator has more detailed aspect strength calculations
+    /// using proportional aspect values. This is a simplified boolean check for dosha
+    /// cancellation purposes.
+    /// </summary>
     private bool IsAspecting(PlanetData planet1, PlanetData planet2)
     {
         // Calculate which house planet2 occupies counting from planet1

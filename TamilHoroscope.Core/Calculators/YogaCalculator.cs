@@ -5,6 +5,31 @@ namespace TamilHoroscope.Core.Calculators;
 
 /// <summary>
 /// Calculator for detecting astrological yogas in a horoscope
+/// 
+/// METHODOLOGY: This calculator implements classical Vedic astrology yogas as described in
+/// traditional texts including Brihat Parashara Hora Shastra (BPHS). The yogas detected are
+/// based on Parasara's foundational principles of:
+/// - Rasi-based planetary positions (sign placements)
+/// - House-based planetary lordships and relationships
+/// - Kendra (angular houses: 1,4,7,10) and Trikona (trinal houses: 1,5,9) principles
+/// - Planetary conjunctions and relative positions
+/// 
+/// PARASARA METHOD ALIGNMENT:
+/// - ✓ Uses classical yoga definitions from BPHS and related texts
+/// - ✓ Implements rasi-based counting from Moon and Lagna as per Parasara
+/// - ✓ Considers planetary dignities (own signs, exaltation) for Mahapurusha yogas
+/// - ✓ Applies house lordship rules for Raja and Dhana yogas
+/// 
+/// FUTURE ENHANCEMENTS:
+/// - Integration with Shadbala (6-fold strength) for yoga strength validation
+/// - Divisional chart (D-9 Navamsa) confirmation of yoga potency
+/// - Aspect strength calculations using Parasara's Drishti system
+/// - Additional yogas from BPHS chapters on planetary combinations
+/// 
+/// REFERENCES:
+/// - Brihat Parashara Hora Shastra (BPHS), Chapters on Yogas
+/// - Classical texts on Pancha Mahapurusha Yogas
+/// - Traditional Vedic astrology treatises on Chandra (Moon) yogas
 /// </summary>
 public class YogaCalculator
 {
@@ -35,6 +60,14 @@ public class YogaCalculator
     /// <summary>
     /// Check for Gajakesari Yoga (Jupiter-Moon combination)
     /// Jupiter in kendra (1,4,7,10) from Moon
+    /// 
+    /// PARASARA BASIS: This yoga is described in BPHS as a highly auspicious combination.
+    /// When Jupiter (Guru) occupies a kendra (angular house) from the Moon (Chandra),
+    /// it creates this beneficial yoga that brings wisdom, wealth, fame, and good character.
+    /// 
+    /// CALCULATION METHOD: Uses rasi-based counting from Moon's position to determine
+    /// Jupiter's placement in 1st, 4th, 7th, or 10th house from Moon, following traditional
+    /// Vedic astrology methodology.
     /// </summary>
     private void CheckGajakesariYoga(HoroscopeData horoscope, Dictionary<int, List<PlanetData>> planetsByRasi, List<YogaData> yogas, string language)
     {
@@ -73,6 +106,20 @@ public class YogaCalculator
 
     /// <summary>
     /// Check for Raja Yoga (association of lords of kendras and trikonas)
+    /// 
+    /// PARASARA BASIS: Raja Yogas are extensively described in BPHS as combinations that
+    /// confer power, authority, and royal status. The fundamental principle is that when
+    /// the lords of angular houses (kendras: 1,4,7,10) and trinal houses (trikonas: 1,5,9)
+    /// form relationships, they create yogas for leadership and success.
+    /// 
+    /// CALCULATION METHOD: Evaluates each planet's lordship of houses from Lagna and
+    /// checks if it simultaneously rules both kendra and trikona houses. Uses classical
+    /// planetary lordship rules (e.g., Mars rules Aries and Scorpio).
+    /// 
+    /// NOTE: This is a simplified implementation. Full Parasara method would also consider:
+    /// - Conjunction or mutual aspect between kendra and trikona lords
+    /// - Strength of the planets involved (Shadbala)
+    /// - Position in divisional charts for confirmation
     /// </summary>
     private void CheckRajaYoga(HoroscopeData horoscope, Dictionary<int, List<PlanetData>> planetsByHouse, List<YogaData> yogas, string language)
     {
@@ -275,6 +322,23 @@ public class YogaCalculator
 
     /// <summary>
     /// Check for Mahapurusha Yogas (5 great person yogas)
+    /// 
+    /// PARASARA BASIS: The Pancha Mahapurusha Yogas are one of the most celebrated yoga
+    /// combinations in BPHS. These yogas are formed when the five tara grahas (Mars, Mercury,
+    /// Jupiter, Venus, Saturn) occupy their own signs or exaltation signs in kendra houses.
+    /// Each yoga bestows specific noble qualities:
+    /// 
+    /// - Hamsa Yoga (Jupiter): Wisdom, spirituality, righteousness
+    /// - Malavya Yoga (Venus): Beauty, luxury, artistic talents
+    /// - Sasa Yoga (Saturn): Discipline, authority, longevity
+    /// - Ruchaka Yoga (Mars): Courage, leadership, military prowess
+    /// - Bhadra Yoga (Mercury): Intelligence, communication, business acumen
+    /// 
+    /// CALCULATION METHOD: Checks if each qualifying planet is in:
+    /// 1. A kendra house (1,4,7,10) from Lagna
+    /// 2. Its own sign (Moolatrikona) or exaltation sign
+    /// 
+    /// This follows the classical Parasara definition precisely.
     /// </summary>
     private void CheckMahapurushYogas(HoroscopeData horoscope, Dictionary<int, List<PlanetData>> planetsByHouse, Dictionary<int, List<PlanetData>> planetsByRasi, List<YogaData> yogas, string language)
     {
