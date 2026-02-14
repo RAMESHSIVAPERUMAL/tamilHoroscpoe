@@ -74,4 +74,14 @@ public class HoroscopeData
     /// Planetary strength data (Shadbala) for all planets (optional)
     /// </summary>
     public List<PlanetStrengthData>? PlanetStrengths { get; set; }
+
+    /// <summary>
+    /// List of astrological yogas detected in the horoscope (optional)
+    /// </summary>
+    public List<YogaData>? Yogas { get; set; }
+
+    /// <summary>
+    /// List of astrological doshas detected in the horoscope (optional)
+    /// </summary>
+    public List<DosaData>? Dosas { get; set; }
 }

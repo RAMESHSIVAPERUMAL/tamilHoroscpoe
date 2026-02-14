@@ -297,6 +297,7 @@ public class HoroscopeService : IHoroscopeService
             // - Show Dasa (but UI will filter to show only main periods, not Bhukti)
             // - No Navamsa chart
             // - No planetary strength
+            // - Include yoga and dosa detection (free for all users)
             _logger.LogDebug("Calculating horoscope for trial user with limited features");
 
             return _calculator.CalculateHoroscope(
@@ -304,11 +305,14 @@ public class HoroscopeService : IHoroscopeService
                 includeDasa: true,
                 includeNavamsa: false,
                 dasaYears: dasaYears,
-                includeStrength: false);
+                includeStrength: false,
+                includeYoga: true,
+                includeDosa: true,
+                language: "Tamil");
         }
         else
         {
-            // Paid users: Full features
+            // Paid users: Full features including yoga and dosa detection
             _logger.LogDebug("Calculating horoscope for paid user with full features");
 
             return _calculator.CalculateHoroscope(
@@ -316,7 +320,10 @@ public class HoroscopeService : IHoroscopeService
                 includeDasa: true,
                 includeNavamsa: true,
                 dasaYears: dasaYears,
-                includeStrength: true);
+                includeStrength: true,
+                includeYoga: true,
+                includeDosa: true,
+                language: "Tamil");
         }
     }
 }

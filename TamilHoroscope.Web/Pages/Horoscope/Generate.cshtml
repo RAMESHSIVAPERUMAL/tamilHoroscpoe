@@ -288,7 +288,7 @@
                                 var dasa = Model.Horoscope.VimshottariDasas[i];
                                 <div class="accordion-item">
                                     <h2 class="accordion-header" id="heading@i">
-                                        <button class="accordion-button @(i > 0 ? "collapsed" : "")" type="button" data-bs-toggle="collapse" data-bs-target="#collapse@i">
+                                        <button class="accordion-button @(i > 0 ? "collapsed" : "")" type="button" data-bs-toggle="collapse" data-bs-target="#collapse@(i)">
                                             <strong>@dasa.Lord (@dasa.TamilLord) Dasa</strong> &nbsp;-&nbsp; 
                                             @dasa.StartDate.ToString("MMM dd, yyyy") to @dasa.EndDate.ToString("MMM dd, yyyy")
                                         </button>
@@ -438,6 +438,82 @@
                         <div class="alert alert-warning mt-4">
                             <i class="bi bi-lock"></i> <strong>Navamsa Chart</strong> and <strong>Planetary Strength Analysis</strong> are available in paid subscription only. 
                             <a asp-page="/Wallet/TopUp" class="alert-link">Top up your wallet</a> to unlock all features.
+                        </div>
+                    }
+
+                    @* Yoga Section *@
+                    @if (Model.Horoscope.Yogas != null && Model.Horoscope.Yogas.Any())
+                    {
+                        <h5 class="mt-4"><i class="bi bi-brightness-high"></i> Astrological Yogas - ஜோதிட யோகங்கள்</h5>
+                        <p class="text-muted small">Beneficial planetary combinations detected in your horoscope</p>
+                        
+                        <div class="row">
+                            @foreach (var yoga in Model.Horoscope.Yogas)
+                            {
+                                <div class="col-md-6 mb-3">
+                                    <div class="card border-success">
+                                        <div class="card-header bg-success text-white">
+                                            <h6 class="mb-0">
+                                                @yoga.Name <span class="small">(@yoga.LocalName)</span>
+                                                <span class="badge bg-light text-success float-end">Strength: @yoga.Strength/10</span>
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="card-text">@yoga.Description</p>
+                                            <p class="mb-0 small text-muted">
+                                                <strong>Planets:</strong> @string.Join(", ", yoga.InvolvedPlanets)
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    @* Dosha Section *@
+                    @if (Model.Horoscope.Dosas != null && Model.Horoscope.Dosas.Any())
+                    {
+                        <h5 class="mt-4"><i class="bi bi-exclamation-triangle"></i> Astrological Doshas - ஜோதிட தோஷங்கள்</h5>
+                        <p class="text-muted small">Astrological afflictions detected in your horoscope</p>
+                        
+                        <div class="accordion" id="doshaAccordion">
+                            @for (int i = 0; i < Model.Horoscope.Dosas.Count; i++)
+                            {
+                                var dosa = Model.Horoscope.Dosas[i];
+                                var collapseId = $"dosha{i}";
+                                <div class="accordion-item border-danger">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed bg-danger text-white" type="button" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false">
+                                            @dosa.Name <span class="small ms-2">(@dosa.LocalName)</span>
+                                            <span class="badge bg-light text-danger ms-auto">Severity: @dosa.Severity/10</span>
+                                        </button>
+                                    </h2>
+                                    <div id="@collapseId" class="accordion-collapse collapse" data-bs-parent="#doshaAccordion">
+                                        <div class="accordion-body">
+                                            <p><strong>Description:</strong> @dosa.Description</p>
+                                            <p class="mb-2 small text-muted">
+                                                <strong>Planets:</strong> @string.Join(", ", dosa.InvolvedPlanets)
+                                            </p>
+                                            
+                                            <div class="alert alert-info mt-3">
+                                                <h6 class="alert-heading"><i class="bi bi-lightbulb"></i> Remedies</h6>
+                                                <ul class="mb-0">
+                                                    @foreach (var remedy in dosa.Remedies)
+                                                    {
+                                                        <li>@remedy</li>
+                                                    }
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else if (Model.Horoscope != null)
+                    {
+                        <div class="alert alert-success mt-4">
+                            <i class="bi bi-check-circle"></i> <strong>No doshas detected!</strong> This is a favorable chart.
                         </div>
                     }
                 </div>
