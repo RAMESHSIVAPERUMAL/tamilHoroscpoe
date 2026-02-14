@@ -288,7 +288,7 @@
                                 var dasa = Model.Horoscope.VimshottariDasas[i];
                                 <div class="accordion-item">
                                     <h2 class="accordion-header" id="heading@i">
-                                        <button class="accordion-button @(i > 0 ? "collapsed" : "")" type="button" data-bs-toggle="collapse" data-bs-target="#collapse@i">
+                                        <button class="accordion-button @(i > 0 ? "collapsed" : "")" type="button" data-bs-toggle="collapse" data-bs-target="#collapse@(i)">
                                             <strong>@dasa.Lord (@dasa.TamilLord) Dasa</strong> &nbsp;-&nbsp; 
                                             @dasa.StartDate.ToString("MMM dd, yyyy") to @dasa.EndDate.ToString("MMM dd, yyyy")
                                         </button>
