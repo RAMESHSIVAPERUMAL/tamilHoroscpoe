@@ -78,7 +78,10 @@ public class PanchangCalculator : IPanchangCalculator
     /// <param name="includeNavamsa">Whether to calculate Navamsa (D-9) divisional chart</param>
     /// <param name="dasaYears">Number of years of Dasa to calculate (default: 120)</param>
     /// <param name="includeStrength">Whether to calculate planetary strengths (Shadbala)</param>
-    public HoroscopeData CalculateHoroscope(BirthDetails birthDetails, bool includeDasa = false, bool includeNavamsa = false, int dasaYears = 120, bool includeStrength = false)
+    /// <param name="includeYoga">Whether to detect astrological yogas</param>
+    /// <param name="includeDosa">Whether to detect astrological doshas</param>
+    /// <param name="language">Language for yoga and dosa names (Tamil, Telugu, Kannada, Malayalam)</param>
+    public HoroscopeData CalculateHoroscope(BirthDetails birthDetails, bool includeDasa = false, bool includeNavamsa = false, int dasaYears = 120, bool includeStrength = false, bool includeYoga = false, bool includeDosa = false, string language = "Tamil")
     {
         using var swissEph = new SwissEphemerisHelper(_ephemerisPath);
         
@@ -146,6 +149,20 @@ public class PanchangCalculator : IPanchangCalculator
         {
             var strengthCalculator = new PlanetStrengthCalculator();
             horoscope.PlanetStrengths = strengthCalculator.CalculatePlanetaryStrengths(horoscope);
+        }
+
+        // Calculate Yogas if requested
+        if (includeYoga)
+        {
+            var yogaCalculator = new YogaCalculator();
+            horoscope.Yogas = yogaCalculator.DetectYogas(horoscope, language);
+        }
+
+        // Calculate Dosas if requested
+        if (includeDosa)
+        {
+            var dosaCalculator = new DosaCalculator();
+            horoscope.Dosas = dosaCalculator.DetectDosas(horoscope, language);
         }
         
         return horoscope;
