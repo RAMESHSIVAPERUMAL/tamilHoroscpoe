@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using TamilHoroscope.Web.Data;
 using TamilHoroscope.Web.Services.Implementations;
 using TamilHoroscope.Web.Services.Interfaces;
+using TamilHoroscope.Web.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -117,7 +118,13 @@ else
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+
+// Session MUST come before middlewares that use it
 app.UseSession();
+
+// Add rate limiting middleware (AFTER session)
+app.UseMiddleware<RateLimitingMiddleware>();
+
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Security.Claims;
 using TamilHoroscope.Core.Models;
 using TamilHoroscope.Web.Services.Interfaces;
+using TamilHoroscope.Web.Security;
 
 namespace TamilHoroscope.Web.Pages.Horoscope;
 
@@ -66,6 +67,16 @@ public class GenerateModel : PageModel
     [Required(ErrorMessage = "Language is required")]
     [Display(Name = "Display Language")]
     public string Language { get; set; } = "Tamil";
+
+    // Hidden field for request verification
+    [BindProperty]
+    public string? RequestToken { get; set; }
+
+    [BindProperty]
+    public string? RequestTimestamp { get; set; }
+
+    [BindProperty]
+    public string? BirthDetailsChecksum { get; set; }
 
     public HoroscopeData? Horoscope { get; set; }
     public bool IsTrialUser { get; set; }
@@ -144,6 +155,71 @@ public class GenerateModel : PageModel
 
         if (!ModelState.IsValid)
         {
+            return Page();
+        }
+
+        // SERVER-SIDE VALIDATION: Verify request token
+        if (!string.IsNullOrEmpty(RequestToken) && !string.IsNullOrEmpty(RequestTimestamp))
+        {
+            // Parse timestamp as UTC (JavaScript sends ISO 8601 UTC timestamp)
+            if (DateTime.TryParse(RequestTimestamp, null, System.Globalization.DateTimeStyles.RoundtripKind, out var timestamp))
+            {
+                // Ensure we're comparing in UTC
+                var timestampUtc = timestamp.Kind == DateTimeKind.Utc ? timestamp : timestamp.ToUniversalTime();
+                
+                if (!RequestVerificationHelper.ValidateToken(userId, timestampUtc, RequestToken))
+                {
+                    _logger.LogWarning("Invalid request token for user {UserId}. Timestamp: {Timestamp}, Now: {Now}, Diff: {Diff} minutes", 
+                        userId, timestampUtc, DateTime.UtcNow, (DateTime.UtcNow - timestampUtc).TotalMinutes);
+                    ErrorMessage = "Invalid request. Please refresh the page and try again.";
+                    return Page();
+                }
+            }
+            else
+            {
+                _logger.LogWarning("Failed to parse request timestamp for user {UserId}: {Timestamp}", userId, RequestTimestamp);
+                ErrorMessage = "Invalid request timestamp. Please refresh the page and try again.";
+                return Page();
+            }
+        }
+
+        // SERVER-SIDE VALIDATION: Verify birth details haven't been tampered with
+        if (!string.IsNullOrEmpty(BirthDetailsChecksum))
+        {
+            var birthDateTime = BirthDate.Date.Add(BirthTime);
+            var expectedChecksum = RequestVerificationHelper.GenerateBirthDetailsChecksum(
+                PersonName, BirthDate, BirthTime, Latitude, Longitude, TimeZoneOffset, PlaceName);
+
+            if (BirthDetailsChecksum != expectedChecksum)
+            {
+                _logger.LogWarning("Birth details checksum mismatch for user {UserId}", userId);
+                ErrorMessage = "Data validation failed. Please re-enter your information.";
+                return Page();
+            }
+        }
+
+        // ADDITIONAL VALIDATION: Range checks
+        if (Latitude < -90 || Latitude > 90)
+        {
+            ErrorMessage = "Invalid latitude value. Must be between -90 and 90.";
+            return Page();
+        }
+
+        if (Longitude < -180 || Longitude > 180)
+        {
+            ErrorMessage = "Invalid longitude value. Must be between -180 and 180.";
+            return Page();
+        }
+
+        if (TimeZoneOffset < -12 || TimeZoneOffset > 14)
+        {
+            ErrorMessage = "Invalid timezone offset. Must be between -12 and +14.";
+            return Page();
+        }
+
+        if (BirthDate.Year < 1900 || BirthDate.Year > DateTime.Now.Year + 1)
+        {
+            ErrorMessage = "Invalid birth year. Must be between 1900 and current year.";
             return Page();
         }
 

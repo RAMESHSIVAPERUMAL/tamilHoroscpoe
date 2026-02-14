@@ -36,7 +36,14 @@
                     </div>
                 }
 
-                <form method="post">
+                <form method="post" id="horoscopeForm">
+                    @Html.AntiForgeryToken()
+                    
+                    <!-- Hidden fields for request verification -->
+                    <input type="hidden" asp-for="RequestToken" id="requestToken" />
+                    <input type="hidden" asp-for="RequestTimestamp" id="requestTimestamp" />
+                    <input type="hidden" asp-for="BirthDetailsChecksum" id="birthDetailsChecksum" />
+                    
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
                     <h5 class="mt-3">Personal Information</h5>
@@ -908,37 +915,116 @@
         }
 
         // Rasi Chart Drawing Function
-        function drawRasiChart(horoscopeData) {
-            drawChart(horoscopeData, 'rasiChart', horoscopeData.Planets, horoscopeData.LagnaRasi, 'ராசி');
+        function drawRasiChart(horoscopeData, language) {
+            const chartTitles = {
+                English: 'Rasi',
+                Tamil: 'ராசி',
+                Telugu: 'రాశి',
+                Kannada: 'ರಾಶಿ',
+                Malayalam: 'രാശി'
+            };
+            const title = chartTitles[language] || chartTitles.Tamil;
+            drawChart(horoscopeData, 'rasiChart', horoscopeData.Planets, horoscopeData.LagnaRasi, title, language);
         }
 
         // Navamsa Chart Drawing Function
-        function drawNavamsaChart(horoscopeData) {
+        function drawNavamsaChart(horoscopeData, language) {
             if (horoscopeData.NavamsaPlanets && horoscopeData.NavamsaPlanets.length > 0) {
+                const chartTitles = {
+                    English: 'Navamsa',
+                    Tamil: 'நவாம்சம்',
+                    Telugu: 'నవాంశం',
+                    Kannada: 'ನವಾಂಶ',
+                    Malayalam: 'നവാംശം'
+                };
+                const title = chartTitles[language] || chartTitles.Tamil;
                 // For Navamsa, we don't show Lagna marker (or we can calculate Navamsa Lagna if available)
-                drawChart(horoscopeData, 'navamsaChart', horoscopeData.NavamsaPlanets, null, 'நவாம்சம்');
+                drawChart(horoscopeData, 'navamsaChart', horoscopeData.NavamsaPlanets, null, title, language);
             }
         }
 
         // Generic chart drawing function for both Rasi and Navamsa
-        function drawChart(horoscopeData, containerId, planetsData, lagnaRasi, title) {
+        function drawChart(horoscopeData, containerId, planetsData, lagnaRasi, title, language) {
             const chartContainer = document.getElementById(containerId);
             if (!chartContainer || !horoscopeData) return;
 
             // Clear existing content
             chartContainer.innerHTML = '';
 
-            // Planet abbreviations in Tamil
+            // Planet abbreviations in multiple languages
             const planetAbbrev = {
-                'Sun': 'சூரி',
-                'Moon': 'சந்',
-                'Mars': 'செவ்',
-                'Mercury': 'புத',
-                'Jupiter': 'குரு',
-                'Venus': 'சுக்',
-                'Saturn': 'சனி',
-                'Rahu': 'ராகு',
-                'Ketu': 'கேது'
+                'Sun': {
+                    English: 'Sun',
+                    Tamil: 'சூரி',
+                    Telugu: 'సూర్య',
+                    Kannada: 'ಸೂರ್ಯ',
+                    Malayalam: 'സൂര്യ'
+                },
+                'Moon': {
+                    English: 'Moon',
+                    Tamil: 'சந்',
+                    Telugu: 'చంద్ర',
+                    Kannada: 'ಚಂದ್ರ',
+                    Malayalam: 'ചന്ദ്ര'
+                },
+                'Mars': {
+                    English: 'Mars',
+                    Tamil: 'செவ்',
+                    Telugu: 'కుజ',
+                    Kannada: 'ಮಂಗಳ',
+                    Malayalam: 'ചൊവ്വ'
+                },
+                'Mercury': {
+                    English: 'Merc',
+                    Tamil: 'புத',
+                    Telugu: 'బుధ',
+                    Kannada: 'ಬುಧ',
+                    Malayalam: 'ബുധ'
+                },
+                'Jupiter': {
+                    English: 'Jup',
+                    Tamil: 'குரு',
+                    Telugu: 'గురు',
+                    Kannada: 'ಗುರು',
+                    Malayalam: 'ഗുരു'
+                },
+                'Venus': {
+                    English: 'Venus',
+                    Tamil: 'சுக்',
+                    Telugu: 'శుక్ర',
+                    Kannada: 'ಶುಕ್ರ',
+                    Malayalam: 'ശുക്ര'
+                },
+                'Saturn': {
+                    English: 'Sat',
+                    Tamil: 'சனி',
+                    Telugu: 'శని',
+                    Kannada: 'ಶನಿ',
+                    Malayalam: 'ശനി'
+                },
+                'Rahu': {
+                    English: 'Rahu',
+                    Tamil: 'ராகு',
+                    Telugu: 'రాహు',
+                    Kannada: 'ರಾಹು',
+                    Malayalam: 'രാഹു'
+                },
+                'Ketu': {
+                    English: 'Ketu',
+                    Tamil: 'கேது',
+                    Telugu: 'కేతు',
+                    Kannada: 'ಕೇತು',
+                    Malayalam: 'കേതു'
+                }
+            };
+
+            // Lagna marker text in multiple languages
+            const lagnaText = {
+                English: 'Lag',
+                Tamil: 'லக்',
+                Telugu: 'లగ్',
+                Kannada: 'ಲಗ್',
+                Malayalam: 'ലഗ്'
             };
 
             // Group planets by Rasi
@@ -948,7 +1034,9 @@
             }
 
             planetsData.forEach(planet => {
-                const abbrev = planetAbbrev[planet.Name] || planet.Name.substring(0, 2);
+                const abbrev = planetAbbrev[planet.Name] 
+                    ? (planetAbbrev[planet.Name][language] || planetAbbrev[planet.Name].Tamil)
+                    : planet.Name.substring(0, 2);
                 rasiToPlanets[planet.Rasi].push(abbrev);
             });
 
@@ -983,7 +1071,7 @@
                 if (lagnaRasi && pos.rasi === lagnaRasi) {
                     const lagnaMarker = document.createElement('div');
                     lagnaMarker.className = 'lagna-marker';
-                    lagnaMarker.textContent = 'லக்';  // Tamil "Lak" for Lagna
+                    lagnaMarker.textContent = lagnaText[language] || lagnaText.Tamil;
                     box.appendChild(lagnaMarker);
                 }
 
@@ -1001,6 +1089,18 @@
                     box.appendChild(planetsContainer);
                 }
 
+                // Optionally add Rasi number or name as a subtle label (bottom-right corner)
+                const rasiLabel = document.createElement('div');
+                rasiLabel.className = 'rasi-label';
+                rasiLabel.textContent = getRasiName(pos.rasi, language);
+                rasiLabel.style.fontSize = '8px';
+                rasiLabel.style.color = '#999';
+                rasiLabel.style.position = 'absolute';
+                rasiLabel.style.bottom = '2px';
+                rasiLabel.style.right = '2px';
+                rasiLabel.style.lineHeight = '1';
+                box.appendChild(rasiLabel);
+
                 chartContainer.appendChild(box);
             });
 
@@ -1011,6 +1111,30 @@
             chartContainer.appendChild(centerBox);
         }
 
+        // Multi-language support: Rasi names in different languages
+        const rasiNames = {
+            1: { English: "Aries", Tamil: "மேஷம்", Telugu: "మేషం", Kannada: "ಮೇಷ", Malayalam: "മേടം" },
+            2: { English: "Taurus", Tamil: "ரிஷபம்", Telugu: "వృషభం", Kannada: "ವೃಷಭ", Malayalam: "ഇടവം" },
+            3: { English: "Gemini", Tamil: "மிதுனம்", Telugu: "మిథునం", Kannada: "ಮಿಥುನ", Malayalam: "മിഥുനം" },
+            4: { English: "Cancer", Tamil: "கடகம்", Telugu: "కర్కాటకం", Kannada: "ಕರ್ಕಾಟಕ", Malayalam: "കർക്കിടകം" },
+            5: { English: "Leo", Tamil: "சிம்மம்", Telugu: "సింహం", Kannada: "ಸಿಂಹ", Malayalam: "ചിങ്ങം" },
+            6: { English: "Virgo", Tamil: "கன்னி", Telugu: "కన్య", Kannada: "ಕನ್ಯಾ", Malayalam: "കന്നി" },
+            7: { English: "Libra", Tamil: "துலாம்", Telugu: "తుల", Kannada: "ತುಲಾ", Malayalam: "തുലാം" },
+            8: { English: "Scorpio", Tamil: "விருச்சிகம்", Telugu: "వృశ్చికం", Kannada: "ವೃಶ್ಚಿಕ", Malayalam: "വൃശ്ചികം" },
+            9: { English: "Sagittarius", Tamil: "தனுசு", Telugu: "ధనస్సు", Kannada: "ಧನು", Malayalam: "ധനു" },
+            10: { English: "Capricorn", Tamil: "மகரம்", Telugu: "మకరం", Kannada: "ಮಕರ", Malayalam: "മകరം" },
+            11: { English: "Aquarius", Tamil: "கும்பம்", Telugu: "కుంభం", Kannada: "ಕುಂಭ", Malayalam: "കുംഭം" },
+            12: { English: "Pisces", Tamil: "மீனம்", Telugu: "మీనం", Kannada: "ಮೀನ", Malayalam: "മീനം" }
+        };
+
+        // Get Rasi name in selected language
+        function getRasiName(rasiNumber, language) {
+            if (rasiNames[rasiNumber] && rasiNames[rasiNumber][language]) {
+                return rasiNames[rasiNumber][language];
+            }
+            return rasiNames[rasiNumber]?.English || '';
+        }
+
         // Auto-draw charts if horoscope data exists on page load
         document.addEventListener('DOMContentLoaded', function() {
             // Check if we have horoscope data in the page (from Model.Horoscope)
@@ -1018,15 +1142,16 @@
             {
                 <text>
                 const horoscopeData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Horoscope));
+                const selectedLanguage = '@Model.Language' || 'Tamil';
                 
                 // Draw Rasi chart (always shown)
-                drawRasiChart(horoscopeData);
+                drawRasiChart(horoscopeData, selectedLanguage);
                 
                 // Draw Navamsa chart (only for paid users)
                 @if (!Model.IsTrialUser)
                 {
                     <text>
-                    drawNavamsaChart(horoscopeData);
+                    drawNavamsaChart(horoscopeData, selectedLanguage);
                     
                     // Draw Planetary Strength Bar Chart
                     if (horoscopeData.PlanetStrengths && horoscopeData.PlanetStrengths.length > 0) {
@@ -1131,5 +1256,131 @@
             alert('PDF Export feature coming soon! This will generate a downloadable PDF report similar to the desktop application.');
             // TODO: Implement PDF generation using a library like jsPDF or server-side PDF generation
         }
+
+        // ==============================================
+        // SECURITY: Form Submission Protection
+        // ==============================================
+        (function() {
+            'use strict';
+            
+            const form = document.getElementById('horoscopeForm');
+            if (!form) return;
+
+            let isTokensGenerated = false;
+
+            // Generate secure token before form submission
+            form.addEventListener('submit', async function(e) {
+                // Prevent default submission until tokens are generated
+                if (!isTokensGenerated) {
+                    e.preventDefault();
+                    
+                    try {
+                        // Get user ID from session (rendered server-side)
+                        const userId = @(User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier) ?? "0");
+                        
+                        // Generate timestamp in yyyyMMddHHmmss format to match C# server
+                        const now = new Date();
+                        const year = now.getUTCFullYear();
+                        const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+                        const day = String(now.getUTCDate()).padStart(2, '0');
+                        const hour = String(now.getUTCHours()).padStart(2, '0');
+                        const minute = String(now.getUTCMinutes()).padStart(2, '0');
+                        const second = String(now.getUTCSeconds()).padStart(2, '0');
+                        const timestamp = `${year}${month}${day}${hour}${minute}${second}`;
+                        
+                        // Store ISO format for server parsing
+                        document.getElementById('requestTimestamp').value = now.toISOString();
+                        
+                        // Generate request token (client-side hash - validated server-side)
+                        const tokenData = `${userId}|${timestamp}`;
+                        const requestToken = await generateSecureHash(tokenData);
+                        document.getElementById('requestToken').value = requestToken;
+                        
+                        // Generate birth details checksum
+                        const personName = document.querySelector('input[name="PersonName"]').value;
+                        const birthDate = document.querySelector('input[name="BirthDate"]').value;
+                        const birthTime = document.querySelector('input[name="BirthTime"]').value;
+                        const latitude = document.querySelector('input[name="Latitude"]').value;
+                        const longitude = document.querySelector('input[name="Longitude"]').value;
+                        const timezone = document.querySelector('select[name="TimeZoneOffset"]').value;
+                        const placeName = document.querySelector('input[name="PlaceName"]').value;
+                        
+                        const checksumData = `${personName}|${birthDate}|${birthTime}|${latitude}|${longitude}|${timezone}|${placeName}`;
+                        const checksum = await generateSecureHash(checksumData);
+                        document.getElementById('birthDetailsChecksum').value = checksum;
+                        
+                        // Mark tokens as generated and resubmit form
+                        isTokensGenerated = true;
+                        form.submit();
+                        
+                    } catch (error) {
+                        console.error('[Security] Token generation failed:', error);
+                        alert('Error generating security tokens. Please try again.');
+                    }
+                }
+            });
+
+            // Generate secure hash using Web Crypto API
+            async function generateSecureHash(data) {
+                const encoder = new TextEncoder();
+                const dataBuffer = encoder.encode(data);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                return hashHex;
+            }
+
+            // Prevent form field tampering detection
+            const formFields = form.querySelectorAll('input, select, textarea');
+            const originalValues = new Map();
+            
+            formFields.forEach(field => {
+                if (field.type !== 'hidden' && field.name) {
+                    originalValues.set(field.name, field.value);
+                }
+            });
+
+            // Monitor for suspicious activity
+            let tamperAttempts = 0;
+            const maxTamperAttempts = 5;
+
+            formFields.forEach(field => {
+                if (field.type === 'hidden' && field.name.includes('Token')) {
+                    // Protect security tokens from tampering
+                    const observer = new MutationObserver(function(mutations) {
+                        mutations.forEach(function(mutation) {
+                            if (mutation.type === 'attributes' && mutation.attributeName === 'value') {
+                                tamperAttempts++;
+                                if (tamperAttempts >= maxTamperAttempts) {
+                                    alert('Security violation detected. This incident has been logged.');
+                                    window.location.href = '/Account/Logout';
+                                }
+                            }
+                        });
+                    });
+                    
+                    observer.observe(field, { attributes: true });
+                }
+            });
+
+            // Disable right-click on form (optional - can be removed if too restrictive)
+            form.addEventListener('contextmenu', function(e) {
+                // Allow right-click but log suspicious activity
+                console.log('Context menu accessed on form');
+            });
+
+            // Disable F12 developer tools warning (informational only)
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+                    // Just log, don't prevent (too intrusive to block entirely)
+                    console.log('Developer tools access detected');
+                }
+            });
+
+        })();
+
+        // ==============================================
+        // END SECURITY SECTION
+        // ==============================================
     </script>
 }

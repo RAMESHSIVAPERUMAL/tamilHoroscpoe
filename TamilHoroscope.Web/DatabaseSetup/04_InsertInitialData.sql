@@ -14,7 +14,7 @@ PRINT '';
 -- =====================================================
 INSERT INTO SystemConfig (ConfigKey, ConfigValue, Description, DataType, IsActive)
 VALUES
-    ('PerDayCost', '5.00', 'Daily subscription cost in INR', 'decimal', 1),
+    ('PerDayCost', '10.00', 'Daily subscription cost in INR', 'decimal', 1),
     ('LowBalanceWarningDays', '3', 'Days threshold for low balance warning', 'int', 1),
     ('TrialPeriodDays', '30', 'Trial period duration in days', 'int', 1),
     ('MinimumTopUpAmount', '100.00', 'Minimum wallet top-up amount in INR', 'decimal', 1),
