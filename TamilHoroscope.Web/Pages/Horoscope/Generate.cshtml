@@ -336,8 +336,10 @@
                                 <div class="accordion-item pdf-export-dasa" data-pdf-section="dasa-bhkthi-@i">
                                     <h2 class="accordion-header" id="dasaHeading@(i)">
                                         <button class="accordion-button @(i > 0 ? "collapsed" : "")" type="button" data-bs-toggle="collapse" data-bs-target="#dasaCollapse@(i)" aria-expanded="@(i == 0 ? "true" : "false")" aria-controls="dasaCollapse@(i)">
-                                            <strong>@dasa.Lord (@dasa.LocalizedLord) Dasa</strong> &nbsp;-&nbsp; 
-                                            @dasa.StartDate.ToString("MMM dd, yyyy") to @dasa.EndDate.ToString("MMM dd, yyyy")
+                                            <div style="width: 100%;">
+                                                <div style="font-weight: bold; font-size: 14px;">@dasa.Lord (@dasa.LocalizedLord) Dasa</div>
+                                                <div style="font-size: 12px; color: #666;">@dasa.StartDate.ToString("MMM dd, yyyy") to @dasa.EndDate.ToString("MMM dd, yyyy")</div>
+                                            </div>
                                         </button>
                                     </h2>
                                     <div id="dasaCollapse@(i)" class="accordion-collapse collapse @(i == 0 ? "show" : "")" aria-labelledby="dasaHeading@(i)" data-bs-parent="#dasaAccordion">
@@ -1173,6 +1175,12 @@
                 const horoscopeData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Horoscope));
                 const selectedLanguage = '@Model.Language' || 'Tamil';
                 
+                // IMPORTANT: Reset token generation flag when loading from history
+                // This ensures tokens are regenerated on next submission
+                if (window.tokenGenerationState) {
+                    window.tokenGenerationState.isTokensGenerated = false;
+                }
+                
                 // Draw Rasi chart (always shown)
                 drawRasiChart(horoscopeData, selectedLanguage);
                 
@@ -1298,28 +1306,40 @@
                     const language = '@Model.Language';
 
                     // ===========================================
-                    // STEP 1: EXPAND ALL ACCORDIONS
+                    // STEP 1: EXPAND ALL ACCORDIONS & FORCE DISPLAY
                     // ===========================================
                     exportBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Expanding sections...';
                     
                     const accordionStates = [];
                     
-                    // Expand all Dasa accordion items
+                    // Expand all Dasa accordion items and force display
                     document.querySelectorAll('#dasaAccordion .accordion-collapse').forEach(item => {
-                        accordionStates.push({ element: item, wasShown: item.classList.contains('show') });
+                        accordionStates.push({ 
+                            element: item, 
+                            wasShown: item.classList.contains('show'),
+                            originalDisplay: item.style.display 
+                        });
                         item.classList.add('show');
+                        item.style.display = 'block'; // Force display
+                        item.style.height = 'auto'; // Force height
                     });
                     
-                    // Expand all Dosha accordion items
+                    // Expand all Dosha accordion items and force display
                     document.querySelectorAll('#doshaAccordion .accordion-collapse').forEach(item => {
-                        accordionStates.push({ element: item, wasShown: item.classList.contains('show') });
+                        accordionStates.push({ 
+                            element: item, 
+                            wasShown: item.classList.contains('show'),
+                            originalDisplay: item.style.display 
+                        });
                         item.classList.add('show');
+                        item.style.display = 'block'; // Force display
+                        item.style.height = 'auto'; // Force height
                     });
                     
                     console.log(`Expanded ${accordionStates.length} accordion sections`);
                     
-                    // Wait for Bootstrap animations to complete
-                    await new Promise(resolve => setTimeout(resolve, 800));
+                    // Wait longer for DOM to settle and animations to complete
+                    await new Promise(resolve => setTimeout(resolve, 1200));
 
                     // ===========================================
                     // STEP 2: HIDE EXPORT BUTTONS
@@ -1390,7 +1410,20 @@
                     const dasaItems = document.querySelectorAll('.pdf-export-dasa[data-pdf-section^="dasa-bhkthi-"]');
                     console.log(`Found ${dasaItems.length} Dasa accordion items`);
                     dasaItems.forEach((item, index) => {
-                        console.log(`  Dasa ${index}: ${item.querySelector('.accordion-button strong')?.textContent}`);
+                        const buttonText = item.querySelector('.accordion-button strong')?.textContent;
+                        const collapseDiv = item.querySelector('.accordion-collapse');
+                        const accordionBody = item.querySelector('.accordion-body');
+                        const isVisible = collapseDiv && collapseDiv.classList.contains('show');
+                        const height = collapseDiv ? collapseDiv.scrollHeight : 0;
+                        const bodyHeight = accordionBody ? accordionBody.scrollHeight : 0;
+                        console.log(`  Dasa ${index}: ${buttonText} | Visible: ${isVisible} | Collapse Height: ${height}px | Body Height: ${bodyHeight}px`);
+                        
+                        // Verify content is actually there
+                        if (accordionBody) {
+                            const tableRows = accordionBody.querySelectorAll('table tbody tr');
+                            console.log(`    → Contains ${tableRows.length} Bhukti rows`);
+                        }
+                        
                         sections[`dasa${index}`] = item;
                     });
                     
@@ -1398,7 +1431,20 @@
                     const doshaItems = document.querySelectorAll('.pdf-export-dosha[data-pdf-section^="dosa-"]');
                     console.log(`Found ${doshaItems.length} Dosha accordion items`);
                     doshaItems.forEach((item, index) => {
-                        console.log(`  Dosha ${index}: ${item.querySelector('.accordion-button')?.textContent}`);
+                        const buttonText = item.querySelector('.accordion-button')?.textContent;
+                        const collapseDiv = item.querySelector('.accordion-collapse');
+                        const accordionBody = item.querySelector('.accordion-body');
+                        const isVisible = collapseDiv && collapseDiv.classList.contains('show');
+                        const height = collapseDiv ? collapseDiv.scrollHeight : 0;
+                        const bodyHeight = accordionBody ? accordionBody.scrollHeight : 0;
+                        console.log(`  Dosha ${index}: ${buttonText?.trim().substring(0, 50)} | Visible: ${isVisible} | Collapse Height: ${height}px | Body Height: ${bodyHeight}px`);
+                        
+                        // Verify content is actually there
+                        if (accordionBody) {
+                            const remedyItems = accordionBody.querySelectorAll('ul li');
+                            console.log(`    → Contains ${remedyItems.length} remedies`);
+                        }
+                        
                         sections[`dosha${index}`] = item;
                     });
                     
@@ -1445,18 +1491,32 @@
                             exportBtn.innerHTML = `<i class="bi bi-hourglass-split"></i> Capturing ${name} (${captured}/${totalSections})...`;
                             
                             try {
+                                // Small delay before capturing each section
+                                await new Promise(resolve => setTimeout(resolve, 100));
+                                
+                                // Log element details before capture
+                                console.log(`Capturing ${name}: Width=${element.scrollWidth}px, Height=${element.scrollHeight}px`);
+                                
                                 // Capture directly - no wrapper needed since sections already have proper boundaries
                                 sectionImages[name] = await html2canvas(element, {
                                     backgroundColor: '#ffffff',
                                     scale: 2, // Good quality
-                                    logging: false,
+                                    logging: true, // Enable logging to see what's happening
                                     useCORS: true,
                                     allowTaint: true,
                                     width: element.scrollWidth,
-                                    height: element.scrollHeight
-                                }).then(canvas => canvas.toDataURL('image/png'));
+                                    height: element.scrollHeight,
+                                    windowWidth: element.scrollWidth,
+                                    windowHeight: element.scrollHeight
+                                }).then(canvas => {
+                                    console.log(`  → Captured canvas: ${canvas.width}x${canvas.height}px`);
+                                    const dataUrl = canvas.toDataURL('image/png');
+                                    const sizeKB = (dataUrl.length / 1024).toFixed(2);
+                                    console.log(`  → Image size: ${sizeKB} KB`);
+                                    return dataUrl;
+                                });
                             } catch (err) {
-                                console.warn(`Failed to capture ${name}:`, err);
+                                console.error(`Failed to capture ${name}:`, err);
                             }
                         }
                     }
@@ -1472,7 +1532,14 @@
                     // STEP 4: RESTORE ORIGINAL STATE
                     // ===========================================
                     accordionStates.forEach(state => {
-                        if (!state.wasShown) state.element.classList.remove('show');
+                        if (!state.wasShown) {
+                            state.element.classList.remove('show');
+                        }
+                        // Restore original display style
+                        if (state.originalDisplay !== undefined) {
+                            state.element.style.display = state.originalDisplay;
+                            state.element.style.height = '';
+                        }
                     });
                     buttonsToHide.forEach(btn => {
                         btn.style.display = btn.dataset.originalDisplay || '';
@@ -1482,6 +1549,11 @@
                     // STEP 5: SEND TO SERVER (SECTION MODE!)
                     // ===========================================
                     exportBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Generating PDF...';
+                    
+                    // Log total payload size
+                    const totalImageSizeKB = Object.values(sectionImages).reduce((sum, img) => sum + (img.length / 1024), 0);
+                    console.log(`Total image payload: ${totalImageSizeKB.toFixed(2)} KB`);
+                    console.log(`Sending ${Object.keys(sectionImages).length} images to server`);
                     
                     const requestData = {
                         horoscopeJson: JSON.stringify(horoscopeData),
@@ -1497,8 +1569,13 @@
                         body: JSON.stringify(requestData)
                     });
 
+                    console.log(`Server response status: ${response.status}`);
+                    console.log(`Server response size: ${response.headers.get('content-length')} bytes`);
+
                     if (!response.ok) {
-                        throw new Error('PDF generation failed: ' + await response.text());
+                        const errorText = await response.text();
+                        console.error('Server error response:', errorText);
+                        throw new Error('PDF generation failed: ' + errorText);
                     }
 
                     // ===========================================

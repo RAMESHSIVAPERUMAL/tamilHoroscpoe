@@ -131,6 +131,12 @@ public class GenerateModel : PageModel
                 Longitude = (double)generation.Longitude;
                 TimeZoneOffset = 5.5; // Default IST
 
+                // IMPORTANT: Clear security tokens when loading from history
+                // This forces the client-side JavaScript to regenerate them on next submission
+                RequestToken = null;
+                RequestTimestamp = null;
+                BirthDetailsChecksum = null;
+
                 _logger.LogInformation("Successfully loaded and regenerated horoscope for generation {GenerationId}, user {UserId}", generationId.Value, userId);
             }
             catch (Exception ex)

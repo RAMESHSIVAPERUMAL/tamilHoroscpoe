@@ -15,9 +15,9 @@ public class RateLimitingMiddleware
     private static readonly object _cleanupLock = new();
     private static DateTime _lastCleanup = DateTime.UtcNow;
 
-    // Configuration
-    private const int MaxRequestsPerMinute = 10;
-    private const int MaxRequestsPerHour = 100;
+    // Configuration - INCREASED LIMITS FOR DEVELOPMENT/TESTING
+    private const int MaxRequestsPerMinute = 30;  // Increased from 10
+    private const int MaxRequestsPerHour = 300;   // Increased from 100
     private const int CleanupIntervalMinutes = 10;
 
     public RateLimitingMiddleware(RequestDelegate next, ILogger<RateLimitingMiddleware> logger)

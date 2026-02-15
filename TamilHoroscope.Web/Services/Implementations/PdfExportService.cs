@@ -479,64 +479,59 @@ public class PdfExportService : IPdfExportService
         document.Add(summary);
 
         // Add each section as a separate page
-        var sectionOrder = new[]
-        {
-            "birthDetails",    // Birth details table
-            "charts",          // Rasi + Navamsa charts side-by-side
-            "planetaryPositions", // Planetary positions table
-            "dasa",            // Dasa/Bhukti section
-            "navamsaPositions", // Navamsa positions table (if paid)
-            "strength",        // Planetary strength (if paid)
-            "yogas",           // Yogas section
-            "doshas"           // Doshas section
-        };
-
         var pageWidth = document.PageSize.Width - 30; // Account for margins
         var pageHeight = document.PageSize.Height - 30;
 
-        foreach (var sectionName in sectionOrder)
+        // Process sections in order: static sections first, then dynamic accordion items
+        var processedSections = new List<string>();
+        
+        // Add birth details, charts, planetary positions
+        foreach (var staticSection in new[] { "birthDetails", "charts", "planetaryPositions" })
         {
-            if (sectionImages.TryGetValue(sectionName, out var imageData))
+            if (sectionImages.TryGetValue(staticSection, out var imageData))
             {
-                try
-                {
-                    // Add new page for each section (except first)
-                    if (sectionName != "birthDetails")
-                    {
-                        document.NewPage();
-                    }
-
-                    // Remove data:image prefix if present
-                    if (imageData.StartsWith("data:image"))
-                    {
-                        imageData = imageData.Substring(imageData.IndexOf(",") + 1);
-                    }
-
-                    var imageBytes = Convert.FromBase64String(imageData);
-                    var image = iTextSharp.text.Image.GetInstance(imageBytes);
-                    
-                    // Scale image to fit page width, maintain aspect ratio
-                    var widthScale = pageWidth / image.Width;
-                    image.ScalePercent(widthScale * 100);
-                    
-                    // If image is too tall after scaling, scale down further to fit height
-                    if (image.ScaledHeight > pageHeight)
-                    {
-                        var heightScale = pageHeight / image.Height;
-                        image.ScalePercent(heightScale * 100);
-                    }
-                    
-                    image.Alignment = Element.ALIGN_CENTER;
-                    document.Add(image);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error adding section {sectionName}: {ex.Message}");
-                    // Add error note but continue
-                    var errorNote = new Paragraph($"[Error loading {sectionName} section]", smallFont);
-                    errorNote.Alignment = Element.ALIGN_CENTER;
-                    document.Add(errorNote);
-                }
+                AddImageSection(document, staticSection, imageData, pageWidth, pageHeight, processedSections, smallFont);
+            }
+        }
+        
+        // Add all Dasa accordion items (dasa0, dasa1, ..., dasa9)
+        for (int i = 0; i < 10; i++)
+        {
+            var dasaKey = $"dasa{i}";
+            if (sectionImages.TryGetValue(dasaKey, out var imageData))
+            {
+                AddImageSection(document, dasaKey, imageData, pageWidth, pageHeight, processedSections, smallFont);
+            }
+        }
+        
+        // Add navamsa and strength sections (if paid user)
+        foreach (var optionalSection in new[] { "navamsaPositions", "strength" })
+        {
+            if (sectionImages.TryGetValue(optionalSection, out var imageData))
+            {
+                AddImageSection(document, optionalSection, imageData, pageWidth, pageHeight, processedSections, smallFont);
+            }
+        }
+        
+        // Add yogas section
+        if (sectionImages.TryGetValue("yogas", out var yogasImage))
+        {
+            AddImageSection(document, "yogas", yogasImage, pageWidth, pageHeight, processedSections, smallFont);
+        }
+        
+        // Add all Dosha accordion items (dosha0, dosha1, ...)
+        int doshaIndex = 0;
+        while (true)
+        {
+            var doshaKey = $"dosha{doshaIndex}";
+            if (sectionImages.TryGetValue(doshaKey, out var imageData))
+            {
+                AddImageSection(document, doshaKey, imageData, pageWidth, pageHeight, processedSections, smallFont);
+                doshaIndex++;
+            }
+            else
+            {
+                break; // No more doshas
             }
         }
 
@@ -554,6 +549,52 @@ public class PdfExportService : IPdfExportService
         document.Close();
         
         return memoryStream.ToArray();
+    }
+
+    private void AddImageSection(Document document, string sectionName, string imageData, float pageWidth, float pageHeight, List<string> processedSections, iTextSharp.text.Font smallFont)
+    {
+        try
+        {
+            // Add new page for each section (except first)
+            if (processedSections.Count > 0)
+            {
+                document.NewPage();
+            }
+
+            // Remove data:image prefix if present
+            if (imageData.StartsWith("data:image"))
+            {
+                imageData = imageData.Substring(imageData.IndexOf(",") + 1);
+            }
+
+            var imageBytes = Convert.FromBase64String(imageData);
+            var image = iTextSharp.text.Image.GetInstance(imageBytes);
+            
+            // Scale image to fit page width, maintain aspect ratio
+            var widthScale = pageWidth / image.Width;
+            image.ScalePercent(widthScale * 100);
+            
+            // If image is too tall after scaling, scale down further to fit height
+            if (image.ScaledHeight > pageHeight)
+            {
+                var heightScale = pageHeight / image.Height;
+                image.ScalePercent(heightScale * 100);
+            }
+            
+            image.Alignment = Element.ALIGN_CENTER;
+            document.Add(image);
+            
+            processedSections.Add(sectionName);
+            Console.WriteLine($"Added section {sectionName} to PDF (size: {imageBytes.Length / 1024}KB)");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding section {sectionName}: {ex.Message}");
+            // Add error note but continue
+            var errorNote = new Paragraph($"[Error loading {sectionName} section]", smallFont);
+            errorNote.Alignment = Element.ALIGN_CENTER;
+            document.Add(errorNote);
+        }
     }
 
     private void AddBirthDetailsSection(Document document, HoroscopeData horoscope, iTextSharp.text.Font headerFont, iTextSharp.text.Font normalFont)
