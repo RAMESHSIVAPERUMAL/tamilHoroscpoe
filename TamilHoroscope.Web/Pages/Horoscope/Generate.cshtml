@@ -483,7 +483,7 @@
                                             </h6>
                                         </div>
                                         <div class="card-body">
-                                            <p class="card-text">@yoga.Description</p>
+                                            <p class="card-text">@yoga.LocalizedDescription</p>
                                             <p class="mb-0 small text-muted">
                                                 <strong>Planets:</strong> @string.Join(", ", yoga.InvolvedPlanets)
                                             </p>
@@ -514,7 +514,7 @@
                                     </h2>
                                     <div id="@collapseId" class="accordion-collapse collapse" data-bs-parent="#doshaAccordion">
                                         <div class="accordion-body">
-                                            <p><strong>Description:</strong> @dosa.Description</p>
+                                            <p><strong>Description:</strong> @dosa.LocalizedDescription</p>
                                             <p class="mb-2 small text-muted">
                                                 <strong>Planets:</strong> @string.Join(", ", dosa.InvolvedPlanets)
                                             </p>
@@ -522,7 +522,7 @@
                                             <div class="alert alert-info mt-3">
                                                 <h6 class="alert-heading"><i class="bi bi-lightbulb"></i> Remedies</h6>
                                                 <ul class="mb-0">
-                                                    @foreach (var remedy in dosa.Remedies)
+                                                    @foreach (var remedy in dosa.LocalizedRemedies)
                                                     {
                                                         <li>@remedy</li>
                                                     }

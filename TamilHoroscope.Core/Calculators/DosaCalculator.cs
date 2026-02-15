@@ -108,18 +108,11 @@ public class DosaCalculator
             {
                 Name = "Mangal Dosha (Kuja Dosha)",
                 LocalName = GetDosaLocalName("Mangal Dosha", language),
-                Description = $"Mars in {mars.House}th house. May cause delays or difficulties in marriage and marital harmony.",
+                Language = language,
+                DescriptionArgs = new object[] { mars.House },
                 InvolvedPlanets = new List<string> { "Mars" },
                 InvolvedHouses = new List<int> { mars.House },
-                Severity = severity,
-                Remedies = new List<string>
-                {
-                    "Chant Hanuman Chalisa regularly",
-                    "Worship Lord Hanuman on Tuesdays",
-                    "Recite Mangal mantra: Om Angarakaya Namaha",
-                    "Donate red lentils on Tuesdays",
-                    "Wear red coral gemstone after consultation"
-                }
+                Severity = severity
             };
             dosas.Add(dosa);
         }
@@ -148,7 +141,13 @@ public class DosaCalculator
             if (cancelled && dosas.Any(d => d.Name == "Mangal Dosha (Kuja Dosha)"))
             {
                 var existingDosa = dosas.First(d => d.Name == "Mangal Dosha (Kuja Dosha)");
-                existingDosa.Description += $" Note: Dosha is partially cancelled - {string.Join(", ", cancellationReasons)}";
+                // Append cancellation note to description (for backward compatibility)
+                #pragma warning disable CS0618 // Type or member is obsolete
+                if (!string.IsNullOrEmpty(existingDosa.Description))
+                {
+                    existingDosa.Description += $" Note: Dosha is partially cancelled - {string.Join(", ", cancellationReasons)}";
+                }
+                #pragma warning restore CS0618 // Type or member is obsolete
                 existingDosa.Severity = Math.Max(1, existingDosa.Severity - 4);
             }
         }
@@ -205,18 +204,10 @@ public class DosaCalculator
             {
                 Name = "Kaal Sarp Dosha",
                 LocalName = GetDosaLocalName("Kaal Sarp Dosha", language),
-                Description = "All planets are positioned between Rahu and Ketu. May cause obstacles, delays, and mental anxiety.",
+                Language = language,
                 InvolvedPlanets = new List<string> { "Rahu", "Ketu" },
                 InvolvedHouses = new List<int> { rahuHouse, ketuHouse },
-                Severity = 9,
-                Remedies = new List<string>
-                {
-                    "Visit Kaal Sarp Dosha temples",
-                    "Perform Rahu-Ketu puja on special days",
-                    "Recite Maha Mrityunjaya mantra",
-                    "Donate to snake sanctuaries",
-                    "Observe fasts on Nag Panchami"
-                }
+                Severity = 9
             };
             dosas.Add(dosa);
         }
@@ -275,18 +266,11 @@ public class DosaCalculator
             {
                 Name = "Pitra Dosha",
                 LocalName = GetDosaLocalName("Pitra Dosha", language),
-                Description = $"Ancestral affliction detected: {reason}. May cause family issues and obstacles in life.",
+                Language = language,
+                DescriptionArgs = new object[] { reason },
                 InvolvedPlanets = new List<string> { "Sun" },
                 InvolvedHouses = new List<int> { sun.House },
-                Severity = severity,
-                Remedies = new List<string>
-                {
-                    "Perform Shraddha rituals for ancestors",
-                    "Feed Brahmins on Amavasya",
-                    "Donate food on Saturdays",
-                    "Recite Gayatri mantra daily",
-                    "Plant a Peepal tree and water it regularly"
-                }
+                Severity = severity
             };
             dosas.Add(dosa);
         }
@@ -321,18 +305,11 @@ public class DosaCalculator
             {
                 Name = "Shakat Dosha",
                 LocalName = GetDosaLocalName("Shakat Dosha", language),
-                Description = $"Moon in {houseFromJupiter}th house from Jupiter. May cause financial instability and ups and downs in life.",
+                Language = language,
+                DescriptionArgs = new object[] { houseFromJupiter },
                 InvolvedPlanets = new List<string> { "Moon", "Jupiter" },
                 InvolvedHouses = new List<int> { moon.House, jupiter.House },
-                Severity = 6,
-                Remedies = new List<string>
-                {
-                    "Worship Lord Vishnu on Thursdays",
-                    "Recite Guru mantra: Om Gurave Namaha",
-                    "Donate yellow items on Thursdays",
-                    "Wear yellow sapphire after consultation",
-                    "Feed cows regularly"
-                }
+                Severity = 6
             };
             dosas.Add(dosa);
         }
@@ -366,18 +343,10 @@ public class DosaCalculator
             {
                 Name = "Kemadruma Dosha",
                 LocalName = GetDosaLocalName("Kemadruma Dosha", language),
-                Description = "Moon has no planets in adjacent houses. May cause poverty, mental stress, and lack of support.",
+                Language = language,
                 InvolvedPlanets = new List<string> { "Moon" },
                 InvolvedHouses = new List<int> { moon.House },
-                Severity = 7,
-                Remedies = new List<string>
-                {
-                    "Wear pearl or moonstone after consultation",
-                    "Recite Chandra mantra on Mondays",
-                    "Donate white items on Mondays",
-                    "Worship Lord Shiva regularly",
-                    "Maintain good relationship with mother"
-                }
+                Severity = 7
             };
             dosas.Add(dosa);
         }
