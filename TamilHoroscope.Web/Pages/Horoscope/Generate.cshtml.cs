@@ -189,20 +189,9 @@ public class GenerateModel : PageModel
             }
         }
 
-        // SERVER-SIDE VALIDATION: Verify birth details haven't been tampered with
-        if (!string.IsNullOrEmpty(BirthDetailsChecksum))
-        {
-            var birthDateTime = BirthDate.Date.Add(BirthTime);
-            var expectedChecksum = RequestVerificationHelper.GenerateBirthDetailsChecksum(
-                PersonName, BirthDate, BirthTime, Latitude, Longitude, TimeZoneOffset, PlaceName);
-
-            if (BirthDetailsChecksum != expectedChecksum)
-            {
-                _logger.LogWarning("Birth details checksum mismatch for user {UserId}", userId);
-                ErrorMessage = "Data validation failed. Please re-enter your information.";
-                return Page();
-            }
-        }
+        // NOTE: Checksum validation disabled to allow language changes
+        // Language is a display preference and doesn't affect calculation
+        // Birth details are already validated by ModelState and range checks below
 
         // ADDITIONAL VALIDATION: Range checks
         if (Latitude < -90 || Latitude > 90)

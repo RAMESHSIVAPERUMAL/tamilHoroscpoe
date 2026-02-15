@@ -478,70 +478,204 @@ public class PdfExportService : IPdfExportService
         summary.Alignment = Element.ALIGN_CENTER;
         document.Add(summary);
 
-        // Add each section as a separate page
+        // Calculate available page dimensions
         var pageWidth = document.PageSize.Width - 30; // Account for margins
         var pageHeight = document.PageSize.Height - 30;
 
-        // Process sections in order: static sections first, then dynamic accordion items
-        var processedSections = new List<string>();
+        // OPTIMIZATION: Pre-process all sections to measure heights
+        var sectionMetadata = new List<SectionMetadata>();
         
-        // Add birth details, charts, planetary positions
+        // Process sections in order and measure their heights
+        var sectionOrder = new List<string>();
+        
+        // Add static sections
         foreach (var staticSection in new[] { "birthDetails", "charts", "planetaryPositions" })
         {
-            if (sectionImages.TryGetValue(staticSection, out var imageData))
+            if (sectionImages.ContainsKey(staticSection))
             {
-                AddImageSection(document, staticSection, imageData, pageWidth, pageHeight, processedSections, smallFont);
+                sectionOrder.Add(staticSection);
             }
         }
         
-        // Add all Dasa accordion items (dasa0, dasa1, ..., dasa9)
+        // Add all Dasa sections
         for (int i = 0; i < 10; i++)
         {
             var dasaKey = $"dasa{i}";
-            if (sectionImages.TryGetValue(dasaKey, out var imageData))
+            if (sectionImages.ContainsKey(dasaKey))
             {
-                AddImageSection(document, dasaKey, imageData, pageWidth, pageHeight, processedSections, smallFont);
+                sectionOrder.Add(dasaKey);
             }
         }
         
-        // Add navamsa and strength sections (if paid user)
-        foreach (var optionalSection in new[] { "navamsaPositions", "strength" })
+        // Add optional sections
+        foreach (var optionalSection in new[] { "navamsaPositions", "strength", "yogas" })
         {
-            if (sectionImages.TryGetValue(optionalSection, out var imageData))
+            if (sectionImages.ContainsKey(optionalSection))
             {
-                AddImageSection(document, optionalSection, imageData, pageWidth, pageHeight, processedSections, smallFont);
+                sectionOrder.Add(optionalSection);
             }
         }
         
-        // Add yogas section
-        if (sectionImages.TryGetValue("yogas", out var yogasImage))
-        {
-            AddImageSection(document, "yogas", yogasImage, pageWidth, pageHeight, processedSections, smallFont);
-        }
-        
-        // Add all Dosha accordion items (dosha0, dosha1, ...)
+        // Add all Dosha sections
         int doshaIndex = 0;
         while (true)
         {
             var doshaKey = $"dosha{doshaIndex}";
-            if (sectionImages.TryGetValue(doshaKey, out var imageData))
+            if (sectionImages.ContainsKey(doshaKey))
             {
-                AddImageSection(document, doshaKey, imageData, pageWidth, pageHeight, processedSections, smallFont);
+                sectionOrder.Add(doshaKey);
                 doshaIndex++;
             }
             else
             {
-                break; // No more doshas
+                break;
+            }
+        }
+
+        // Measure all sections
+        foreach (var sectionName in sectionOrder)
+        {
+            if (sectionImages.TryGetValue(sectionName, out var imageData))
+            {
+                try
+                {
+                    var imageDataClean = imageData.StartsWith("data:image") 
+                        ? imageData.Substring(imageData.IndexOf(",") + 1) 
+                        : imageData;
+                    var imageBytes = Convert.FromBase64String(imageDataClean);
+                    var image = iTextSharp.text.Image.GetInstance(imageBytes);
+                    
+                    // Calculate scaled height
+                    var widthScale = pageWidth / image.Width;
+                    var scaledHeight = image.Height * widthScale;
+                    
+                    // If still too tall, scale to fit height
+                    if (scaledHeight > pageHeight)
+                    {
+                        var heightScale = pageHeight / image.Height;
+                        scaledHeight = image.Height * heightScale;
+                    }
+                    
+                    sectionMetadata.Add(new SectionMetadata
+                    {
+                        Name = sectionName,
+                        ImageData = imageData,
+                        ScaledHeight = scaledHeight,
+                        OriginalHeight = image.Height,
+                        OriginalWidth = image.Width
+                    });
+                    
+                    Console.WriteLine($"Section {sectionName}: Height = {scaledHeight:F1}px (fits on page: {scaledHeight <= pageHeight})");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error measuring section {sectionName}: {ex.Message}");
+                }
+            }
+        }
+
+        // SMART PAGE LAYOUT: Combine sections that fit together
+        var pages = new List<List<SectionMetadata>>();
+        var currentPage = new List<SectionMetadata>();
+        float currentPageHeight = 0;
+        const float SPACING = 10f; // Space between sections on same page
+        const float PAGE_THRESHOLD = 0.95f; // Use 95% of page to avoid tight fits
+
+        foreach (var section in sectionMetadata)
+        {
+            var sectionHeightWithSpacing = section.ScaledHeight + (currentPage.Count > 0 ? SPACING : 0);
+            
+            // Check if section fits on current page
+            if (currentPageHeight + sectionHeightWithSpacing <= pageHeight * PAGE_THRESHOLD)
+            {
+                // Fits! Add to current page
+                currentPage.Add(section);
+                currentPageHeight += sectionHeightWithSpacing;
+                Console.WriteLine($"  ? Adding {section.Name} to current page (total height: {currentPageHeight:F1}px)");
+            }
+            else
+            {
+                // Doesn't fit. Start new page if current page has content
+                if (currentPage.Count > 0)
+                {
+                    pages.Add(currentPage);
+                    Console.WriteLine($"  ? Page complete with {currentPage.Count} sections (height: {currentPageHeight:F1}px)");
+                    currentPage = new List<SectionMetadata>();
+                    currentPageHeight = 0;
+                }
+                
+                // Add section to new page
+                currentPage.Add(section);
+                currentPageHeight = section.ScaledHeight;
+                Console.WriteLine($"  ? Starting new page with {section.Name} (height: {currentPageHeight:F1}px)");
+            }
+        }
+        
+        // Add last page
+        if (currentPage.Count > 0)
+        {
+            pages.Add(currentPage);
+            Console.WriteLine($"  ? Final page with {currentPage.Count} sections (height: {currentPageHeight:F1}px)");
+        }
+
+        Console.WriteLine($"\n?? OPTIMIZED LAYOUT: {sectionMetadata.Count} sections ? {pages.Count} pages");
+        Console.WriteLine($"   Space saved: {sectionMetadata.Count - pages.Count} pages\n");
+
+        // Render optimized pages
+        bool isFirstPage = true;
+        foreach (var page in pages)
+        {
+            if (!isFirstPage)
+            {
+                document.NewPage();
+            }
+            isFirstPage = false;
+
+            foreach (var section in page)
+            {
+                try
+                {
+                    var imageDataClean = section.ImageData.StartsWith("data:image") 
+                        ? section.ImageData.Substring(section.ImageData.IndexOf(",") + 1) 
+                        : section.ImageData;
+                    var imageBytes = Convert.FromBase64String(imageDataClean);
+                    var image = iTextSharp.text.Image.GetInstance(imageBytes);
+                    
+                    // Scale to fit
+                    var widthScale = pageWidth / image.Width;
+                    image.ScalePercent(widthScale * 100);
+                    
+                    if (image.ScaledHeight > pageHeight)
+                    {
+                        var heightScale = pageHeight / image.Height;
+                        image.ScalePercent(heightScale * 100);
+                    }
+                    
+                    image.Alignment = Element.ALIGN_CENTER;
+                    document.Add(image);
+                    
+                    // Add small spacing between sections on same page
+                    if (page.IndexOf(section) < page.Count - 1)
+                    {
+                        document.Add(new Paragraph(" ", smallFont) { SpacingAfter = SPACING / 2 });
+                    }
+                    
+                    Console.WriteLine($"  ? Rendered {section.Name}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"  ? Error rendering {section.Name}: {ex.Message}");
+                }
             }
         }
 
         // Add footer on last page
         document.NewPage();
-        var darkBlueFooter = new BaseColor(0, 51, 102); // Professional dark blue
+        var darkBlueFooter = new BaseColor(0, 51, 102);
         var footerFont = new iTextSharp.text.Font(smallFont.BaseFont, 7, iTextSharp.text.Font.ITALIC, darkBlueFooter);
         var footer = new Paragraph(
             $"Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss} | Tamil Horoscope Calculator\n" +
-            "Swiss Ephemeris - Lahiri Ayanamsa | Section-by-Section Export", 
+            "Swiss Ephemeris - Lahiri Ayanamsa | Optimized Layout", 
             footerFont);
         footer.Alignment = Element.ALIGN_CENTER;
         document.Add(footer);
@@ -549,6 +683,16 @@ public class PdfExportService : IPdfExportService
         document.Close();
         
         return memoryStream.ToArray();
+    }
+
+    // Helper class for section metadata
+    private class SectionMetadata
+    {
+        public string Name { get; set; } = string.Empty;
+        public string ImageData { get; set; } = string.Empty;
+        public float ScaledHeight { get; set; }
+        public float OriginalHeight { get; set; }
+        public float OriginalWidth { get; set; }
     }
 
     private void AddImageSection(Document document, string sectionName, string imageData, float pageWidth, float pageHeight, List<string> processedSections, iTextSharp.text.Font smallFont)
