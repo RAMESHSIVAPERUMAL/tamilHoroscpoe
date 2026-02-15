@@ -41,10 +41,12 @@ public class DosaData
         get
         {
             // If Description is set (backward compatibility), return it
-            if (!string.IsNullOrEmpty(Description) && Language == "Tamil")
+            #pragma warning disable CS0618 // Type or member is obsolete
+            if (!string.IsNullOrEmpty(Description))
             {
                 return Description;
             }
+            #pragma warning restore CS0618 // Type or member is obsolete
             
             // Otherwise, try to get from TamilNames dictionary
             return TamilNames.GetDosaDescription(Name, Language, DescriptionArgs);
@@ -80,10 +82,12 @@ public class DosaData
         get
         {
             // If Remedies is set (backward compatibility), return it
-            if (Remedies != null && Remedies.Any() && Language == "Tamil")
+            #pragma warning disable CS0618 // Type or member is obsolete
+            if (Remedies != null && Remedies.Any())
             {
                 return Remedies;
             }
+            #pragma warning restore CS0618 // Type or member is obsolete
             
             // Otherwise, try to get from TamilNames dictionary
             return TamilNames.GetDosaRemedies(Name, Language);

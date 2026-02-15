@@ -41,10 +41,12 @@ public class YogaData
         get
         {
             // If Description is set (backward compatibility), return it
-            if (!string.IsNullOrEmpty(Description) && Language == "Tamil")
+            #pragma warning disable CS0618 // Type or member is obsolete
+            if (!string.IsNullOrEmpty(Description))
             {
                 return Description;
             }
+            #pragma warning restore CS0618 // Type or member is obsolete
             
             // Otherwise, try to get from TamilNames dictionary
             return TamilNames.GetYogaDescription(Name, Language, DescriptionArgs);
