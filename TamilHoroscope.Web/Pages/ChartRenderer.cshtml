@@ -1,0 +1,244 @@
+@page
+@model TamilHoroscope.Web.Pages.ChartRendererModel
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Chart Renderer</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: white;
+        }
+
+        /* South Indian Style Rasi Chart */
+        .south-indian-chart {
+            width: 400px;
+            height: 400px;
+            display: grid;
+            grid-template-columns: 100px 100px 100px 100px;
+            grid-template-rows: 100px 100px 100px 100px;
+            border: 2px solid #F88857;
+            background: radial-gradient(circle, #FFFDE9, #FFFCD5);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .chart-box {
+            border: 1px solid #F88857;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 5px;
+            font-size: 11px;
+            position: relative;
+            background: #FFFDE9;
+        }
+
+        .chart-center {
+            grid-column: 2 / 4;
+            grid-row: 2 / 4;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: #800080;
+            border: 1px solid #F88857;
+        }
+
+        .lagna-marker {
+            background: #DC3545;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 9px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        .planet-text {
+            color: #800080;
+            font-weight: 500;
+            margin: 1px;
+            font-size: 10px;
+            display: inline-block;
+        }
+
+        .planets-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2px;
+        }
+
+        .rasi-label {
+            font-size: 8px;
+            color: #999;
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            line-height: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id="chartContainer" class="south-indian-chart">
+        <!-- Chart will be rendered here by JavaScript -->
+    </div>
+
+    <script>
+        // Chart data passed from server
+        const chartData = @Html.Raw(Model.ChartDataJson);
+        const chartType = '@Model.ChartType';
+        const language = '@Model.Language';
+
+        // Draw chart immediately
+        drawChart(chartData, chartType, language);
+
+        function drawChart(horoscopeData, type, lang) {
+            const container = document.getElementById('chartContainer');
+            const planets = type === 'navamsa' ? horoscopeData.NavamsaPlanets : horoscope Data.Planets;
+            const lagnaRasi = type === 'rasi' ? horoscopeData.LagnaRasi : null;
+            const title = type === 'navamsa' ? getTitleText(lang, 'Navamsa') : getTitleText(lang, 'Rasi');
+
+            // Planet abbreviations
+            const planetAbbrev = {
+                'Sun': { English: 'Sun', Tamil: '????', Telugu: '?????', Kannada: '?????', Malayalam: '?????' },
+                'Moon': { English: 'Moon', Tamil: '???', Telugu: '?????', Kannada: '?????', Malayalam: '??????' },
+                'Mars': { English: 'Mars', Tamil: '????', Telugu: '???', Kannada: '????', Malayalam: '?????' },
+                'Mercury': { English: 'Merc', Tamil: '???', Telugu: '???', Kannada: '???', Malayalam: '???' },
+                'Jupiter': { English: 'Jup', Tamil: '????', Telugu: '????', Kannada: '????', Malayalam: '????' },
+                'Venus': { English: 'Venus', Tamil: '????', Telugu: '?????', Kannada: '?????', Malayalam: '?????' },
+                'Saturn': { English: 'Sat', Tamil: '???', Telugu: '???', Kannada: '???', Malayalam: '???' },
+                'Rahu': { English: 'Rahu', Tamil: '????', Telugu: '????', Kannada: '????', Malayalam: '????' },
+                'Ketu': { English: 'Ketu', Tamil: '????', Telugu: '????', Kannada: '????', Malayalam: '????' }
+            };
+
+            const lagnaText = {
+                English: 'Lag',
+                Tamil: '???',
+                Telugu: '???',
+                Kannada: '???',
+                Malayalam: '???'
+            };
+
+            // Group planets by Rasi
+            const rasiToPlanets = {};
+            for (let i = 1; i <= 12; i++) {
+                rasiToPlanets[i] = [];
+            }
+
+            planets.forEach(planet => {
+                const abbrev = planetAbbrev[planet.Name] 
+                    ? (planetAbbrev[planet.Name][lang] || planetAbbrev[planet.Name].Tamil)
+                    : planet.Name.substring(0, 2);
+                rasiToPlanets[planet.Rasi].push(abbrev);
+            });
+
+            // Box positions
+            const boxPositions = [
+                { gridRow: 1, gridCol: 1, rasi: 12 },
+                { gridRow: 1, gridCol: 2, rasi: 1 },
+                { gridRow: 1, gridCol: 3, rasi: 2 },
+                { gridRow: 1, gridCol: 4, rasi: 3 },
+                { gridRow: 2, gridCol: 4, rasi: 4 },
+                { gridRow: 3, gridCol: 4, rasi: 5 },
+                { gridRow: 4, gridCol: 4, rasi: 6 },
+                { gridRow: 4, gridCol: 3, rasi: 7 },
+                { gridRow: 4, gridCol: 2, rasi: 8 },
+                { gridRow: 4, gridCol: 1, rasi: 9 },
+                { gridRow: 3, gridCol: 1, rasi: 10 },
+                { gridRow: 2, gridCol: 1, rasi: 11 }
+            ];
+
+            // Create boxes
+            boxPositions.forEach(pos => {
+                const box = document.createElement('div');
+                box.className = 'chart-box';
+                box.style.gridRow = pos.gridRow;
+                box.style.gridColumn = pos.gridCol;
+
+                // Add Lagna marker
+                if (lagnaRasi && pos.rasi === lagnaRasi) {
+                    const lagnaMarker = document.createElement('div');
+                    lagnaMarker.className = 'lagna-marker';
+                    lagnaMarker.textContent = lagnaText[lang] || lagnaText.Tamil;
+                    box.appendChild(lagnaMarker);
+                }
+
+                // Add planets
+                const planetsList = rasiToPlanets[pos.rasi];
+                if (planetsList.length > 0) {
+                    const planetsContainer = document.createElement('div');
+                    planetsContainer.className = 'planets-container';
+                    planetsList.forEach(planetAbbrev => {
+                        const planetSpan = document.createElement('span');
+                        planetSpan.className = 'planet-text';
+                        planetSpan.textContent = planetAbbrev;
+                        planetsContainer.appendChild(planetSpan);
+                    });
+                    box.appendChild(planetsContainer);
+                }
+
+                // Add Rasi label
+                const rasiLabel = document.createElement('div');
+                rasiLabel.className = 'rasi-label';
+                rasiLabel.textContent = getRasiName(pos.rasi, lang);
+                box.appendChild(rasiLabel);
+
+                container.appendChild(box);
+            });
+
+            // Add center title
+            const centerBox = document.createElement('div');
+            centerBox.className = 'chart-center';
+            centerBox.textContent = title;
+            container.appendChild(centerBox);
+
+            // Signal that rendering is complete
+            window.chartRendered = true;
+        }
+
+        function getTitleText(language, chartType) {
+            const titles = {
+                Rasi: {
+                    English: 'Rasi',
+                    Tamil: '????',
+                    Telugu: '????',
+                    Kannada: '????',
+                    Malayalam: '????'
+                },
+                Navamsa: {
+                    English: 'Navamsa',
+                    Tamil: '????????',
+                    Telugu: '??????',
+                    Kannada: '?????',
+                    Malayalam: '??????'
+                }
+            };
+            return titles[chartType][language] || titles[chartType].Tamil;
+        }
+
+        function getRasiName(rasiNumber, language) {
+            const rasiNames = {
+                1: { English: "Ar", Tamil: "???", Telugu: "???", Kannada: "???", Malayalam: "???" },
+                2: { English: "Ta", Tamil: "????", Telugu: "????", Kannada: "????", Malayalam: "???" },
+                3: { English: "Ge", Tamil: "?????", Telugu: "?????", Kannada: "?????", Malayalam: "?????" },
+                4: { English: "Cn", Tamil: "???", Telugu: "???????", Kannada: "???????", Malayalam: "????????" },
+                5: { English: "Le", Tamil: "?????", Telugu: "????", Kannada: "????", Malayalam: "?????" },
+                6: { English: "Vi", Tamil: "?????", Telugu: "????", Kannada: "?????", Malayalam: "?????" },
+                7: { English: "Li", Tamil: "????", Telugu: "???", Kannada: "????", Malayalam: "????" },
+                8: { English: "Sc", Tamil: "?????????", Telugu: "???????", Kannada: "???????", Malayalam: "???????" },
+                9: { English: "Sg", Tamil: "?????", Telugu: "??????", Kannada: "???", Malayalam: "???" },
+                10: { English: "Cp", Tamil: "???", Telugu: "???", Kannada: "???", Malayalam: "???" },
+                11: { English: "Aq", Tamil: "?????", Telugu: "????", Kannada: "????", Malayalam: "????" },
+                12: { English: "Pi", Tamil: "???", Telugu: "???", Kannada: "???", Malayalam: "???" }
+            };
+            return rasiNames[rasiNumber][language] || rasiNames[rasiNumber].English;
+        }
+    </script>
+</body>
+</html>

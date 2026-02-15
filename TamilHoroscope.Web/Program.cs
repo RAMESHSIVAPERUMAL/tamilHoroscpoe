@@ -52,12 +52,37 @@ builder.Services.AddScoped<IConfigService, ConfigService>();
 builder.Services.AddScoped<IWalletService, WalletService>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<IHoroscopeService, HoroscopeService>();
+builder.Services.AddScoped<IPdfExportService, PdfExportService>();
 
 // Register BirthPlace service as singleton (cached data)
 builder.Services.AddSingleton<TamilHoroscope.Web.Services.BirthPlaceService>();
 
-// Add Controllers for API endpoints
-builder.Services.AddControllers();
+// Configure Kestrel server limits for large PDF export requests (section images)
+builder.Services.Configure<Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerOptions>(options =>
+{
+    // Increase max request body size to 100MB for PDF export with multiple section images
+    options.Limits.MaxRequestBodySize = 100 * 1024 * 1024; // 100 MB
+});
+
+// Configure IIS server limits (if hosted on IIS)
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 100 * 1024 * 1024; // 100 MB
+    options.ValueLengthLimit = int.MaxValue;
+    options.MultipartHeadersLengthLimit = int.MaxValue;
+});
+
+// Add Controllers for API endpoints with increased JSON size limit
+builder.Services.AddControllers(options =>
+{
+    // Increase form value count limit for complex requests
+    options.MaxModelBindingCollectionSize = 10000;
+})
+.AddJsonOptions(options =>
+{
+    // Increase JSON size limit to handle large base64 images
+    options.JsonSerializerOptions.MaxDepth = 64;
+});
 
 // Add Razor Pages
 builder.Services.AddRazorPages()

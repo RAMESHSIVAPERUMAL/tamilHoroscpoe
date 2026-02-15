@@ -1088,7 +1088,50 @@ public partial class MainWindow : Window
             }
         }
 
-      
+        // Add Yogas section if detected
+        if (_currentHoroscope.Yogas != null && _currentHoroscope.Yogas.Count > 0)
+        {
+            document.NewPage();
+            document.Add(new Paragraph("Astrological Yogas - ஜோதிட யோகங்கள்", headerFont));
+            document.Add(new Paragraph("Beneficial planetary combinations detected in your horoscope\n\n", smallFont));
+
+            foreach (var yoga in _currentHoroscope.Yogas)
+            {
+                var yogaTitle = new Paragraph($"{yoga.Name} ({yoga.LocalName}) - Strength: {yoga.Strength}/10", normalFont);
+                yogaTitle.SpacingBefore = 10;
+                document.Add(yogaTitle);
+                
+                document.Add(new Paragraph(yoga.LocalizedDescription, smallFont));
+                document.Add(new Paragraph($"Planets: {string.Join(", ", yoga.InvolvedPlanets)}", smallFont));
+            }
+        }
+
+        // Add Doshas section if detected
+        if (_currentHoroscope.Dosas != null && _currentHoroscope.Dosas.Count > 0)
+        {
+            document.NewPage();
+            document.Add(new Paragraph("Astrological Doshas - ஜோதிட தோஷங்கள்", headerFont));
+            document.Add(new Paragraph("Astrological afflictions detected in your horoscope\n\n", smallFont));
+
+            foreach (var dosa in _currentHoroscope.Dosas)
+            {
+                var dosaTitle = new Paragraph($"{dosa.Name} ({dosa.LocalName}) - Severity: {dosa.Severity}/10", normalFont);
+                dosaTitle.SpacingBefore = 10;
+                document.Add(dosaTitle);
+                
+                document.Add(new Paragraph($"Description: {dosa.LocalizedDescription}", smallFont));
+                document.Add(new Paragraph($"Planets: {string.Join(", ", dosa.InvolvedPlanets)}", smallFont));
+                
+                if (dosa.LocalizedRemedies != null && dosa.LocalizedRemedies.Any())
+                {
+                    document.Add(new Paragraph("Remedies:", normalFont));
+                    foreach (var remedy in dosa.LocalizedRemedies)
+                    {
+                        document.Add(new Paragraph($"• {remedy}", smallFont));
+                    }
+                }
+            }
+        }
 
         // Add footer
         document.Add(new Paragraph("\n\n"));
