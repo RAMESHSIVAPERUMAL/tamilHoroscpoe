@@ -1,17 +1,17 @@
 {
   "locations": {
-    "jayamkondacholapuram": {
-      "name": "Jayamkondacholapuram",
-      "latitude": 11.216215,
-      "longitude": 79.36319,
+    "kanyakumari": {
+      "name": "Kanyakumari",
+      "latitude": 8.079252,
+      "longitude": 77.549934,
       "timeZoneOffset": 5.5,
       "countryCode": null,
       "state": null,
-      "cachedAt": "2026-02-15T22:23:22.1275377Z",
-      "usageCount": 1
+      "cachedAt": "2026-02-15T22:32:07.5363921Z",
+      "usageCount": 4
     }
   },
   "version": 1,
-  "lastUpdated": "2026-02-15T22:23:22.1292945Z",
+  "lastUpdated": "2026-02-15T22:39:26.8619083Z",
   "totalLocations": 1
 }

@@ -473,12 +473,12 @@
                     {
                         <div class="alert alert-warning mt-4">
                             <i class="bi bi-lock"></i> <strong>Navamsa Chart</strong> and <strong>Planetary Strength Analysis</strong> are available in paid subscription only. 
-                            <a asp-page="/Wallet/TopUp" class="alert-link">Top up your wallet</a> to unlock all features.
+                            <a asp-page="/Wallet/TopUp">Top up your wallet</a> to unlock all features.
                         </div>
                     }
 
                     @* Yoga Section *@
-                    @if (Model.Horoscope.Yogas != null && Model.Horoscope.Yogas.Any())
+                    @if (!Model.IsTrialUser && Model.Horoscope.Yogas != null && Model.Horoscope.Yogas.Any())
                     {
                         <h5 id="pdf-section-yogas-hdr" class="mt-4"><i class="bi bi-brightness-high"></i> Astrological Yogas - ஜோதிட யோகங்கள்</h5>
                         <p class="text-muted small">Beneficial planetary combinations detected in your horoscope</p>
@@ -505,9 +505,16 @@
                             }
                         </div>
                     }
+                    else if (Model.IsTrialUser)
+                    {
+                        <div class="alert alert-warning mt-4">
+                            <i class="bi bi-lock"></i> <strong>Yoags</strong> in horoscope are available in paid subscription only.
+                            <a asp-page="/Wallet/TopUp">Top up your wallet</a> to unlock all features.
+                        </div>
+                    }
 
                     @* Dosha Section *@
-                    @if (Model.Horoscope.Dosas != null && Model.Horoscope.Dosas.Any())
+                    @if (!Model.IsTrialUser && Model.Horoscope.Dosas != null && Model.Horoscope.Dosas.Any())
                     {
                         <h5 id="pdf-section-dosha-hdr" class="mt-4"><i class="bi bi-exclamation-triangle"></i> Astrological Doshas - ஜோதிட தோஷங்கள்</h5>
                         <p class="text-muted small">Astrological afflictions detected in your horoscope</p>
@@ -546,10 +553,17 @@
                             }
                         </div>
                     }
-                    else if (Model.Horoscope != null)
+                    else if (!Model.IsTrialUser && Model.Horoscope != null)
                     {
                         <div class="alert alert-success mt-4">
                             <i class="bi bi-check-circle"></i> <strong>No doshas detected!</strong> This is a favorable chart.
+                        </div>
+                    }
+                    else if (Model.IsTrialUser)
+                    {
+                        <div class="alert alert-warning mt-4">
+                        <i class="bi bi-lock"></i> <strong>Doshas and remedies</strong> in horoscope are available in paid subscription only.
+                            <a asp-page="/Wallet/TopUp">Top up your wallet</a> to unlock all features.
                         </div>
                     }
                 </div>
