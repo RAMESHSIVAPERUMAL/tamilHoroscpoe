@@ -333,16 +333,16 @@
                             @for (var i = 0; i < Math.Min(10, Model.Horoscope.VimshottariDasas.Count); i++)
                             {
                                 var dasa = Model.Horoscope.VimshottariDasas[i];
-                                <div id="pdf-section-dasa-bhkthi-@i" class="accordion-item">
-                                    <h2 class="accordion-header" id="heading@i">
-                                        <button class="accordion-button @(i > 0 ? "collapsed" : "")" type="button" data-bs-toggle="collapse" data-bs-target="#collapse@(i)">
+                                <div class="accordion-item pdf-export-dasa" data-pdf-section="dasa-bhkthi-@i">
+                                    <h2 class="accordion-header" id="dasaHeading@(i)">
+                                        <button class="accordion-button @(i > 0 ? "collapsed" : "")" type="button" data-bs-toggle="collapse" data-bs-target="#dasaCollapse@(i)" aria-expanded="@(i == 0 ? "true" : "false")" aria-controls="dasaCollapse@(i)">
                                             <strong>@dasa.Lord (@dasa.LocalizedLord) Dasa</strong> &nbsp;-&nbsp; 
                                             @dasa.StartDate.ToString("MMM dd, yyyy") to @dasa.EndDate.ToString("MMM dd, yyyy")
                                         </button>
                                     </h2>
-                                    <div id="collapse@i" class="accordion-collapse collapse @(i == 0 ? "show" : "")" data-bs-parent="#dasaAccordion">
+                                    <div id="dasaCollapse@(i)" class="accordion-collapse collapse @(i == 0 ? "show" : "")" aria-labelledby="dasaHeading@(i)" data-bs-parent="#dasaAccordion">
                                         <div class="accordion-body">
-                                            <p><strong>Duration:</strong> @((dasa.EndDate - dasa.StartDate).TotalDays / 365.25).ToString("F1") years</p>
+                                            <p><strong>Duration:</strong> @(((dasa.EndDate - dasa.StartDate).TotalDays / 365.25).ToString("F1")) years</p>
                                             
                                             @if (!Model.IsTrialUser && dasa.Bhuktis != null && dasa.Bhuktis.Any())
                                             {
@@ -364,7 +364,7 @@
                                                                     <td>@bhukti.Lord (@bhukti.LocalizedLord)</td>
                                                                     <td>@bhukti.StartDate.ToString("MMM dd, yyyy")</td>
                                                                     <td>@bhukti.EndDate.ToString("MMM dd, yyyy")</td>
-                                                                    <td>@(bhukti.DurationDays / 365.25).ToString("F2") years</td>
+                                                                    <td>@((bhukti.DurationDays / 365.25).ToString("F2")) years</td>
                                                                 </tr>
                                                             }
                                                         </tbody>
@@ -521,9 +521,9 @@
                             {
                                 var dosa = Model.Horoscope.Dosas[i];
                                 var collapseId = $"dosha{i}";
-                                <div id="pdf-section-dosa-@i" class="accordion-item border-danger">
-                                    <h2 class="accordion-header">
-                                        <button class="accordion-button collapsed bg-danger text-white" type="button" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false">
+                                <div class="accordion-item border-danger pdf-export-dosha" data-pdf-section="dosa-@i">
+                                    <h2 class="accordion-header" id="doshaHeading@i">
+                                        <button class="accordion-button collapsed bg-danger text-white" type="button" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false" aria-controls="@collapseId">
                                             @dosa.Name <span class="small ms-2">(@dosa.LocalName)</span>
                                             <span class="badge bg-light text-danger ms-auto">Severity: @dosa.Severity/10</span>
                                         </button>
@@ -1303,11 +1303,23 @@
                     exportBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Expanding sections...';
                     
                     const accordionStates = [];
-                    document.querySelectorAll('#dasaAccordion .accordion-collapse, #doshaAccordion .accordion-collapse').forEach(item => {
+                    
+                    // Expand all Dasa accordion items
+                    document.querySelectorAll('#dasaAccordion .accordion-collapse').forEach(item => {
                         accordionStates.push({ element: item, wasShown: item.classList.contains('show') });
                         item.classList.add('show');
                     });
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    // Expand all Dosha accordion items
+                    document.querySelectorAll('#doshaAccordion .accordion-collapse').forEach(item => {
+                        accordionStates.push({ element: item, wasShown: item.classList.contains('show') });
+                        item.classList.add('show');
+                    });
+                    
+                    console.log(`Expanded ${accordionStates.length} accordion sections`);
+                    
+                    // Wait for Bootstrap animations to complete
+                    await new Promise(resolve => setTimeout(resolve, 800));
 
                     // ===========================================
                     // STEP 2: HIDE EXPORT BUTTONS
@@ -1374,23 +1386,21 @@
                         planetaryPositions: document.getElementById('pdf-section-planetary-positions')
                     };
                     
-                    // Capture all Dasa accordion items (pdf-section-dasa-bhkthi-0, -1, -2, etc.)
-                    let dasaIndex = 0;
-                    while (true) {
-                        const dasaItem = document.getElementById(`pdf-section-dasa-bhkthi-${dasaIndex}`);
-                        if (!dasaItem) break; // No more dasa items
-                        sections[`dasa${dasaIndex}`] = dasaItem;
-                        dasaIndex++;
-                    }
+                    // Capture all Dasa accordion items - entire accordion-item div (includes header + body)
+                    const dasaItems = document.querySelectorAll('.pdf-export-dasa[data-pdf-section^="dasa-bhkthi-"]');
+                    console.log(`Found ${dasaItems.length} Dasa accordion items`);
+                    dasaItems.forEach((item, index) => {
+                        console.log(`  Dasa ${index}: ${item.querySelector('.accordion-button strong')?.textContent}`);
+                        sections[`dasa${index}`] = item;
+                    });
                     
-                    // Capture all Dosha accordion items (pdf-section-dosa-0, -1, -2, etc.)
-                    let doshaIndex = 0;
-                    while (true) {
-                        const doshaItem = document.getElementById(`pdf-section-dosa-${doshaIndex}`);
-                        if (!doshaItem) break; // No more dosha items
-                        sections[`dosha${doshaIndex}`] = doshaItem;
-                        doshaIndex++;
-                    }
+                    // Capture all Dosha accordion items - entire accordion-item div (includes header + body)
+                    const doshaItems = document.querySelectorAll('.pdf-export-dosha[data-pdf-section^="dosa-"]');
+                    console.log(`Found ${doshaItems.length} Dosha accordion items`);
+                    doshaItems.forEach((item, index) => {
+                        console.log(`  Dosha ${index}: ${item.querySelector('.accordion-button')?.textContent}`);
+                        sections[`dosha${index}`] = item;
+                    });
                     
                     // Try to find Navamsa and Strength sections (paid users only)
                     const navamsaH6 = Array.from(document.querySelectorAll('h6')).find(h6 => h6.textContent.includes('Navamsa Planetary'));
