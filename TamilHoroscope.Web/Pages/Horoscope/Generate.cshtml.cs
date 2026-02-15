@@ -6,6 +6,7 @@ using System.Security.Claims;
 using TamilHoroscope.Core.Models;
 using TamilHoroscope.Web.Services.Interfaces;
 using TamilHoroscope.Web.Security;
+using TamilHoroscope.Web.Models;
 
 namespace TamilHoroscope.Web.Pages.Horoscope;
 
@@ -14,15 +15,18 @@ public class GenerateModel : PageModel
 {
     private readonly IHoroscopeService _horoscopeService;
     private readonly ISubscriptionService _subscriptionService;
+    private readonly ILocationCacheService _locationCacheService;
     private readonly ILogger<GenerateModel> _logger;
 
     public GenerateModel(
         IHoroscopeService horoscopeService,
         ISubscriptionService subscriptionService,
+        ILocationCacheService locationCacheService,
         ILogger<GenerateModel> logger)
     {
         _horoscopeService = horoscopeService;
         _subscriptionService = subscriptionService;
+        _locationCacheService = locationCacheService;
         _logger = logger;
     }
 
@@ -81,6 +85,9 @@ public class GenerateModel : PageModel
     public HoroscopeData? Horoscope { get; set; }
     public bool IsTrialUser { get; set; }
     public string? ErrorMessage { get; set; }
+    
+    // Popular locations for quick selection
+    public List<(string Name, double Lat, double Lon)> PopularLocations { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync(int? generationId = null)
     {
@@ -91,6 +98,9 @@ public class GenerateModel : PageModel
             _logger.LogWarning("User not authenticated via session, redirecting to login");
             return RedirectToPage("/Account/Login", new { returnUrl = Request.Path + Request.QueryString });
         }
+
+        // Load popular locations
+        await LoadPopularLocationsAsync();
 
         // Check if we're displaying a regenerated horoscope from history
         if (generationId.HasValue)
@@ -158,6 +168,9 @@ public class GenerateModel : PageModel
             _logger.LogWarning("User not authenticated via session during POST, redirecting to login");
             return RedirectToPage("/Account/Login");
         }
+
+        // Load popular locations (needed for display after POST)
+        await LoadPopularLocationsAsync();
 
         if (!ModelState.IsValid)
         {
@@ -253,6 +266,25 @@ public class GenerateModel : PageModel
                 _logger.LogInformation("Horoscope generated for user {UserId}. Trial: {IsTrial}", 
                     userId, IsTrialUser);
                 
+                // IMPORTANT: Save confirmed location to cache
+                // This ensures only user-confirmed locations are saved, not all API search results
+                if (!string.IsNullOrWhiteSpace(PlaceName))
+                {
+                    var confirmedLocation = new CachedLocation
+                    {
+                        Name = PlaceName,
+                        Latitude = Latitude,
+                        Longitude = Longitude,
+                        TimeZoneOffset = TimeZoneOffset,
+                        State = null, // Extract from PlaceName if needed
+                        CountryCode = null // Extract from PlaceName if needed
+                    };
+                    
+                    // Save to cache (fire and forget)
+                    _ = _locationCacheService.SaveConfirmedLocationAsync(confirmedLocation);
+                    _logger.LogInformation("Saved confirmed location to cache: {PlaceName}", PlaceName);
+                }
+                
                 // Stay on same page to display results
                 return Page();
             }
@@ -264,5 +296,60 @@ public class GenerateModel : PageModel
         }
 
         return Page();
+    }
+
+    /// <summary>
+    /// Loads popular locations from database and adds default important cities
+    /// </summary>
+    private async Task LoadPopularLocationsAsync()
+    {
+        try
+        {
+            // Get top 5 most frequently used locations from database
+            var popularFromDb = await _horoscopeService.GetPopularLocationsAsync(5);
+            
+            // Add to list
+            PopularLocations.AddRange(popularFromDb.Select(x => (x.PlaceName, x.Latitude, x.Longitude)));
+            
+            _logger.LogInformation("Loaded {Count} popular locations from database", popularFromDb.Count);
+            
+            // Add default important cities (always include these)
+            var defaultCities = new List<(string Name, double Lat, double Lon)>
+            {
+                ("Chennai", 13.0827, 80.2707),
+                ("Bangalore", 12.9716, 77.5946),
+                ("Thiruvananthapuram", 8.5241, 76.9366),
+                ("Hyderabad", 17.3850, 78.4867),
+                ("Amaravati", 16.5742, 80.3585)
+            };
+            
+            // Add default cities if not already in popular list
+            foreach (var city in defaultCities)
+            {
+                if (!PopularLocations.Any(x => x.Name.Equals(city.Name, StringComparison.OrdinalIgnoreCase)))
+                {
+                    PopularLocations.Add(city);
+                }
+            }
+            
+            // Limit to 10 total locations for display
+            PopularLocations = PopularLocations.Take(10).ToList();
+            
+            _logger.LogInformation("Popular locations list finalized with {Count} locations", PopularLocations.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading popular locations, using defaults");
+            
+            // Fallback to default cities only
+            PopularLocations = new List<(string, double, double)>
+            {
+                ("Chennai", 13.0827, 80.2707),
+                ("Bangalore", 12.9716, 77.5946),
+                ("Thiruvananthapuram", 8.5241, 76.9366),
+                ("Hyderabad", 17.3850, 78.4867),
+                ("Amaravati", 16.5742, 80.3585)
+            };
+        }
     }
 }

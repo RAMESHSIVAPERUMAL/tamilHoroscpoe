@@ -330,4 +330,34 @@ public class HoroscopeService : IHoroscopeService
                 language: language);
         }
     }
+
+    public async Task<List<(string PlaceName, double Latitude, double Longitude, int UsageCount)>> GetPopularLocationsAsync(int count = 5)
+    {
+        try
+        {
+            // Get top N locations by usage count from HoroscopeGenerations table
+            var popularLocations = await _context.HoroscopeGenerations
+                .Where(h => h.PlaceName != null && h.PlaceName != string.Empty)
+                .GroupBy(h => new { h.PlaceName, h.Latitude, h.Longitude })
+                .Select(g => new
+                {
+                    PlaceName = g.Key.PlaceName!,
+                    Latitude = g.Key.Latitude,
+                    Longitude = g.Key.Longitude,
+                    UsageCount = g.Count()
+                })
+                .OrderByDescending(x => x.UsageCount)
+                .Take(count)
+                .ToListAsync();
+
+            return popularLocations
+                .Select(x => (x.PlaceName, (double)x.Latitude, (double)x.Longitude, x.UsageCount))
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching popular locations");
+            return new List<(string, double, double, int)>();
+        }
+    }
 }

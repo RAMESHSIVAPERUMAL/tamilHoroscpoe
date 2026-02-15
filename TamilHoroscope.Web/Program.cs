@@ -54,6 +54,9 @@ builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<IHoroscopeService, HoroscopeService>();
 builder.Services.AddScoped<IPdfExportService, PdfExportService>();
 
+// Register Location Cache Service as Singleton (shared across all requests)
+builder.Services.AddSingleton<ILocationCacheService, LocationCacheService>();
+
 // Register BirthPlace service as singleton (cached data)
 builder.Services.AddSingleton<TamilHoroscope.Web.Services.BirthPlaceService>();
 

@@ -65,4 +65,11 @@ public interface IHoroscopeService
     /// Regenerates a previous horoscope (no charge)
     /// </summary>
     Task<HoroscopeData?> RegenerateHoroscopeAsync(HoroscopeGeneration generation, bool isTrialUser, string language = "Tamil");
+
+    /// <summary>
+    /// Gets the most frequently used birth locations from all horoscope generations
+    /// </summary>
+    /// <param name="count">Number of popular locations to return</param>
+    /// <returns>List of popular locations with their coordinates</returns>
+    Task<List<(string PlaceName, double Latitude, double Longitude, int UsageCount)>> GetPopularLocationsAsync(int count = 5);
 }

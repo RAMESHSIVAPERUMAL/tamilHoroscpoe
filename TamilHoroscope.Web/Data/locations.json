@@ -1,0 +1,17 @@
+{
+  "locations": {
+    "jayamkondacholapuram": {
+      "name": "Jayamkondacholapuram",
+      "latitude": 11.216215,
+      "longitude": 79.36319,
+      "timeZoneOffset": 5.5,
+      "countryCode": null,
+      "state": null,
+      "cachedAt": "2026-02-15T22:23:22.1275377Z",
+      "usageCount": 1
+    }
+  },
+  "version": 1,
+  "lastUpdated": "2026-02-15T22:23:22.1292945Z",
+  "totalLocations": 1
+}
