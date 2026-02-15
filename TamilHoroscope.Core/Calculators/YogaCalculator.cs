@@ -94,7 +94,7 @@ public class YogaCalculator
             {
                 Name = "Gajakesari Yoga",
                 LocalName = GetYogaLocalName("Gajakesari Yoga", language),
-                Description = "Jupiter in kendra from Moon. Brings wisdom, wealth, fame, and good character.",
+                Language = language,
                 InvolvedPlanets = new List<string> { "Jupiter", "Moon" },
                 InvolvedHouses = new List<int> { moon.House, jupiter.House },
                 IsBeneficial = true,
@@ -144,7 +144,8 @@ public class YogaCalculator
                 {
                     Name = "Raja Yoga",
                     LocalName = GetYogaLocalName("Raja Yoga", language),
-                    Description = $"{planet.Name} rules both kendra and trikona houses. Brings power, authority, and success.",
+                    Language = language,
+                    DescriptionArgs = new object[] { planet.Name },
                     InvolvedPlanets = new List<string> { planet.Name },
                     InvolvedHouses = ruledHouses,
                     IsBeneficial = true,
@@ -178,7 +179,8 @@ public class YogaCalculator
                 {
                     Name = "Dhana Yoga",
                     LocalName = GetYogaLocalName("Dhana Yoga", language),
-                    Description = $"{planet.Name} creates wealth yoga. Brings prosperity and financial gains.",
+                    Language = language,
+                    DescriptionArgs = new object[] { planet.Name },
                     InvolvedPlanets = new List<string> { planet.Name },
                     InvolvedHouses = ruledHouses,
                     IsBeneficial = true,
@@ -211,7 +213,7 @@ public class YogaCalculator
                 {
                     Name = "Sunapha Yoga",
                     LocalName = GetYogaLocalName("Sunapha Yoga", language),
-                    Description = "Planet(s) in 2nd house from Moon. Brings wealth, intelligence, and good reputation.",
+                    Language = language,
                     InvolvedPlanets = planetsInSecond.Select(p => p.Name).ToList(),
                     InvolvedHouses = planetsInSecond.Select(p => p.House).Distinct().ToList(),
                     IsBeneficial = true,
@@ -244,7 +246,7 @@ public class YogaCalculator
                 {
                     Name = "Anapha Yoga",
                     LocalName = GetYogaLocalName("Anapha Yoga", language),
-                    Description = "Planet(s) in 12th house from Moon. Brings fame, good health, and spiritual inclination.",
+                    Language = language,
                     InvolvedPlanets = planetsInTwelfth.Select(p => p.Name).ToList(),
                     InvolvedHouses = planetsInTwelfth.Select(p => p.House).Distinct().ToList(),
                     IsBeneficial = true,
@@ -284,7 +286,7 @@ public class YogaCalculator
             {
                 Name = "Durdhura Yoga",
                 LocalName = GetYogaLocalName("Durdhura Yoga", language),
-                Description = "Planets on both sides of Moon. Brings prosperity, conveyances, and comforts.",
+                Language = language,
                 InvolvedPlanets = involvedPlanets,
                 InvolvedHouses = new List<int>(),
                 IsBeneficial = true,
@@ -310,7 +312,7 @@ public class YogaCalculator
             {
                 Name = "Budha Aditya Yoga",
                 LocalName = GetYogaLocalName("Budha Aditya Yoga", language),
-                Description = "Sun and Mercury conjunction. Brings intelligence, communication skills, and analytical ability.",
+                Language = language,
                 InvolvedPlanets = new List<string> { "Sun", "Mercury" },
                 InvolvedHouses = new List<int> { sun.House },
                 IsBeneficial = true,
@@ -374,7 +376,7 @@ public class YogaCalculator
             {
                 Name = "Hamsa Yoga",
                 LocalName = GetYogaLocalName("Hamsa Yoga", language),
-                Description = "Jupiter in kendra in own sign or exaltation. Brings wisdom, spirituality, and prosperity.",
+                Language = language,
                 InvolvedPlanets = new List<string> { "Jupiter" },
                 InvolvedHouses = new List<int> { jupiter.House },
                 IsBeneficial = true,
@@ -400,7 +402,7 @@ public class YogaCalculator
             {
                 Name = "Malavya Yoga",
                 LocalName = GetYogaLocalName("Malavya Yoga", language),
-                Description = "Venus in kendra in own sign or exaltation. Brings beauty, luxury, and artistic talents.",
+                Language = language,
                 InvolvedPlanets = new List<string> { "Venus" },
                 InvolvedHouses = new List<int> { venus.House },
                 IsBeneficial = true,
@@ -426,7 +428,7 @@ public class YogaCalculator
             {
                 Name = "Sasa Yoga",
                 LocalName = GetYogaLocalName("Sasa Yoga", language),
-                Description = "Saturn in kendra in own sign or exaltation. Brings discipline, longevity, and authority.",
+                Language = language,
                 InvolvedPlanets = new List<string> { "Saturn" },
                 InvolvedHouses = new List<int> { saturn.House },
                 IsBeneficial = true,
@@ -452,7 +454,7 @@ public class YogaCalculator
             {
                 Name = "Ruchaka Yoga",
                 LocalName = GetYogaLocalName("Ruchaka Yoga", language),
-                Description = "Mars in kendra in own sign or exaltation. Brings courage, leadership, and military prowess.",
+                Language = language,
                 InvolvedPlanets = new List<string> { "Mars" },
                 InvolvedHouses = new List<int> { mars.House },
                 IsBeneficial = true,
@@ -478,7 +480,7 @@ public class YogaCalculator
             {
                 Name = "Bhadra Yoga",
                 LocalName = GetYogaLocalName("Bhadra Yoga", language),
-                Description = "Mercury in kendra in own sign or exaltation. Brings intelligence, communication, and business acumen.",
+                Language = language,
                 InvolvedPlanets = new List<string> { "Mercury" },
                 InvolvedHouses = new List<int> { mercury.House },
                 IsBeneficial = true,

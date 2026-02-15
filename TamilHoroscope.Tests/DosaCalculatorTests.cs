@@ -229,8 +229,8 @@ public class DosaCalculatorTests
 
         // Assert
         var mangalDosa = dosas.First(d => d.Name == "Mangal Dosha (Kuja Dosha)");
-        Assert.NotEmpty(mangalDosa.Remedies);
-        Assert.True(mangalDosa.Remedies.Count >= 3); // At least 3 remedies
+        Assert.NotEmpty(mangalDosa.LocalizedRemedies);
+        Assert.True(mangalDosa.LocalizedRemedies.Count >= 3); // At least 3 remedies
     }
 
     private HoroscopeData CreateTestHoroscope()

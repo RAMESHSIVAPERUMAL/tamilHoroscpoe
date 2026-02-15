@@ -543,7 +543,7 @@
                                                                FontSize="11"
                                                                Foreground="#616161"/>
                                                 </StackPanel>
-                                                <TextBlock Text="{Binding Description}" 
+                                                <TextBlock Text="{Binding LocalizedDescription}" 
                                                            TextWrapping="Wrap" 
                                                            FontSize="12"
                                                            Foreground="#424242"
@@ -616,7 +616,7 @@
                                                                FontSize="11"
                                                                Foreground="#616161"/>
                                                 </StackPanel>
-                                                <TextBlock Text="{Binding Description}" 
+                                                <TextBlock Text="{Binding LocalizedDescription}" 
                                                            TextWrapping="Wrap" 
                                                            FontSize="12"
                                                            Foreground="#424242"
@@ -633,7 +633,7 @@
                                                            FontSize="11"
                                                            Foreground="#424242"
                                                            Margin="0,10,0,5"/>
-                                                <ItemsControl ItemsSource="{Binding Remedies}">
+                                                <ItemsControl ItemsSource="{Binding LocalizedRemedies}">
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
                                                             <TextBlock FontSize="11"
