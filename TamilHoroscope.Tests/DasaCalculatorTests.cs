@@ -52,7 +52,7 @@ public class DasaCalculatorTests
 
         // Assert
         Assert.Equal("Ketu", dasas[0].Lord);
-        Assert.Equal(TamilNames.Planets["Ketu"], dasas[0].TamilLord);
+        Assert.Equal(LocalizedWordings.Planets["Ketu"], dasas[0].TamilLord);
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public class DasaCalculatorTests
 
         // Assert
         Assert.Equal("Venus", dasas[0].Lord);
-        Assert.Equal(20, TamilNames.DasaDurations["Venus"]); // Venus is 20 years
+        Assert.Equal(20, LocalizedWordings.DasaDurations["Venus"]); // Venus is 20 years
     }
 
     [Fact]
@@ -188,7 +188,7 @@ public class DasaCalculatorTests
         Assert.NotEmpty(horoscope.VimshottariDasas);
         
         // Verify Dasa is based on Moon's nakshatra
-        var expectedDasaLord = TamilNames.NakshatraDasaLord[horoscope.Panchang.NakshatraNumber];
+        var expectedDasaLord = LocalizedWordings.NakshatraDasaLord[horoscope.Panchang.NakshatraNumber];
         Assert.Equal(expectedDasaLord, horoscope.VimshottariDasas[0].Lord);
     }
 
@@ -227,7 +227,7 @@ public class DasaCalculatorTests
     public void NakshatraDasaLord_ReturnsCorrectLord(int nakshatra, string expectedLord)
     {
         // Act
-        var lord = TamilNames.NakshatraDasaLord[nakshatra];
+        var lord = LocalizedWordings.NakshatraDasaLord[nakshatra];
 
         // Assert
         Assert.Equal(expectedLord, lord);
@@ -246,7 +246,7 @@ public class DasaCalculatorTests
     public void DasaDurations_ReturnsCorrectYears(string planet, int expectedYears)
     {
         // Act
-        var years = TamilNames.DasaDurations[planet];
+        var years = LocalizedWordings.DasaDurations[planet];
 
         // Assert
         Assert.Equal(expectedYears, years);
@@ -256,7 +256,7 @@ public class DasaCalculatorTests
     public void DasaDurations_SumEquals120Years()
     {
         // Act
-        var totalYears = TamilNames.DasaDurations.Values.Sum();
+        var totalYears = LocalizedWordings.DasaDurations.Values.Sum();
 
         // Assert
         Assert.Equal(120, totalYears);

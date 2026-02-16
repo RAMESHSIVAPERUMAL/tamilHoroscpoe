@@ -102,7 +102,7 @@ public class PdfExportRequest
 {
     public string HoroscopeJson { get; set; } = string.Empty;
     public string PersonName { get; set; } = string.Empty;
-    public string Language { get; set; } = "Tamil";
+    public string Language { get; set; } = "English";
     public string? RasiChartImage { get; set; } // Base64 PNG image
     public string? NavamsaChartImage { get; set; } // Base64 PNG image
     public string? FullPageImage { get; set; } // Full page capture (fallback)

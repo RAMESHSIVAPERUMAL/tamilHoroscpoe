@@ -3,7 +3,7 @@ namespace TamilHoroscope.Core.Data;
 /// <summary>
 /// Tamil names and mappings for astrological elements
 /// </summary>
-public static class TamilNames
+public static class LocalizedWordings
 {
     /// <summary>
     /// Nakshatra (star) names in Tamil
@@ -558,6 +558,18 @@ public static class TamilNames
         }
     };
 
+
+    public static readonly Dictionary<string, Dictionary<string, string>> DisclaimerWordings = new()
+    {
+        ["General"] = new()
+        {
+            ["English"] = "Accurate predictions require precise birth details. Results may not match your life if provided information is incorrect.",
+            ["Tamil"] = "துல்லியமான கணிப்புகளுக்கு துல்லியமான பிறப்பு விவரங்கள் தேவை. வழங்கப்பட்ட தகவல்கள் தவறாக இருந்தால், கணிப்புகள் உங்கள் வாழ்க்கையுடன் பொருந்தாமல் போகலாம்.",
+            ["Telugu"] = "ఖచ్చితమైన అంచనాలకు ఖచ్చితమైన పుట్టిన వివరాలు అవసరం. అందించిన సమాచారం తప్పుగా ఉంటే, ఫలితాలు మీ జీవితంతో సరిపోలకపోవచ్చు.",
+            ["Kannada"] = "ನಿಖರವಾದ ಭವಿಷ್ಯವಾಣಿಗಳಿಗಾಗಿ ನಿಖರವಾದ ಜನ್ಮ ವಿವರಗಳ ಅಗತ್ಯವಿದೆ. ನೀಡಲಾದ ಮಾಹಿತಿ ತಪ್ಪಾಗಿದ್ದರೆ, ಫಲಿತಾಂಶಗಳು ನಿಮ್ಮ ಜೀವನಕ್ಕೆ ಹೊಂದಿಕೆಯಾಗದಿರಬಹುದು.",
+            ["Malayalam"] = "കൃത്യമായ പ്രവചനങ്ങൾക്ക് കൃത്യമായ ജനനവിവരങ്ങൾ ആവശ്യമാണ്. നൽകിയിരിക്കുന്ന വിവരങ്ങൾ തെറ്റാണെങ്കിൽ, ഫലങ്ങൾ നിങ്ങളുടെ ജീവിതവുമായി പൊരുത്തപ്പെടണമെന്നില്ല."
+        }
+    };
     /// <summary>
     /// Dosa remedies in multiple languages
     /// </summary>

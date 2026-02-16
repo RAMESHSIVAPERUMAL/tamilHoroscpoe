@@ -749,6 +749,11 @@ public class PdfExportService : IPdfExportService
         document.Add(new Paragraph($"Place: {horoscope.BirthDetails.PlaceName}", normalFont));
         document.Add(new Paragraph($"Coordinates: {horoscope.BirthDetails.Latitude:F4}°N, {horoscope.BirthDetails.Longitude:F4}°E", normalFont));
         document.Add(new Paragraph($"Timezone: UTC+{horoscope.BirthDetails.TimeZoneOffset:F1}", normalFont));
+        
+        // Add Birth Nakshatra (Moon's nakshatra at birth)
+        var moonPada = (int)Math.Ceiling((horoscope.Panchang.MoonLongitude % 13.333333) / 3.333333);
+        document.Add(new Paragraph($"Birth Nakshatra (Janma Nakshatra): {horoscope.Panchang.NakshatraName} ({horoscope.Panchang.TamilNakshatraName}) - Pada {moonPada}", normalFont));
+        
         document.Add(new Paragraph("\n"));
     }
 
@@ -887,7 +892,7 @@ public class PdfExportService : IPdfExportService
             { BackgroundColor = new BaseColor(255, 255, 255) });
         
         int lagnaNakshatra = GetNakshatraNumber(horoscope.LagnaLongitude);
-        var lagnaNakshatraInfo = TamilHoroscope.Core.Data.TamilNames.Nakshatras[lagnaNakshatra];
+        var lagnaNakshatraInfo = TamilHoroscope.Core.Data.LocalizedWordings.Nakshatras[lagnaNakshatra];
         planetsTable.AddCell(new PdfPCell(new Phrase(lagnaNakshatraInfo.English, smallFont)) 
             { BackgroundColor = new BaseColor(255, 255, 255) });
         
@@ -918,7 +923,7 @@ public class PdfExportService : IPdfExportService
     private void AddLagnaRow(PdfPTable planetsTable, HoroscopeData horoscope, iTextSharp.text.Font dataCellFont, iTextSharp.text.Font smallFont)
     {
         var lagnaLanguage = horoscope.Planets.Any() ? horoscope.Planets.First().Language : "Tamil";
-        var lagnaLocalizedName = TamilHoroscope.Core.Data.TamilNames.GetRasiName(horoscope.LagnaRasi, lagnaLanguage);
+        var lagnaLocalizedName = TamilHoroscope.Core.Data.LocalizedWordings.GetRasiName(horoscope.LagnaRasi, lagnaLanguage);
         
         // Use white background instead of yellow highlight
         planetsTable.AddCell(new PdfPCell(new Phrase("Lagna", dataCellFont)) 
@@ -943,7 +948,7 @@ public class PdfExportService : IPdfExportService
         
         // Calculate Lagna Nakshatra
         int lagnaNakshatra = GetNakshatraNumber(horoscope.LagnaLongitude);
-        var lagnaNakshatraInfo = TamilHoroscope.Core.Data.TamilNames.Nakshatras[lagnaNakshatra];
+        var lagnaNakshatraInfo = TamilHoroscope.Core.Data.LocalizedWordings.Nakshatras[lagnaNakshatra];
         planetsTable.AddCell(new PdfPCell(new Phrase($"{lagnaNakshatraInfo.English}\n{lagnaNakshatraInfo.Tamil}", smallFont)) 
             { BackgroundColor = new BaseColor(255, 255, 255) });
         

@@ -360,7 +360,7 @@ public partial class MainWindow : Window
 
         // Display Lagna
         var lagnaLanguage = horoscope.Planets.Any() ? horoscope.Planets.First().Language : "Tamil";
-        var lagnaLocalizedRasiName = TamilHoroscope.Core.Data.TamilNames.GetRasiName(horoscope.LagnaRasi, lagnaLanguage);
+        var lagnaLocalizedRasiName = TamilHoroscope.Core.Data.LocalizedWordings.GetRasiName(horoscope.LagnaRasi, lagnaLanguage);
         txtLagna.Text = $"Rasi: {horoscope.LagnaRasiName} ({lagnaLocalizedRasiName})\n" +
                        $"Longitude: {horoscope.LagnaLongitude:F2}°";
 
@@ -393,7 +393,7 @@ public partial class MainWindow : Window
         
         // Add nakshatra name for Lagna
         var lagnaData = planetsWithLagna[0];
-        var nakshatraInfo = TamilHoroscope.Core.Data.TamilNames.Nakshatras[lagnaData.Nakshatra];
+        var nakshatraInfo = TamilHoroscope.Core.Data.LocalizedWordings.Nakshatras[lagnaData.Nakshatra];
         lagnaData.NakshatraName = nakshatraInfo.English;
 #pragma warning disable CS0618
         lagnaData.TamilNakshatraName = nakshatraInfo.Tamil;
@@ -771,7 +771,7 @@ public partial class MainWindow : Window
         
         // Calculate Lagna Nakshatra
         int lagnaNakshatra = GetNakshatraNumber(_currentHoroscope.LagnaLongitude);
-        var lagnaNakshatraInfo = TamilHoroscope.Core.Data.TamilNames.Nakshatras[lagnaNakshatra];
+        var lagnaNakshatraInfo = TamilHoroscope.Core.Data.LocalizedWordings.Nakshatras[lagnaNakshatra];
         planetsTable.AddCell(new PdfPCell(new Phrase($"{lagnaNakshatraInfo.English}\n{lagnaNakshatraInfo.Tamil}", smallFont)) 
             { BackgroundColor = new BaseColor(255, 250, 205) });
         

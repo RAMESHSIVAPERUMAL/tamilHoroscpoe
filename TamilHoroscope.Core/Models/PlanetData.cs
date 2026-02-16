@@ -13,9 +13,9 @@ public class PlanetData
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// Language for localized names (Tamil, Telugu, Kannada, Malayalam)
+    /// Language for localized names (English, Tamil, Telugu, Kannada, Malayalam)
     /// </summary>
-    public string Language { get; set; } = "Tamil";
+    public string Language { get; set; } = "English";
 
     /// <summary>
     /// Tamil name of the planet (deprecated - use LocalizedName)
@@ -26,7 +26,7 @@ public class PlanetData
     /// <summary>
     /// Localized name of the planet based on Language property
     /// </summary>
-    public string LocalizedName => TamilNames.GetPlanetName(Name, Language);
+    public string LocalizedName => LocalizedWordings.GetPlanetName(Name, Language);
 
     /// <summary>
     /// Ecliptic longitude in degrees (0-360)
@@ -78,7 +78,7 @@ public class PlanetData
     /// <summary>
     /// Localized rasi name based on Language property
     /// </summary>
-    public string LocalizedRasiName => TamilNames.GetRasiName(Rasi, Language);
+    public string LocalizedRasiName => LocalizedWordings.GetRasiName(Rasi, Language);
 
     /// <summary>
     /// Nakshatra number (1-27)
@@ -99,7 +99,7 @@ public class PlanetData
     /// <summary>
     /// Localized nakshatra name based on Language property
     /// </summary>
-    public string LocalizedNakshatraName => TamilNames.GetNakshatraName(Nakshatra, Language);
+    public string LocalizedNakshatraName => LocalizedWordings.GetNakshatraName(Nakshatra, Language);
 
     /// <summary>
     /// House number (1-12) where the planet is located

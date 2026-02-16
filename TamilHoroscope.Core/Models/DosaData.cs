@@ -26,7 +26,7 @@ public class DosaData
     /// <summary>
     /// Language for localization (Tamil, Telugu, Kannada, Malayalam, English)
     /// </summary>
-    public string Language { get; set; } = "Tamil";
+    public string Language { get; set; } = "English";
 
     /// <summary>
     /// Arguments for parameterized descriptions (e.g., house numbers, reasons)
@@ -46,10 +46,10 @@ public class DosaData
             {
                 return Description;
             }
-            #pragma warning restore CS0618 // Type or member is obsolete
-            
-            // Otherwise, try to get from TamilNames dictionary
-            return TamilNames.GetDosaDescription(Name, Language, DescriptionArgs);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            // Otherwise, try to get from LocalizedWordings dictionary
+            return LocalizedWordings.GetDosaDescription(Name, Language, DescriptionArgs);
         }
     }
 
@@ -87,10 +87,10 @@ public class DosaData
             {
                 return Remedies;
             }
-            #pragma warning restore CS0618 // Type or member is obsolete
-            
-            // Otherwise, try to get from TamilNames dictionary
-            return TamilNames.GetDosaRemedies(Name, Language);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            // Otherwise, try to get from LocalizedWordings dictionary
+            return LocalizedWordings.GetDosaRemedies(Name, Language);
         }
     }
 }

@@ -176,7 +176,7 @@ public partial class RasiChartControl : UserControl
         // Add center title with localized text
         var centerTitle = new TextBlock
         {
-            Text = TamilHoroscope.Core.Data.TamilNames.GetSectionName("Rasi", language),
+            Text = TamilHoroscope.Core.Data.LocalizedWordings.GetSectionName("Rasi", language),
             FontSize = 14,
             FontWeight = FontWeights.Bold,
             Foreground = new SolidColorBrush(Color.FromRgb(0x80, 0x00, 0x80)),
@@ -194,7 +194,7 @@ public partial class RasiChartControl : UserControl
     private string GetPlanetAbbreviation(string planetName, string language)
     {
         // Get localized name and take first few characters
-        var localizedName = TamilHoroscope.Core.Data.TamilNames.GetPlanetName(planetName, language);
+        var localizedName = TamilHoroscope.Core.Data.LocalizedWordings.GetPlanetName(planetName, language);
         
         // For Tamil/Telugu/Kannada/Malayalam, take first 2-4 characters depending on name length
         if (localizedName.Length <= 4)

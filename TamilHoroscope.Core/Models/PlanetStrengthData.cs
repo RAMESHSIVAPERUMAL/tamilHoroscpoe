@@ -14,9 +14,9 @@ public class PlanetStrengthData
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// Language for localized names (Tamil, Telugu, Kannada, Malayalam)
+    /// Language for localized names (English, Tamil, Telugu, Kannada, Malayalam)
     /// </summary>
-    public string Language { get; set; } = "Tamil";
+    public string Language { get; set; } = "English";
 
     /// <summary>
     /// Tamil name of the planet (deprecated - use LocalizedName)
@@ -27,7 +27,7 @@ public class PlanetStrengthData
     /// <summary>
     /// Localized name of the planet based on Language property
     /// </summary>
-    public string LocalizedName => TamilNames.GetPlanetName(Name, Language);
+    public string LocalizedName => LocalizedWordings.GetPlanetName(Name, Language);
 
     /// <summary>
     /// Total strength in Rupas (1 Rupa = 60 Virupas)

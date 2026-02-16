@@ -42,7 +42,7 @@ public class HoroscopeService : IHoroscopeService
         double timeZoneOffset,
         string? placeName = null,
         string? personName = null,
-        string language = "Tamil")
+        string language = "English")
     {
         try
         {
@@ -251,7 +251,7 @@ public class HoroscopeService : IHoroscopeService
         return user.LastDailyFeeDeductionDate?.Date == today;
     }
 
-    public async Task<HoroscopeData?> RegenerateHoroscopeAsync(HoroscopeGeneration generation, bool isTrialUser, string language = "Tamil")
+    public async Task<HoroscopeData?> RegenerateHoroscopeAsync(HoroscopeGeneration generation, bool isTrialUser, string language = "English")
     {
         try
         {
@@ -281,7 +281,7 @@ public class HoroscopeService : IHoroscopeService
         double timeZoneOffset,
         string? placeName,
         bool isTrialUser,
-        string language = "Tamil")
+        string language = "English")
     {
         var birthDetails = new BirthDetails
         {

@@ -26,7 +26,7 @@ public class YogaData
     /// <summary>
     /// Language for localization (Tamil, Telugu, Kannada, Malayalam, English)
     /// </summary>
-    public string Language { get; set; } = "Tamil";
+    public string Language { get; set; } = "English";
 
     /// <summary>
     /// Arguments for parameterized descriptions (e.g., planet names)
@@ -46,10 +46,10 @@ public class YogaData
             {
                 return Description;
             }
-            #pragma warning restore CS0618 // Type or member is obsolete
-            
-            // Otherwise, try to get from TamilNames dictionary
-            return TamilNames.GetYogaDescription(Name, Language, DescriptionArgs);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            // Otherwise, try to get from LocalizedWordings dictionary
+            return LocalizedWordings.GetYogaDescription(Name, Language, DescriptionArgs);
         }
     }
 

@@ -81,7 +81,7 @@ public class PanchangCalculator : IPanchangCalculator
     /// <param name="includeYoga">Whether to detect astrological yogas</param>
     /// <param name="includeDosa">Whether to detect astrological doshas</param>
     /// <param name="language">Language for yoga and dosa names (Tamil, Telugu, Kannada, Malayalam)</param>
-    public HoroscopeData CalculateHoroscope(BirthDetails birthDetails, bool includeDasa = false, bool includeNavamsa = false, int dasaYears = 120, bool includeStrength = false, bool includeYoga = false, bool includeDosa = false, string language = "Tamil")
+    public HoroscopeData CalculateHoroscope(BirthDetails birthDetails, bool includeDasa = false, bool includeNavamsa = false, int dasaYears = 120, bool includeStrength = false, bool includeYoga = false, bool includeDosa = false, string language = "English")
     {
         using var swissEph = new SwissEphemerisHelper(_ephemerisPath);
         
@@ -108,7 +108,7 @@ public class PanchangCalculator : IPanchangCalculator
         // Get sidereal ascendant longitude
         horoscope.LagnaLongitude = siderealAscendant;
         horoscope.LagnaRasi = GetRasiNumber(siderealAscendant);
-        var lagnaRasiInfo = TamilNames.Rasis[horoscope.LagnaRasi];
+        var lagnaRasiInfo = LocalizedWordings.Rasis[horoscope.LagnaRasi];
         horoscope.LagnaRasiName = lagnaRasiInfo.English;
         horoscope.TamilLagnaRasiName = lagnaRasiInfo.Tamil;
         
@@ -140,7 +140,7 @@ public class PanchangCalculator : IPanchangCalculator
             // Calculate Navamsa Lagna
             double navamsaLagnaLongitude = navamsaCalculator.CalculateNavamsaPosition(horoscope.LagnaLongitude);
             horoscope.NavamsaLagnaRasi = GetRasiNumber(navamsaLagnaLongitude);
-            var navamsaLagnaRasiInfo = TamilNames.Rasis[horoscope.NavamsaLagnaRasi];
+            var navamsaLagnaRasiInfo = LocalizedWordings.Rasis[horoscope.NavamsaLagnaRasi];
             horoscope.NavamsaLagnaRasiName = navamsaLagnaRasiInfo.English;
             horoscope.TamilNavamsaLagnaRasiName = navamsaLagnaRasiInfo.Tamil;
         }
@@ -199,7 +199,7 @@ public class PanchangCalculator : IPanchangCalculator
         }
         
         // Get tithi name
-        if (TamilNames.Tithis.TryGetValue(tithiNumber, out var tithi))
+        if (LocalizedWordings.Tithis.TryGetValue(tithiNumber, out var tithi))
         {
             panchang.TithiName = tithi.English;
             panchang.TamilTithiName = tithi.Tamil;
@@ -220,7 +220,7 @@ public class PanchangCalculator : IPanchangCalculator
         panchang.NakshatraNumber = nakshatraNumber;
         
         // Get nakshatra name
-        if (TamilNames.Nakshatras.TryGetValue(nakshatraNumber, out var nakshatra))
+        if (LocalizedWordings.Nakshatras.TryGetValue(nakshatraNumber, out var nakshatra))
         {
             panchang.NakshatraName = nakshatra.English;
             panchang.TamilNakshatraName = nakshatra.Tamil;
@@ -244,7 +244,7 @@ public class PanchangCalculator : IPanchangCalculator
         panchang.YogaNumber = yogaNumber;
         
         // Get yoga name
-        if (TamilNames.Yogas.TryGetValue(yogaNumber, out var yoga))
+        if (LocalizedWordings.Yogas.TryGetValue(yogaNumber, out var yoga))
         {
             panchang.YogaName = yoga.English;
             panchang.TamilYogaName = yoga.Tamil;
@@ -271,7 +271,7 @@ public class PanchangCalculator : IPanchangCalculator
         panchang.KaranaNumber = mappedKarana;
         
         // Get karana name
-        if (TamilNames.Karanas.TryGetValue(mappedKarana, out var karana))
+        if (LocalizedWordings.Karanas.TryGetValue(mappedKarana, out var karana))
         {
             panchang.KaranaName = karana.English;
             panchang.TamilKaranaName = karana.Tamil;
@@ -287,7 +287,7 @@ public class PanchangCalculator : IPanchangCalculator
         panchang.VaraNumber = varaNumber;
         
         // Get vara name
-        if (TamilNames.Varas.TryGetValue(varaNumber, out var vara))
+        if (LocalizedWordings.Varas.TryGetValue(varaNumber, out var vara))
         {
             panchang.VaraName = vara.English;
             panchang.TamilVaraName = vara.Tamil;
@@ -305,7 +305,7 @@ public class PanchangCalculator : IPanchangCalculator
         
         if (monthNumber > 12) monthNumber = 12;
         
-        if (TamilNames.TamilMonths.TryGetValue(monthNumber, out var tamilMonth))
+        if (LocalizedWordings.TamilMonths.TryGetValue(monthNumber, out var tamilMonth))
         {
             panchang.TamilMonth = tamilMonth;
         }
@@ -314,7 +314,7 @@ public class PanchangCalculator : IPanchangCalculator
     /// <summary>
     /// Calculate planetary positions for all Navagraha
     /// </summary>
-    private void CalculatePlanetaryPositions(HoroscopeData horoscope, SwissEphemerisHelper swissEph, double julianDay, double[] cusps, string language = "Tamil")
+    private void CalculatePlanetaryPositions(HoroscopeData horoscope, SwissEphemerisHelper swissEph, double julianDay, double[] cusps, string language = "English")
     {
         // Define planets to calculate
         var planetIds = new Dictionary<string, int>
@@ -348,7 +348,7 @@ public class PanchangCalculator : IPanchangCalculator
     /// <summary>
     /// Create planet data from position
     /// </summary>
-    private PlanetData CreatePlanetData(string name, double[] position, double[] cusps, double lagnaLongitude, string language = "Tamil")
+    private PlanetData CreatePlanetData(string name, double[] position, double[] cusps, double lagnaLongitude, string language = "English")
     {
         // Swiss Ephemeris returns:
         // position[0] = longitude
@@ -366,10 +366,10 @@ public class PanchangCalculator : IPanchangCalculator
         double speedInDistance = position.Length > 5 ? position[5] : 0.0;
         
         int rasi = GetRasiNumber(longitude);
-        var rasiInfo = TamilNames.Rasis[rasi];
+        var rasiInfo = LocalizedWordings.Rasis[rasi];
         
         int nakshatra = GetNakshatraNumber(longitude);
-        var nakshatraInfo = TamilNames.Nakshatras[nakshatra];
+        var nakshatraInfo = LocalizedWordings.Nakshatras[nakshatra];
         
         int house = GetHouseNumber(longitude, cusps, lagnaLongitude);
         
@@ -380,7 +380,7 @@ public class PanchangCalculator : IPanchangCalculator
             Name = name,
             Language = language, // Set language for dynamic localization
 #pragma warning disable CS0618 // Type or member is obsolete - keeping for backward compatibility
-            TamilName = TamilNames.Planets.TryGetValue(name, out var tamilName) ? tamilName : name,
+            TamilName = LocalizedWordings.Planets.TryGetValue(name, out var tamilName) ? tamilName : name,
 #pragma warning restore CS0618
             Longitude = longitude,
             Latitude = latitude,
@@ -406,17 +406,17 @@ public class PanchangCalculator : IPanchangCalculator
     /// <summary>
     /// Calculate houses data
     /// </summary>
-    private void CalculateHouses(HoroscopeData horoscope, double[] cusps, string language = "Tamil")
+    private void CalculateHouses(HoroscopeData horoscope, double[] cusps, string language = "English")
     {
         for (int i = 1; i <= 12; i++)
         {
             double cuspLongitude = cusps[i];
             int rasi = GetRasiNumber(cuspLongitude);
-            var rasiInfo = TamilNames.Rasis[rasi];
+            var rasiInfo = LocalizedWordings.Rasis[rasi];
             
-            string lord = TamilNames.RasiLords[rasi];
-            string tamilLord = TamilNames.Planets.TryGetValue(lord, out var tl) ? tl : lord;
-            string localizedLord = TamilNames.GetPlanetName(lord, language);
+            string lord = LocalizedWordings.RasiLords[rasi];
+            string tamilLord = LocalizedWordings.Planets.TryGetValue(lord, out var tl) ? tl : lord;
+            string localizedLord = LocalizedWordings.GetPlanetName(lord, language);
             
             // Find planets in this house
             var planetsInHouse = horoscope.Planets

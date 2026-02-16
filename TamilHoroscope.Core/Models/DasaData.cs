@@ -13,9 +13,9 @@ public class DasaData
     public string Lord { get; set; } = string.Empty;
 
     /// <summary>
-    /// Language for localized names (Tamil, Telugu, Kannada, Malayalam)
+    /// Language for localized names (English, Tamil, Telugu, Kannada, Malayalam)
     /// </summary>
-    public string Language { get; set; } = "Tamil";
+    public string Language { get; set; } = "English";
 
     /// <summary>
     /// Tamil name of the Dasa lord (deprecated - use LocalizedLord)
@@ -26,7 +26,7 @@ public class DasaData
     /// <summary>
     /// Localized name of the Dasa lord based on Language property
     /// </summary>
-    public string LocalizedLord => TamilNames.GetPlanetName(Lord, Language);
+    public string LocalizedLord => LocalizedWordings.GetPlanetName(Lord, Language);
 
     /// <summary>
     /// Start date of the Dasa period

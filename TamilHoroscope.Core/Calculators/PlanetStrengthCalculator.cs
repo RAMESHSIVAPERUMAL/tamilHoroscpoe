@@ -40,7 +40,7 @@ public class PlanetStrengthCalculator
     /// </summary>
     /// <param name="horoscope">Horoscope data</param>
     /// <param name="language">Language for localized names (Tamil, Telugu, Kannada, Malayalam)</param>
-    public List<PlanetStrengthData> CalculatePlanetaryStrengths(HoroscopeData horoscope, string language = "Tamil")
+    public List<PlanetStrengthData> CalculatePlanetaryStrengths(HoroscopeData horoscope, string language = "English")
     {
         var strengths = new List<PlanetStrengthData>();
 

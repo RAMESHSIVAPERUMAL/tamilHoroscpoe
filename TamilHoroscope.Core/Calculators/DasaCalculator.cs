@@ -22,12 +22,12 @@ public class DasaCalculator
         int moonNakshatra,
         double moonLongitude,
         int yearsToCalculate = 120,
-        string language = "Tamil")
+        string language = "English")
     {
         var dasas = new List<DasaData>();
 
         // Get the starting Dasa lord based on Moon's nakshatra
-        var startingLord = TamilNames.NakshatraDasaLord[moonNakshatra];
+        var startingLord = LocalizedWordings.NakshatraDasaLord[moonNakshatra];
 
         // Calculate the balance of the starting Dasa
         // Each nakshatra spans 13°20' (13.333... degrees)
@@ -37,14 +37,14 @@ public class DasaCalculator
         var fractionTraversed = traversedInNakshatra / 13.333333333333334;
 
         // Calculate balance of starting Dasa in years
-        var startingDasaDuration = TamilNames.DasaDurations[startingLord];
+        var startingDasaDuration = LocalizedWordings.DasaDurations[startingLord];
         var balanceYears = startingDasaDuration * (1 - fractionTraversed);
 
         // Current date for tracking Dasa progression
         DateTime currentDate = birthDate;
 
         // Find the index of starting lord in the sequence
-        int startIndex = Array.IndexOf(TamilNames.DasaSequence, startingLord);
+        int startIndex = Array.IndexOf(LocalizedWordings.DasaSequence, startingLord);
 
         // Calculate total years to generate
         double totalYearsGenerated = 0;
@@ -59,12 +59,12 @@ public class DasaCalculator
         }
 
         // Continue with subsequent Dasas in the cycle
-        int currentIndex = (startIndex + 1) % TamilNames.DasaSequence.Length;
+        int currentIndex = (startIndex + 1) % LocalizedWordings.DasaSequence.Length;
         
         while (totalYearsGenerated < yearsToCalculate)
         {
-            var lord = TamilNames.DasaSequence[currentIndex];
-            var duration = TamilNames.DasaDurations[lord];
+            var lord = LocalizedWordings.DasaSequence[currentIndex];
+            var duration = LocalizedWordings.DasaDurations[lord];
 
             var dasa = CreateDasa(lord, currentDate, duration, language);
             dasas.Add(dasa);
@@ -73,7 +73,7 @@ public class DasaCalculator
             totalYearsGenerated += duration;
 
             // Move to next lord in sequence
-            currentIndex = (currentIndex + 1) % TamilNames.DasaSequence.Length;
+            currentIndex = (currentIndex + 1) % LocalizedWordings.DasaSequence.Length;
         }
 
         return dasas;
@@ -82,14 +82,14 @@ public class DasaCalculator
     /// <summary>
     /// Create a balance Dasa period with only the remaining Bhukti sub-periods
     /// </summary>
-    private DasaData CreateBalanceDasa(string lord, DateTime startDate, double balanceYears, double fullDasaDuration, double fractionTraversed, string language = "Tamil")
+    private DasaData CreateBalanceDasa(string lord, DateTime startDate, double balanceYears, double fullDasaDuration, double fractionTraversed, string language = "English")
     {
         var dasa = new DasaData
         {
             Lord = lord,
             Language = language,
 #pragma warning disable CS0618
-            TamilLord = TamilNames.Planets[lord],
+            TamilLord = LocalizedWordings.Planets[lord],
 #pragma warning restore CS0618
             StartDate = startDate,
             EndDate = startDate.AddYears((int)balanceYears).AddDays((balanceYears - (int)balanceYears) * 365.25),
@@ -105,14 +105,14 @@ public class DasaCalculator
     /// <summary>
     /// Create a Dasa period with its Bhukti sub-periods
     /// </summary>
-    private DasaData CreateDasa(string lord, DateTime startDate, double durationYears, string language = "Tamil")
+    private DasaData CreateDasa(string lord, DateTime startDate, double durationYears, string language = "English")
     {
         var dasa = new DasaData
         {
             Lord = lord,
             Language = language,
 #pragma warning disable CS0618
-            TamilLord = TamilNames.Planets[lord],
+            TamilLord = LocalizedWordings.Planets[lord],
 #pragma warning restore CS0618
             StartDate = startDate,
             EndDate = startDate.AddYears((int)durationYears).AddDays((durationYears - (int)durationYears) * 365.25),
@@ -128,12 +128,12 @@ public class DasaCalculator
     /// <summary>
     /// Calculate Bhukti (sub-periods) for a given Dasa
     /// </summary>
-    private List<BhuktiData> CalculateBhuktis(string dasaLord, DateTime dasaStartDate, double dasaDurationYears, string language = "Tamil")
+    private List<BhuktiData> CalculateBhuktis(string dasaLord, DateTime dasaStartDate, double dasaDurationYears, string language = "English")
     {
         var bhuktis = new List<BhuktiData>();
 
         // Find the starting index of Dasa lord in the sequence
-        int dasaLordIndex = Array.IndexOf(TamilNames.DasaSequence, dasaLord);
+        int dasaLordIndex = Array.IndexOf(LocalizedWordings.DasaSequence, dasaLord);
 
         // Bhukti sequence starts with the Dasa lord itself
         DateTime currentDate = dasaStartDate;
@@ -141,14 +141,14 @@ public class DasaCalculator
         // Total days in the Dasa period
         double totalDasaDays = dasaDurationYears * 365.25;
 
-        for (int i = 0; i < TamilNames.DasaSequence.Length; i++)
+        for (int i = 0; i < LocalizedWordings.DasaSequence.Length; i++)
         {
-            int bhuktiIndex = (dasaLordIndex + i) % TamilNames.DasaSequence.Length;
-            var bhuktiLord = TamilNames.DasaSequence[bhuktiIndex];
+            int bhuktiIndex = (dasaLordIndex + i) % LocalizedWordings.DasaSequence.Length;
+            var bhuktiLord = LocalizedWordings.DasaSequence[bhuktiIndex];
 
             // Bhukti duration is proportional to both Dasa lord and Bhukti lord durations
             // Formula: (Dasa Lord Years × Bhukti Lord Years) / 120
-            var bhuktiDurationYears = (dasaDurationYears * TamilNames.DasaDurations[bhuktiLord]) / 120.0;
+            var bhuktiDurationYears = (dasaDurationYears * LocalizedWordings.DasaDurations[bhuktiLord]) / 120.0;
             var bhuktiDurationDays = bhuktiDurationYears * 365.25;
 
             var bhukti = new BhuktiData
@@ -156,7 +156,7 @@ public class DasaCalculator
                 Lord = bhuktiLord,
                 Language = language,
 #pragma warning disable CS0618
-                TamilLord = TamilNames.Planets[bhuktiLord],
+                TamilLord = LocalizedWordings.Planets[bhuktiLord],
 #pragma warning restore CS0618
                 StartDate = currentDate,
                 EndDate = currentDate.AddDays(bhuktiDurationDays),
@@ -174,12 +174,12 @@ public class DasaCalculator
     /// Calculate only the balance Bhuktis for a balance Dasa period
     /// This is used for the first Dasa when it's not a full period
     /// </summary>
-    private List<BhuktiData> CalculateBalanceBhuktis(string dasaLord, DateTime dasaStartDate, double balanceDasaYears, double fullDasaDuration, double fractionTraversed, string language = "Tamil")
+    private List<BhuktiData> CalculateBalanceBhuktis(string dasaLord, DateTime dasaStartDate, double balanceDasaYears, double fullDasaDuration, double fractionTraversed, string language = "English")
     {
         var bhuktis = new List<BhuktiData>();
 
         // Find the starting index of Dasa lord in the sequence
-        int dasaLordIndex = Array.IndexOf(TamilNames.DasaSequence, dasaLord);
+        int dasaLordIndex = Array.IndexOf(LocalizedWordings.DasaSequence, dasaLord);
 
         // Calculate cumulative durations to find which Bhukti to start from
         double cumulativeYears = 0;
@@ -188,13 +188,13 @@ public class DasaCalculator
         double bhuktiBalance = 0;
 
         // Find which Bhukti we're in based on elapsed time
-        for (int i = 0; i < TamilNames.DasaSequence.Length; i++)
+        for (int i = 0; i < LocalizedWordings.DasaSequence.Length; i++)
         {
-            int bhuktiIndex = (dasaLordIndex + i) % TamilNames.DasaSequence.Length;
-            var bhuktiLord = TamilNames.DasaSequence[bhuktiIndex];
+            int bhuktiIndex = (dasaLordIndex + i) % LocalizedWordings.DasaSequence.Length;
+            var bhuktiLord = LocalizedWordings.DasaSequence[bhuktiIndex];
             
             // Full Bhukti duration in years
-            var fullBhuktiDuration = (fullDasaDuration * TamilNames.DasaDurations[bhuktiLord]) / 120.0;
+            var fullBhuktiDuration = (fullDasaDuration * LocalizedWordings.DasaDurations[bhuktiLord]) / 120.0;
             
             if (cumulativeYears + fullBhuktiDuration > elapsedYears)
             {
@@ -211,10 +211,10 @@ public class DasaCalculator
         DateTime currentDate = dasaStartDate;
         bool isFirstBhukti = true;
 
-        for (int i = startingBhuktiIndex; i < TamilNames.DasaSequence.Length; i++)
+        for (int i = startingBhuktiIndex; i < LocalizedWordings.DasaSequence.Length; i++)
         {
-            int bhuktiIndex = (dasaLordIndex + i) % TamilNames.DasaSequence.Length;
-            var bhuktiLord = TamilNames.DasaSequence[bhuktiIndex];
+            int bhuktiIndex = (dasaLordIndex + i) % LocalizedWordings.DasaSequence.Length;
+            var bhuktiLord = LocalizedWordings.DasaSequence[bhuktiIndex];
 
             // For the first Bhukti, use the balance duration
             // For subsequent Bhuktis, calculate based on the balance Dasa proportion
@@ -228,7 +228,7 @@ public class DasaCalculator
             else
             {
                 // Calculate proportional Bhukti duration based on balance Dasa
-                bhuktiDurationYears = (balanceDasaYears * TamilNames.DasaDurations[bhuktiLord]) / fullDasaDuration;
+                bhuktiDurationYears = (balanceDasaYears * LocalizedWordings.DasaDurations[bhuktiLord]) / fullDasaDuration;
             }
             
             var bhuktiDurationDays = bhuktiDurationYears * 365.25;
@@ -238,7 +238,7 @@ public class DasaCalculator
                 Lord = bhuktiLord,
                 Language = language,
 #pragma warning disable CS0618
-                TamilLord = TamilNames.Planets[bhuktiLord],
+                TamilLord = LocalizedWordings.Planets[bhuktiLord],
 #pragma warning restore CS0618
                 StartDate = currentDate,
                 EndDate = currentDate.AddDays(bhuktiDurationDays),

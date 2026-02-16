@@ -174,7 +174,7 @@ public class PanchangCalculatorTests
     }
 
     [Fact]
-    public void CalculateHoroscope_PlanetsHaveTamilNames()
+    public void CalculateHoroscope_PlanetsHaveLocalizedNames()
     {
         // Arrange
         var birthDetails = new BirthDetails

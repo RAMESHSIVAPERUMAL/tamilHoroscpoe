@@ -70,7 +70,7 @@ public class GenerateModel : PageModel
     [BindProperty]
     [Required(ErrorMessage = "Language is required")]
     [Display(Name = "Display Language")]
-    public string Language { get; set; } = "Tamil";
+    public string Language { get; set; } = "English";
 
     // Hidden field for request verification
     [BindProperty]

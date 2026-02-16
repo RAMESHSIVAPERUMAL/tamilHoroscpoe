@@ -12,7 +12,7 @@ public class ChartRendererModel : PageModel
     public string ChartType { get; set; } = "rasi"; // "rasi" or "navamsa"
 
     [BindProperty(SupportsGet = true)]
-    public string Language { get; set; } = "Tamil";
+    public string Language { get; set; } = "English";
 
     public void OnGet()
     {

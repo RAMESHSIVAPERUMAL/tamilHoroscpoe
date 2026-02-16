@@ -65,7 +65,7 @@ public class NavamsaCalculator
     /// <param name="planets">List of planet data from natal chart</param>
     /// <param name="language">Language for localized names (Tamil, Telugu, Kannada, Malayalam)</param>
     /// <returns>List of planet data with Navamsa positions</returns>
-    public List<PlanetData> CalculateNavamsaChart(List<PlanetData> planets, string language = "Tamil")
+    public List<PlanetData> CalculateNavamsaChart(List<PlanetData> planets, string language = "English")
     {
         var navamsaPlanets = new List<PlanetData>();
         
@@ -89,14 +89,14 @@ public class NavamsaCalculator
             };
             
             // Set Rasi names
-            var rasiInfo = TamilNames.Rasis[navamsaPlanet.Rasi];
+            var rasiInfo = LocalizedWordings.Rasis[navamsaPlanet.Rasi];
             navamsaPlanet.RasiName = rasiInfo.English;
 #pragma warning disable CS0618
             navamsaPlanet.TamilRasiName = rasiInfo.Tamil;
 #pragma warning restore CS0618
             
             // Set Nakshatra names
-            var nakshatraInfo = TamilNames.Nakshatras[navamsaPlanet.Nakshatra];
+            var nakshatraInfo = LocalizedWordings.Nakshatras[navamsaPlanet.Nakshatra];
             navamsaPlanet.NakshatraName = nakshatraInfo.English;
 #pragma warning disable CS0618
             navamsaPlanet.TamilNakshatraName = nakshatraInfo.Tamil;
